@@ -1,7 +1,7 @@
 Current functions will read vectors and have logic to convert missing values to NA and align decimals. 
 
 # Goals
-1. Pretty print csv and allow users to make their own themes and have access to as many data elements as possible to themes can be flexible
+1. Pretty print csv and allow users to make their own themes and have access to as many data elements as possible so themes can be flexible
 2. Infer schemas from csv to allow users to style by column type or to define their own column type
 
 # Todo
