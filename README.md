@@ -4,6 +4,9 @@ Current functions will read vectors and have logic to convert missing values to 
 1. Pretty print csv and allow users to make their own themes and have access to as many data elements as possible so themes can be flexible
 2. Infer schemas from csv to allow users to style by column type or to define their own column type
 
+![draft](https://user-images.githubusercontent.com/9298693/117234109-5b46f580-adf2-11eb-86ac-20c7d7e9ff26.gif)
+
+
 # Todo
 
 1. It sounds funny, but I can't figure out how to print the columns next to eachother. 
