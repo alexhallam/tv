@@ -1,4 +1,5 @@
 use regex::Regex;
+use owo_colors::OwoColorize;
 
 
 fn main() {
@@ -43,6 +44,10 @@ fn main() {
         let width: usize= if float_has_point(text) == true {text.split(".").collect::<Vec<&str>>()[0].len()} else{text.len()};
         return width 
     }
+    fn char_pad(text: &String, max_width: usize) -> String{
+        let f = format!("{:>width$}", text, width = max_width).to_string();
+        return f
+    }
     fn float_pad(text: &String, max_width: usize) -> String{
         let width = get_decimal_len(&text);
         let whole_number_width = get_left_decimal_len(&text);
@@ -78,11 +83,31 @@ fn main() {
         .map(|string| float_format(&string, 4))
         .collect::<Vec<String>>();
 
+    println!("--debug----debug----debug----debug----debug----debug----debug----debug----debug----debug----debug--");
     println!("original chars: {:?}",a.clone());
     println!("original doubles: {:?}",b);
 
-   let vs = tv::StringType(dbl);
-   let vf = tv::StringType(chr);
-   println!("{:^}\n{:^}", vs, vf);
+    println!("original chars: {:?}",chr);
+    println!("original doubles: {:?}",dbl);
+    println!("--debug----debug----debug----debug----debug----debug----debug----debug----debug----debug----debug--");
+
+
+    println!("\t{} {}", "<pillar>".truecolor(129,161,193).bold().dimmed(), "<pillar>".truecolor(129,161,193).bold().dimmed());
+    println!("\t{}\t {}", "<char>".truecolor(129,161,193).bold().dimmed(), "<dbl>".truecolor(129,161,193).bold().dimmed());
+    for i in 0..a.len(){
+        if is_na(&chr[i]){
+        println!("\t{}\t {}",chr[i].truecolor(180,142,173).blink(),dbl[i].truecolor(240,248,255));
+        }else if is_na(&dbl[i]){
+        println!("\t{}\t {}",chr[i].truecolor(240,248,255),dbl[i].truecolor(180,142,173));
+        }else{
+        println!("\t{}\t {}",chr[i].truecolor(240,248,255),dbl[i].truecolor(240,248,255));
+        }
+    }
+
+
+ //let vs = tv::StringType(dbl);
+ //  let vf = tv::StringType(chr);
+
+ //  println!("{:^} {:^}", vs, vf);
 
 }
