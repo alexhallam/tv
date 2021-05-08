@@ -1,0 +1,9 @@
+name, value
+"abc",0.0001
+"abcde",0.001
+"abcdefgh",0.01
+"abcdefghijkl",0.1
+"",1
+"abcdefghijklmnop",10
+"",100
+"",""
