@@ -339,6 +339,7 @@ dependencies = [
  "console",
  "csv",
  "itertools",
+ "lazy_static",
  "owo-colors",
  "pad",
  "regex",
