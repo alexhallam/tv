@@ -1,11 +1,11 @@
-use std::fmt::{Display, Formatter, Error};
 use owo_colors::OwoColorize;
+use std::fmt::{Display, Error, Formatter};
 
-pub enum Num{
-        Int(i32),
-        Float(f64),
-        Text(String),
-        NA(String)
+pub enum Num {
+    Int(i32),
+    Float(f64),
+    Text(String),
+    NA(String),
 }
 
 //pub struct Pillar(pub Vec<Vec<String>>);
@@ -15,10 +15,10 @@ pub enum Num{
 //}
 
 pub struct StringType(pub Vec<String>);
-impl Display for StringType{
+impl Display for StringType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        println!("{}", "<pillar>".truecolor(129,161,193).bold().dimmed());
-        println!("{}", "<char>".truecolor(129,161,193).bold().dimmed());
+        println!("{}", "<pillar>".truecolor(129, 161, 193).bold().dimmed());
+        println!("{}", "<char>".truecolor(129, 161, 193).bold().dimmed());
         //let mut comma_separated = String::new();
         let mut comma_separated = String::new();
         for num in &self.0[0..self.0.len()] {
