@@ -1,10 +1,10 @@
 use csv;
 use itertools::Itertools;
 use owo_colors::OwoColorize;
-use regex::Regex;
 use std::io;
 use structopt::StructOpt;
-use lazy_static::lazy_static;
+
+mod datatype;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt)]
@@ -20,63 +20,16 @@ struct Cli {
 //    column_types_override: String,
 }
 
-fn is_logical(text: &str) -> bool {
-    // col_logical -l, T,F,TRUE,FALSE,True,False,true,false,t,f,1,0
-    lazy_static! {
-        static ref R: Regex = Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False").unwrap();
-    }
-    //let r = Regex::new(rgex).unwrap();
-    let lgl = R.is_match(&text);
-    return lgl;
-}
-fn is_integer(text: &str) -> bool {
-    //let integer = "5";
-    lazy_static! {
-        static ref R: Regex = Regex::new(r"^([+-]?[1-9][0-9]*|0)$").unwrap();
-    }
-    let lgl = R.is_match(&text);
-    return lgl;
-}
-fn is_double(text: &str) -> bool {
-    lazy_static! {
-        static ref R: Regex = Regex::new(r"[+-]?[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?").unwrap();
-    }
-    let lgl = R.is_match(&text);
-    return lgl;
-}
-fn is_time(text: &str) -> bool {
-    //let time = "11:59:37 UTC";
-    //https://stackoverflow.com/a/25873711
-    lazy_static! {
-        static ref R: Regex = Regex::new(r"^(?:[01][0-9]|2[0123]):(?:[012345][0-9]):(?:[012345][0-9])$").unwrap();
-    }
-    let lgl = R.is_match(&text);
-    return lgl;
-}
-//fn is_date(text: &str) -> bool{
-//let date = "2020-01-01";
-//    //https://mkyong.com/regular-expressions/how-to-validate-date-with-regular-expression/
-//    return false
-//}
-fn is_date_time(text: &str) -> bool {
-    //let datetime = "2020-10-09 11:59:37 UTC";
-    //https://stackoverflow.com/a/25873711
-    lazy_static! {
-        static ref R: Regex = Regex::new(r"^(?:[01][0-9]|2[0123]):(?:[012345][0-9]):(?:[012345][0-9])").unwrap();
-    }
-    let lgl = R.is_match(&text);
-    return lgl;
-}
 fn infer_type_from_string(text: &str) -> &str {
-    if is_time(text) {
+    if datatype::is_time(text) {
         return "time";
-    } else if is_integer(text) {
+    } else if datatype::is_integer(text) {
         return "int";
-    } else if is_date_time(text) {
+    } else if datatype::is_date_time(text) {
         return "DT";
-    } else if is_double(text) {
+    } else if datatype::is_double(text) {
         return "double";
-    } else if is_logical(text) {
+    } else if datatype::is_logical(text) {
         return "logical";
     } else {
         return "character";
@@ -101,14 +54,8 @@ fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
         .collect::<Vec<String>>();
     return v;
 }
-fn is_na(text: &String) -> bool {
-    let rgex = r"^$|^(?:N(?:(?:(?:one|AN|a[Nn]|/A)|[Aa])|ull)|n(?:ull|an?)|(?:missing))$";
-    let r = Regex::new(rgex).unwrap();
-    let lgl = r.is_match(&text);
-    return lgl;
-}
 fn format_if_na(text: &String) -> String {
-    let s = is_na(&text);
+    let s = datatype::is_na(&text);
     let missing_string_value: String = "NA".to_string();
     let string: String = if s {
         missing_string_value
@@ -151,7 +98,7 @@ fn float_pad(text: &String, max_width: usize) -> String {
     return f;
 }
 fn float_format(text: &String, max_width: usize) -> String {
-    let is_na = is_na(&text);
+    let is_na = datatype::is_na(&text);
     let string: String = if is_na {
         format_if_na(text)
     } else {
@@ -239,19 +186,19 @@ fn main() {
         "<dbl>".truecolor(143, 188, 187).dimmed()
     );
     for i in 0..rows {
-        if is_na(&chr[i]) & is_na(&dbl[i]) {
+        if datatype::is_na(&chr[i]) & datatype::is_na(&dbl[i]) {
             println!(
                 "\t{}\t {}",
                 chr[i].truecolor(180, 142, 173),
                 dbl[i].truecolor(180, 142, 173)
             );
-        } else if is_na(&chr[i]) & !is_na(&dbl[i]) {
+        } else if datatype::is_na(&chr[i]) & !datatype::is_na(&dbl[i]) {
             println!(
                 "\t{}\t {}",
                 chr[i].truecolor(180, 142, 173),
                 dbl[i].truecolor(240, 248, 255)
             );
-        } else if is_na(&dbl[i]) & !is_na(&chr[i]) {
+        } else if datatype::is_na(&dbl[i]) & !datatype::is_na(&chr[i]) {
             println!(
                 "\t{}\t {}",
                 chr[i].truecolor(240, 248, 255),
@@ -264,5 +211,41 @@ fn main() {
                 dbl[i].truecolor(240, 248, 255)
             );
         }
+    }
+}
+
+
+
+//#[cfg(test)]
+//mod tests {
+//    #[test]
+//    fn test_is_logical() {
+//        mod datatype;
+//        assert_eq!(datatype::is_logical("T"),true);
+//    }
+//}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_logical() {
+        assert_eq!(datatype::is_logical("T"),true);
+        assert_eq!(datatype::is_logical("t"),true);
+        assert_eq!(datatype::is_logical("F"),true);
+        assert_eq!(datatype::is_logical("f"),true);
+        assert_eq!(datatype::is_logical("TRUE"),true);
+        assert_eq!(datatype::is_logical("FALSE"),true);
+        assert_eq!(datatype::is_logical("True"),true);
+        assert_eq!(datatype::is_logical("False"),true);
+        assert_eq!(datatype::is_logical("true"),true);
+        assert_eq!(datatype::is_logical("false"),true);
+    }
+    #[test]
+    fn test_is_na() {
+        assert_eq!(datatype::is_na(&"".to_string()),true);
+        assert_eq!(datatype::is_na(&"NA".to_string()),true);
+        assert_eq!(datatype::is_na(&"missing".to_string()),true);
+        assert_eq!(datatype::is_na(&"na".to_string()),true);
     }
 }
