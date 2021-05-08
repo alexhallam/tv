@@ -1,5 +1,4 @@
 [![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
-Current functions will read vectors and have logic to convert missing values to NA and align decimals. 
 
 # Goals
 1. Pretty print csv and allow users to make their own themes and have access to as many data elements as possible so themes can be flexible
