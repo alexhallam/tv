@@ -1,3 +1,4 @@
+[![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 Current functions will read vectors and have logic to convert missing values to NA and align decimals. 
 
 # Goals
