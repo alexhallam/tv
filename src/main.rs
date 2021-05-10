@@ -1,7 +1,7 @@
 use csv;
 use itertools::Itertools;
 use owo_colors::OwoColorize;
-use std::io;
+use std::io::{self, BufRead};
 use structopt::StructOpt;
 
 mod datatype;
@@ -22,17 +22,17 @@ struct Cli {
 
 fn infer_type_from_string(text: &str) -> &str {
     if datatype::is_time(text) {
-        return "time";
+        return "ts-t";
     } else if datatype::is_integer(text) {
         return "int";
     } else if datatype::is_date_time(text) {
-        return "DT";
+        return "ts-dt";
     } else if datatype::is_double(text) {
-        return "double";
+        return "dbl";
     } else if datatype::is_logical(text) {
-        return "logical";
+        return "lgl";
     } else {
-        return "character";
+        return "char";
     }
 }
 
@@ -145,26 +145,34 @@ fn main() {
     for i in 0..cols {
         vec_datatypes[i] = get_col_data_type(v[i].clone());
     }
-    //println!("{:?}", vec_datatypes);
+    println!("{:?}", vec_datatypes);
 
     // prep doubles
-    let vec_len = v[1]
+    fn prep_dbl(vec_dbl: Vec<&str>) -> Vec<String>{
+    let vec_len = vec_dbl
         .clone()
         .into_iter()
         .map(String::from)
         .map(|string| get_decimal_len(&string))
         .collect::<Vec<usize>>();
-
     let max_len: &usize = vec_len.iter().max().unwrap();
-    let dbl = v[1]
+    let dbl = vec_dbl
         .clone()
         .into_iter()
         .map(String::from)
         .map(|string| float_format(&string, *max_len))
         .collect::<Vec<String>>();
-
+    return dbl
+    }
+   
     // prep characters
-    let chr = trunc_strings(v[0].clone(), 6); //max_len
+    fn prep_char(vec_char: Vec<&str>) -> Vec<String>{
+    let chr = trunc_strings(vec_char.clone(), 6); //max_len
+    return chr
+    }
+    // get csv headers
+
+    // for i in datatype prep each column as associated with the data type
 
     let meta_text = "tv dim:";
     let div = "x";
@@ -180,50 +188,37 @@ fn main() {
         "<pillar>".truecolor(129, 161, 193),
         "<pillar>".truecolor(129, 161, 193)
     );
-    println!(
-        "\t{}\t {}",
-        "<char>".truecolor(143, 188, 187).dimmed(),
-        "<dbl>".truecolor(143, 188, 187).dimmed()
-    );
-    for i in 0..rows {
-        if datatype::is_na(&chr[i]) & datatype::is_na(&dbl[i]) {
-            println!(
-                "\t{}\t {}",
-                chr[i].truecolor(180, 142, 173),
-                dbl[i].truecolor(180, 142, 173)
-            );
-        } else if datatype::is_na(&chr[i]) & !datatype::is_na(&dbl[i]) {
-            println!(
-                "\t{}\t {}",
-                chr[i].truecolor(180, 142, 173),
-                dbl[i].truecolor(240, 248, 255)
-            );
-        } else if datatype::is_na(&dbl[i]) & !datatype::is_na(&chr[i]) {
-            println!(
-                "\t{}\t {}",
-                chr[i].truecolor(240, 248, 255),
-                dbl[i].truecolor(180, 142, 173)
-            );
-        } else {
-            println!(
-                "\t{}\t {}",
-                chr[i].truecolor(240, 248, 255),
-                dbl[i].truecolor(240, 248, 255)
-            );
-        }
-    }
+    let joined = vec_datatypes.join(">\t<");
+    println!("\t{}{}{}","<".truecolor(143, 188, 187).dimmed(),joined.truecolor(143, 188, 187).dimmed(),"".truecolor(143, 188, 187).dimmed());
+//    for i in 0..rows {
+//        if datatype::is_na(&chr[i]) & datatype::is_na(&dbl[i]) {
+//            println!(
+//                "\t{}\t {}",
+//                chr[i].truecolor(180, 142, 173),
+//                dbl[i].truecolor(180, 142, 173)
+//            );
+//        } else if datatype::is_na(&chr[i]) & !datatype::is_na(&dbl[i]) {
+//            println!(
+//                "\t{}\t {}",
+//                chr[i].truecolor(180, 142, 173),
+//                dbl[i].truecolor(240, 248, 255)
+//            );
+//        } else if datatype::is_na(&dbl[i]) & !datatype::is_na(&chr[i]) {
+//            println!(
+//                "\t{}\t {}",
+//                chr[i].truecolor(240, 248, 255),
+//                dbl[i].truecolor(180, 142, 173)
+//            );
+//        } else {
+//            println!(
+//                "\t{}\t {}",
+//                chr[i].truecolor(240, 248, 255),
+//                dbl[i].truecolor(240, 248, 255)
+//            );
+//        }
+//    }
 }
 
-
-
-//#[cfg(test)]
-//mod tests {
-//    #[test]
-//    fn test_is_logical() {
-//        mod datatype;
-//        assert_eq!(datatype::is_logical("T"),true);
-//    }
-//}
 #[cfg(test)]
 mod tests {
     use super::*;
