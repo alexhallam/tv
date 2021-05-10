@@ -1,9 +1,9 @@
-name, value
-"abc",0.0001
-"abcde",0.001
-"abcdefgh",0.01
-"abcdefghijkl",0.1
-"",1
-"abcdefghijklmnop",10
-"",100
-"",""
+name, value, bool
+"abc",0.0001,T
+"abcde",0.001,F
+"abcdefgh",0.01,T
+"abcdefghijkl",0.1,F
+"",1,T
+"abcdefghijklmnop",10,F
+"",100,
+"","",F
