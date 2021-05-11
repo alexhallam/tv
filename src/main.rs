@@ -1,8 +1,10 @@
 use csv;
 use itertools::Itertools;
 use owo_colors::OwoColorize;
-use std::io::{self, BufRead};
+use std::io::{self};
 use structopt::StructOpt;
+use std::io::Write;
+use tabwriter::TabWriter;
 
 mod datatype;
 
@@ -145,7 +147,30 @@ fn main() {
     for i in 0..cols {
         vec_datatypes[i] = get_col_data_type(v[i].clone());
     }
-    println!("{:?}", vec_datatypes);
+    //println!("{:?}", vec_datatypes);
+
+    let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); rows as usize]; cols as usize];
+   
+    // make vector of formatted values
+    for i in 0..cols{
+        if vec_datatypes[i] == "char"{
+     //   println!("{:?}",trunc_strings(v[i].clone(),6));
+        vf[i] = trunc_strings(v[i].clone(),6);
+        }else if vec_datatypes[i] == "dbl"{
+      //  println!("{:?}",prep_dbl(v[i].clone()));
+        vf[i] = prep_dbl(v[i].clone());
+        }else{
+      //  println!("{:?}",trunc_strings(v[i].clone(),6));
+        vf[i] = trunc_strings(v[i].clone(),6);
+        }
+    }
+
+    let mut vp: Vec<Vec<String>> = vec![vec!["#".to_string(); cols as usize]; rows as usize];
+    for col in 0..cols{
+        for row in 0..rows{
+            vp[row][col] = vf[col].get(row).unwrap().to_string();
+        }
+    }
 
     // prep doubles
     fn prep_dbl(vec_dbl: Vec<&str>) -> Vec<String>{
@@ -164,60 +189,34 @@ fn main() {
         .collect::<Vec<String>>();
     return dbl
     }
-   
-    // prep characters
-    fn prep_char(vec_char: Vec<&str>) -> Vec<String>{
-    let chr = trunc_strings(vec_char.clone(), 6); //max_len
-    return chr
+
+    // printing
+    let mut s = String::new();
+    for i in 0..rows{
+        let a = vp[i].join("\t").to_string() + "\n";
+        s.push_str(&a);
     }
-    // get csv headers
-
-    // for i in datatype prep each column as associated with the data type
-
+    let s_slice: &str = &s[..];  // take a full slice of the string
+    let mut tw = TabWriter::new(vec![]);
+    write!(&mut tw, "{}",s_slice).unwrap();
+    tw.flush().unwrap();
+    let tabbed_data = String::from_utf8(tw.into_inner().unwrap()).unwrap();
     let meta_text = "tv dim:";
     let div = "x";
     println!(
-        "\t{} {} {} {}",
+        "{} {} {} {}",
         meta_text.truecolor(143, 188, 187).dimmed(),
         rows.truecolor(143, 188, 187).dimmed(),
         div.truecolor(143, 188, 187).dimmed(),
         cols.truecolor(143, 188, 187).dimmed()
     );
-    println!(
-        "\t{} {}",
-        "<pillar>".truecolor(129, 161, 193),
-        "<pillar>".truecolor(129, 161, 193)
-    );
-    let joined = vec_datatypes.join(">\t<");
-    println!("\t{}{}{}","<".truecolor(143, 188, 187).dimmed(),joined.truecolor(143, 188, 187).dimmed(),"".truecolor(143, 188, 187).dimmed());
-//    for i in 0..rows {
-//        if datatype::is_na(&chr[i]) & datatype::is_na(&dbl[i]) {
-//            println!(
-//                "\t{}\t {}",
-//                chr[i].truecolor(180, 142, 173),
-//                dbl[i].truecolor(180, 142, 173)
-//            );
-//        } else if datatype::is_na(&chr[i]) & !datatype::is_na(&dbl[i]) {
-//            println!(
-//                "\t{}\t {}",
-//                chr[i].truecolor(180, 142, 173),
-//                dbl[i].truecolor(240, 248, 255)
-//            );
-//        } else if datatype::is_na(&dbl[i]) & !datatype::is_na(&chr[i]) {
-//            println!(
-//                "\t{}\t {}",
-//                chr[i].truecolor(240, 248, 255),
-//                dbl[i].truecolor(180, 142, 173)
-//            );
-//        } else {
-//            println!(
-//                "\t{}\t {}",
-//                chr[i].truecolor(240, 248, 255),
-//                dbl[i].truecolor(240, 248, 255)
-//            );
-//        }
-//    }
-}
+    // put col headers here
+    let vec_datatypes_joined = vec_datatypes.join(">\t<");
+    println!("{}{}{}","<".truecolor(143, 188, 187).dimmed(),vec_datatypes_joined.truecolor(143, 188, 187).dimmed(),">".truecolor(143, 188, 187).dimmed());
+    println!("{}",tabbed_data.truecolor(143, 188, 187));
+
+
+} // end main
 
 #[cfg(test)]
 mod tests {
