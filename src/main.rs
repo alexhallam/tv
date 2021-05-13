@@ -3,8 +3,8 @@ use itertools::Itertools;
 use owo_colors::OwoColorize;
 use std::io::{self};
 use structopt::StructOpt;
-use std::io::Write;
-use tabwriter::TabWriter;
+//use std::io::Write;
+//use tabwriter::TabWriter;
 
 mod datatype;
 
@@ -196,27 +196,55 @@ fn main() {
         let a = vp[i].join("\t").to_string() + "\n";
         s.push_str(&a);
     }
-    let s_slice: &str = &s[..];  // take a full slice of the string
-    let mut tw = TabWriter::new(vec![]);
-    write!(&mut tw, "{}",s_slice).unwrap();
-    tw.flush().unwrap();
-    let tabbed_data = String::from_utf8(tw.into_inner().unwrap()).unwrap();
+    // tab writter
+    // let s_slice: &str = &s[..];  // take a full slice of the string
+    // let mut tw = TabWriter::new(vec![]);
+    // write!(&mut tw, "{}",s_slice).unwrap();
+    // tw.flush().unwrap();
+    // let tabbed_data = String::from_utf8(tw.into_inner().unwrap()).unwrap();
+    // tab writter
     let meta_text = "tv dim:";
     let div = "x";
     println!(
-        "{} {} {} {}",
-        meta_text.truecolor(143, 188, 187).dimmed(),
-        rows.truecolor(143, 188, 187).dimmed(),
-        div.truecolor(143, 188, 187).dimmed(),
-        cols.truecolor(143, 188, 187).dimmed()
+        "\t{} {} {} {}",
+        meta_text.truecolor(143, 188, 187),
+        rows.truecolor(143, 188, 187),
+        div.truecolor(143, 188, 187),
+        cols.truecolor(143, 188, 187),
     );
     // put col headers here
     let vec_datatypes_joined = vec_datatypes.join(">\t<");
-    println!("{}{}{}","<".truecolor(143, 188, 187).dimmed(),vec_datatypes_joined.truecolor(143, 188, 187).dimmed(),">".truecolor(143, 188, 187).dimmed());
-    println!("{}",tabbed_data.truecolor(143, 188, 187));
+    println!("\t\t{}{}{}","<".truecolor(143, 188, 187).dimmed(),vec_datatypes_joined.truecolor(143, 188, 187).dimmed(),">".truecolor(143, 188, 187).dimmed());
+//    println!("{}",tabbed_data.truecolor(143, 188, 187));
+        for row in 0..rows{
+                print!("\t{}\t",(row+1).truecolor(143, 188, 187).dimmed());
+            for col in 0..cols{
+                let text = vp[row].get(col).unwrap().to_string();
+                print!("{}\t",
+                    if datatype::is_na_string(vp[row].get(col).unwrap().to_string()){
+                        text.truecolor(94, 129, 172)
+                    }else{
+                        text.truecolor(216, 222, 233)
+                    }
+                    );
+        }
+                println!();
+    }
 
 
 } // end main
+
+// Nord
+// nord5 - white
+// .truecolor(216, 222, 233)
+// Red
+// .truecolor(191, 97, 106)
+// nord8 - light blue
+// .truecolor(136, 192, 208)
+// nord10 - dark blue
+// .truecolor(94, 129, 172)
+// .truecolor(191, 97, 106)
+
 
 #[cfg(test)]
 mod tests {
