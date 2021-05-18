@@ -35,11 +35,14 @@ pub fn is_time(text: &str) -> bool {
     let lgl = R.is_match(&text);
     return lgl;
 }
-//pub fn is_date(text: &str) -> bool{
-//let date = "2020-01-01";
-//    //https://mkyong.com/regular-expressions/how-to-validate-date-with-regular-expression/
-//    return false
-//}
+pub fn is_date(text: &str) -> bool{
+    lazy_static! {
+        static ref R: Regex = Regex::new(r"\d{4}-\d{2}-\d{2}").unwrap();
+    }
+    let lgl = R.is_match(&text);
+    return lgl;
+    //https://mkyong.com/regular-expressions/how-to-validate-date-with-regular-expression/
+}
 pub fn is_date_time(text: &str) -> bool {
     //let datetime = "2020-10-09 11:59:37 UTC";
     //https://stackoverflow.com/a/25873711
@@ -52,7 +55,7 @@ pub fn is_date_time(text: &str) -> bool {
 
 pub fn is_na(text: &String) -> bool {
     lazy_static! {
-        static ref R: Regex = Regex::new(r"^$|^(?:N(?:(?:(?:one|AN|a[Nn]|/A)|[Aa])|ull)|n(?:ull|an?)|(?:missing))$").unwrap();
+        static ref R: Regex = Regex::new(r"^$|^(?:N(?:(?:(?:one|AN|a[Nn]|/A)|[Aa])|ull)|n(?:ull|an?|/a?)|(?:missing))$").unwrap();
     }
     let lgl = R.is_match(&text);
     return lgl;

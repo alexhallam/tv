@@ -29,6 +29,8 @@ fn infer_type_from_string(text: &str) -> &str {
         return "int";
     } else if datatype::is_date_time(text) {
         return "ts-dt";
+    } else if datatype::is_date(text) {
+        return "ts-d";
     } else if datatype::is_double(text) {
         return "dbl";
     } else if datatype::is_logical(text) {
@@ -161,7 +163,7 @@ fn main() {
         vf[i] = prep_dbl(v[i].clone());
         }else{
       //  println!("{:?}",trunc_strings(v[i].clone(),6));
-        vf[i] = trunc_strings(v[i].clone(),6);
+        vf[i] = trunc_strings(v[i].clone(),10);
         }
     }
 
