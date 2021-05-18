@@ -149,6 +149,7 @@ fn main() {
     for i in 0..cols {
         vec_datatypes[i] = get_col_data_type(v[i].clone());
     }
+    // --dtype debug
     //println!("{:?}", vec_datatypes);
 
     let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); rows as usize]; cols as usize];
