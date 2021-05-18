@@ -1,10 +1,22 @@
 use csv;
+use csv::ReaderBuilder;
 use itertools::Itertools;
 use owo_colors::OwoColorize;
 use std::io::{self};
 use structopt::StructOpt;
 //use std::io::Write;
 //use tabwriter::TabWriter;
+//
+// Nord
+// nord5 - white
+// .truecolor(216, 222, 233)
+// Red
+// .truecolor(191, 97, 106)
+// nord8 - light blue
+// .truecolor(136, 192, 208)
+// nord10 - dark blue
+// .truecolor(94, 129, 172)
+// .truecolor(191, 97, 106)
 
 mod datatype;
 
@@ -29,6 +41,8 @@ fn infer_type_from_string(text: &str) -> &str {
         return "int";
     } else if datatype::is_date_time(text) {
         return "ts-dt";
+    } else if datatype::is_date(text) {
+        return "ts-d";
     } else if datatype::is_double(text) {
         return "dbl";
     } else if datatype::is_logical(text) {
@@ -48,12 +62,24 @@ fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
                 string.truncate(width);
                 [string, ellipsis.to_string()].join("")
             } else {
-                string.truncate(width);
-                string
+                let l = string.len();
+                let add_space = width-l;
+                let owned_string: String = string.to_owned();
+                let borrowed_string: &str = &" ".repeat(add_space);
+                [string, owned_string].join(borrowed_string)
             }
         })
         .map(|string| format_if_na(&string))
         .collect::<Vec<String>>();
+    return v;
+}
+
+fn header_len(vec_col: Vec<String>) -> Vec<usize> {
+    let v = vec_col
+        .into_iter()
+        .map(String::from)
+        .map(|mut string| {string.len()})
+        .collect::<Vec<usize>>();
     return v;
 }
 fn format_if_na(text: &String) -> String {
@@ -124,12 +150,23 @@ fn get_col_data_type(col: Vec<&str>) -> &str {
 }
 
 fn main() {
-    //   let args = Cli::from_args();
-    let rdr = csv::Reader::from_reader(io::stdin())
+    //let args = Cli::from_args();
+    //   colname reader
+    let mut r = ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(io::stdin());
+    let rdr = r
         .records()
         .into_iter()
         .map(|x| x.expect("a csv record"))
         .collect::<Vec<_>>();
+
+    // dataframe reader
+    // let rdr = csv::Reader::from_reader(io::stdin())
+    //     .records()
+    //     .into_iter()
+    //     .map(|x| x.expect("a csv record"))
+    //     .collect::<Vec<_>>();
 
     let cols: usize = rdr[0].len();
     let rows: usize = rdr.len();
@@ -147,6 +184,21 @@ fn main() {
     for i in 0..cols {
         vec_datatypes[i] = get_col_data_type(v[i].clone());
     }
+
+    let mut vec_header: Vec<&str> = vec!["#"; cols as usize];
+    for i in 0..cols {
+        vec_header[i] = v[i].get(0).unwrap();
+    }
+
+
+    //println!("===================================================================");
+    //println!("{:?}", vec_header);
+    //let header_tunc = trunc_strings(vec_header.clone(), 15);
+    //let vec_header_len = header_len(vec_header);
+    //println!("{:?}", vec_header_len);
+    //println!("===================================================================");
+
+    // --dtype debug
     //println!("{:?}", vec_datatypes);
 
     let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); rows as usize]; cols as usize];
@@ -155,13 +207,13 @@ fn main() {
     for i in 0..cols{
         if vec_datatypes[i] == "char"{
      //   println!("{:?}",trunc_strings(v[i].clone(),6));
-        vf[i] = trunc_strings(v[i].clone(),6);
+        vf[i] = trunc_strings(v[i].clone(),12);
         }else if vec_datatypes[i] == "dbl"{
       //  println!("{:?}",prep_dbl(v[i].clone()));
         vf[i] = prep_dbl(v[i].clone());
         }else{
       //  println!("{:?}",trunc_strings(v[i].clone(),6));
-        vf[i] = trunc_strings(v[i].clone(),6);
+        vf[i] = trunc_strings(v[i].clone(),12);
         }
     }
 
@@ -196,31 +248,27 @@ fn main() {
         let a = vp[i].join("\t").to_string() + "\n";
         s.push_str(&a);
     }
-    // tab writter
-    // let s_slice: &str = &s[..];  // take a full slice of the string
-    // let mut tw = TabWriter::new(vec![]);
-    // write!(&mut tw, "{}",s_slice).unwrap();
-    // tw.flush().unwrap();
-    // let tabbed_data = String::from_utf8(tw.into_inner().unwrap()).unwrap();
-    // tab writter
     let meta_text = "tv dim:";
     let div = "x";
     println!(
         "\t{} {} {} {}",
         meta_text.truecolor(143, 188, 187),
-        rows.truecolor(143, 188, 187),
+        (rows - 1).truecolor(143, 188, 187),
         div.truecolor(143, 188, 187),
         cols.truecolor(143, 188, 187),
     );
     // put col headers here
-    let vec_datatypes_joined = vec_datatypes.join(">\t<");
+    let vec_header_joined = vec_header.join(" ");
+    println!("\t\t{}",vec_header_joined.truecolor(216, 222, 233).bold());
+    // datatypes
+    let vec_datatypes_joined = vec_datatypes.join(">        <");
     println!("\t\t{}{}{}","<".truecolor(143, 188, 187).dimmed(),vec_datatypes_joined.truecolor(143, 188, 187).dimmed(),">".truecolor(143, 188, 187).dimmed());
-//    println!("{}",tabbed_data.truecolor(143, 188, 187));
-        for row in 0..rows{
-                print!("\t{}\t",(row+1).truecolor(143, 188, 187).dimmed());
+    // dataframe
+        for row in 1..rows{
+                print!("\t{} ",(row).truecolor(143, 188, 187).dimmed());
             for col in 0..cols{
                 let text = vp[row].get(col).unwrap().to_string();
-                print!("{}\t",
+                print!("\t{} ",
                     if datatype::is_na_string(vp[row].get(col).unwrap().to_string()){
                         text.truecolor(94, 129, 172)
                     }else{
@@ -228,23 +276,10 @@ fn main() {
                     }
                     );
         }
-                println!();
+        println!();
     }
 
-
 } // end main
-
-// Nord
-// nord5 - white
-// .truecolor(216, 222, 233)
-// Red
-// .truecolor(191, 97, 106)
-// nord8 - light blue
-// .truecolor(136, 192, 208)
-// nord10 - dark blue
-// .truecolor(94, 129, 172)
-// .truecolor(191, 97, 106)
-
 
 #[cfg(test)]
 mod tests {
