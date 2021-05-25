@@ -31,7 +31,7 @@ cat data/diamonds.csv | head -n 35 | tv
 
 # Tools to pair with tv
 
-`tv` is a good compliment to command line data manipulation tools. 
+`tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
 `xsv` ([code](https://github.com/BurntSushi/xsv))
 
