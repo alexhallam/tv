@@ -1,7 +1,7 @@
-name,value,bool,date
+name, value, bool, date
 "abc",0.0001,T,2021-01-01
 "abcde",0.001,F,2021-01-01
-"abcdefgh",0.01,True,
+"abcdefgh",0.01,T,
 "abcdefghijkl",0.1,F,2021-01-01
 "",1,T,2021-01-01
 "abcdefghijklmnop",10,F,2021-01-01

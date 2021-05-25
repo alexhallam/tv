@@ -4,9 +4,6 @@ use itertools::Itertools;
 use owo_colors::OwoColorize;
 use std::io::{self};
 use structopt::StructOpt;
-//use std::io::Write;
-//use tabwriter::TabWriter;
-//
 // Nord
 // nord5 - white
 // .truecolor(216, 222, 233)
@@ -20,7 +17,6 @@ use structopt::StructOpt;
 
 mod datatype;
 
-/// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt)]
 #[structopt(
     name = "tv",
@@ -28,7 +24,7 @@ mod datatype;
 "
 )]
 struct Cli {
-    //    #[structopt(parse(from_os_str),short = "i", long = "input")]
+//    #[structopt(parse(from_os_str),short = "i", long = "input")]
 //    input_csv_file_path: std::path::PathBuf,
 //    #[structopt(short = "c",long = "col_types")]
 //    column_types_override: String,
@@ -36,19 +32,19 @@ struct Cli {
 
 fn infer_type_from_string(text: &str) -> &str {
     if datatype::is_time(text) {
-        return "ts-t";
+        return "<tst>";
     } else if datatype::is_integer(text) {
-        return "int";
+        return "<int>";
     } else if datatype::is_date_time(text) {
-        return "ts-dt";
+        return "<tdt>";
     } else if datatype::is_date(text) {
-        return "ts-d";
+        return "<tsd>";
     } else if datatype::is_double(text) {
-        return "dbl";
+        return "<dbl>";
     } else if datatype::is_logical(text) {
-        return "lgl";
+        return "<lgl>";
     } else {
-        return "char";
+        return "<chr>";
     }
 }
 
@@ -59,22 +55,30 @@ fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
         .map(String::from)
         .map(|mut string| {
             if string.len() > width {
-                string.truncate(width);
+                string.truncate(width-1);
                 [string, ellipsis.to_string()].join("")
             } else {
                 let l = string.len();
-                let add_space = width-l;
+                let add_space = width-l+1;
                 let owned_string: String = string.to_owned();
                 let borrowed_string: &str = &" ".repeat(add_space);
-                [string, owned_string].join(borrowed_string)
+                //[string, owned_string].join(borrowed_string)
+                [string, "".to_string()].join(borrowed_string)
             }
         })
         .map(|string| format_if_na(&string))
         .collect::<Vec<String>>();
     return v;
 }
-
 fn header_len(vec_col: Vec<String>) -> Vec<usize> {
+    let v = vec_col
+        .into_iter()
+        .map(String::from)
+        .map(|mut string| {string.len()})
+        .collect::<Vec<usize>>();
+    return v;
+}
+fn header_len_str(vec_col: Vec<&str>) -> Vec<usize> {
     let v = vec_col
         .into_iter()
         .map(String::from)
@@ -161,13 +165,6 @@ fn main() {
         .map(|x| x.expect("a csv record"))
         .collect::<Vec<_>>();
 
-    // dataframe reader
-    // let rdr = csv::Reader::from_reader(io::stdin())
-    //     .records()
-    //     .into_iter()
-    //     .map(|x| x.expect("a csv record"))
-    //     .collect::<Vec<_>>();
-
     let cols: usize = rdr[0].len();
     let rows: usize = rdr.len();
 
@@ -185,38 +182,40 @@ fn main() {
         vec_datatypes[i] = get_col_data_type(v[i].clone());
     }
 
-    let mut vec_header: Vec<&str> = vec!["#"; cols as usize];
-    for i in 0..cols {
-        vec_header[i] = v[i].get(0).unwrap();
+    // vector of formatted values
+    let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); rows as usize]; cols as usize];
+
+    // get max width in columns
+    let mut col_largest_width = Vec::new();
+    for i in 0..cols{
+        let size:usize = header_len_str(v[i].clone()).into_iter().max().unwrap();
+        col_largest_width.push(size);
     }
 
+    // format datatypes spaces 
+    let mut vec_format_datatypes: Vec<_> = vec!["#"; cols as usize];
+        print!("{:?}",vec_format_datatypes);
 
-    //println!("===================================================================");
-    //println!("{:?}", vec_header);
-    //let header_tunc = trunc_strings(vec_header.clone(), 15);
-    //let vec_header_len = header_len(vec_header);
-    //println!("{:?}", vec_header_len);
-    //println!("===================================================================");
+    //for i in 0..cols {
+    //    let add_space = col_largest_width[i] - vec_datatypes[i].len();
+    //    let borrowed_string = " ".repeat(add_space);
+    //    let string = vec_datatypes[i].to_string();
+    //}
 
-    // --dtype debug
-    //println!("{:?}", vec_datatypes);
-
-    let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); rows as usize]; cols as usize];
-   
     // make vector of formatted values
     for i in 0..cols{
-        if vec_datatypes[i] == "char"{
-     //   println!("{:?}",trunc_strings(v[i].clone(),6));
-        vf[i] = trunc_strings(v[i].clone(),12);
-        }else if vec_datatypes[i] == "dbl"{
-      //  println!("{:?}",prep_dbl(v[i].clone()));
-        vf[i] = prep_dbl(v[i].clone());
+        if vec_datatypes[i] == "<chr>"{
+        //vf[i] = (v[i].clone(),col_largest_width[i]);
+        vf[i] = trunc_strings(v[i].clone(),col_largest_width[i]);
+        }else if vec_datatypes[i] == "<dbl>"{
+        vf[i] = trunc_strings(v[i].clone(),col_largest_width[i]);
+        //vf[i] = prep_dbl(v[i].clone());
         }else{
-      //  println!("{:?}",trunc_strings(v[i].clone(),6));
-        vf[i] = trunc_strings(v[i].clone(),12);
+        vf[i] = trunc_strings(v[i].clone(),col_largest_width[i]);
         }
     }
 
+    println!();
     let mut vp: Vec<Vec<String>> = vec![vec!["#".to_string(); cols as usize]; rows as usize];
     for col in 0..cols{
         for row in 0..rows{
@@ -242,33 +241,36 @@ fn main() {
     return dbl
     }
 
-    // printing
-    let mut s = String::new();
-    for i in 0..rows{
-        let a = vp[i].join("\t").to_string() + "\n";
-        s.push_str(&a);
-    }
     let meta_text = "tv dim:";
     let div = "x";
+    // meta
+    print!("{: <6}", "");
     println!(
-        "\t{} {} {} {}",
+        "{} {} {} {}",
         meta_text.truecolor(143, 188, 187),
         (rows - 1).truecolor(143, 188, 187),
         div.truecolor(143, 188, 187),
         cols.truecolor(143, 188, 187),
     );
-    // put col headers here
-    let vec_header_joined = vec_header.join(" ");
-    println!("\t\t{}",vec_header_joined.truecolor(216, 222, 233).bold());
+    // header
+    print!("{: <6}", "");
+    for col in 0..cols{
+        let text = vp[0].get(col).unwrap().to_string();
+        print!("{}",text.truecolor(216, 222, 233).bold());
+    }
+    println!();
     // datatypes
-    let vec_datatypes_joined = vec_datatypes.join(">        <");
-    println!("\t\t{}{}{}","<".truecolor(143, 188, 187).dimmed(),vec_datatypes_joined.truecolor(143, 188, 187).dimmed(),">".truecolor(143, 188, 187).dimmed());
-    // dataframe
-        for row in 1..rows{
-                print!("\t{} ",(row).truecolor(143, 188, 187).dimmed());
-            for col in 0..cols{
+    print!("{: <6}", "");
+    for col in 0..cols{
+        let text = vec_datatypes[col].to_string();
+        print!("{}",text.truecolor(143, 188, 187).bold());
+    }
+    println!();
+    for row in 1..rows{
+        print!("{: <6}",(row).truecolor(143, 188, 187).dimmed());
+        for col in 0..cols{
                 let text = vp[row].get(col).unwrap().to_string();
-                print!("\t{} ",
+                print!("{}",
                     if datatype::is_na_string(vp[row].get(col).unwrap().to_string()){
                         text.truecolor(94, 129, 172)
                     }else{
