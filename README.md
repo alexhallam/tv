@@ -18,10 +18,15 @@ git clone https://github.com/alexhallam/tv
 cargo build --release
 ```
 
-# Usage
+# Example
+
 
 ```
-cat a.csv | tv
+# Download the diamonds data
+wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
+
+# pipe 35 records to tv
+cat data/diamonds.csv | head -n 35 | tv
 ```
 
 # Tools to pair with tv
@@ -35,3 +40,7 @@ cat a.csv | tv
 `q` ([code](https://github.com/zestyping/q))
 
 `miller` ([code](https://github.com/johnkerl/miller))
+
+# Tools similar to tv
+
+`column` Comes standard with linux.
