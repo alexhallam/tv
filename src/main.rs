@@ -24,7 +24,7 @@ mod datatype;
 "
 )]
 struct Cli {
-//    #[structopt(parse(from_os_str),short = "i", long = "input")]
+    //    #[structopt(parse(from_os_str),short = "i", long = "input")]
 //    input_csv_file_path: std::path::PathBuf,
 //    #[structopt(short = "c",long = "col_types")]
 //    column_types_override: String,
@@ -56,11 +56,11 @@ fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
         .map(|string| format_if_na(&string))
         .map(|mut string| {
             if string.len() > width {
-                string.truncate(width-1);
+                string.truncate(width - 1);
                 [string, ellipsis.to_string()].join(" ")
             } else {
                 let l = string.len();
-                let add_space = width-l+1;
+                let add_space = width - l + 1;
                 let owned_string: String = string.to_owned();
                 let borrowed_string: &str = &" ".repeat(add_space);
                 //[string, owned_string].join(borrowed_string)
@@ -74,7 +74,7 @@ fn header_len(vec_col: Vec<String>) -> Vec<usize> {
     let v = vec_col
         .into_iter()
         .map(String::from)
-        .map(|mut string| {string.len()})
+        .map(|mut string| string.len())
         .collect::<Vec<usize>>();
     return v;
 }
@@ -82,13 +82,13 @@ fn header_len_str(vec_col: Vec<&str>) -> Vec<usize> {
     let v = vec_col
         .into_iter()
         .map(String::from)
-        .map(|mut string| {string.len()})
+        .map(|mut string| string.len())
         .collect::<Vec<usize>>();
     return v;
 }
 fn format_if_na(text: &String) -> String {
     let s = datatype::is_na(text);
-        // todo add repeat strings for NA
+    // todo add repeat strings for NA
     let missing_string_value: String = "NA".to_string();
     let string: String = if s {
         missing_string_value
@@ -188,12 +188,12 @@ fn main() {
 
     // get max width in columns
     let mut col_largest_width = Vec::new();
-    for i in 0..cols{
-        let size:usize = header_len_str(v[i].clone()).into_iter().max().unwrap();
+    for i in 0..cols {
+        let size: usize = header_len_str(v[i].clone()).into_iter().max().unwrap();
         col_largest_width.push(size);
     }
 
-    // format datatypes spaces 
+    // format datatypes spaces
     let mut vec_format_datatypes: Vec<_> = vec!["#"; cols as usize];
     //for i in 0..cols {
     //    let add_space = col_largest_width[i] - vec_datatypes[i].len();
@@ -202,42 +202,42 @@ fn main() {
     //}
 
     // make vector of formatted values
-    for i in 0..cols{
-        if vec_datatypes[i] == "<chr>"{
-        //vf[i] = (v[i].clone(),col_largest_width[i]);
-        vf[i] = trunc_strings(v[i].clone(),col_largest_width[i]);
-        }else if vec_datatypes[i] == "<dbl>"{
-        vf[i] = trunc_strings(v[i].clone(),col_largest_width[i]);
+    for i in 0..cols {
+        if vec_datatypes[i] == "<chr>" {
+            //vf[i] = (v[i].clone(),col_largest_width[i]);
+            vf[i] = trunc_strings(v[i].clone(), col_largest_width[i]);
+        } else if vec_datatypes[i] == "<dbl>" {
+            vf[i] = trunc_strings(v[i].clone(), col_largest_width[i]);
         //vf[i] = prep_dbl(v[i].clone());
-        }else{
-        vf[i] = trunc_strings(v[i].clone(),col_largest_width[i]);
+        } else {
+            vf[i] = trunc_strings(v[i].clone(), col_largest_width[i]);
         }
     }
 
     println!();
     let mut vp: Vec<Vec<String>> = vec![vec!["#".to_string(); cols as usize]; rows as usize];
-    for col in 0..cols{
-        for row in 0..rows{
+    for col in 0..cols {
+        for row in 0..rows {
             vp[row][col] = vf[col].get(row).unwrap().to_string();
         }
     }
 
     // prep doubles
-    fn prep_dbl(vec_dbl: Vec<&str>) -> Vec<String>{
-    let vec_len = vec_dbl
-        .clone()
-        .into_iter()
-        .map(String::from)
-        .map(|string| get_decimal_len(&string))
-        .collect::<Vec<usize>>();
-    let max_len: &usize = vec_len.iter().max().unwrap();
-    let dbl = vec_dbl
-        .clone()
-        .into_iter()
-        .map(String::from)
-        .map(|string| float_format(&string, *max_len))
-        .collect::<Vec<String>>();
-    return dbl
+    fn prep_dbl(vec_dbl: Vec<&str>) -> Vec<String> {
+        let vec_len = vec_dbl
+            .clone()
+            .into_iter()
+            .map(String::from)
+            .map(|string| get_decimal_len(&string))
+            .collect::<Vec<usize>>();
+        let max_len: &usize = vec_len.iter().max().unwrap();
+        let dbl = vec_dbl
+            .clone()
+            .into_iter()
+            .map(String::from)
+            .map(|string| float_format(&string, *max_len))
+            .collect::<Vec<String>>();
+        return dbl;
     }
 
     let meta_text = "tv dim:";
@@ -253,11 +253,11 @@ fn main() {
     );
     // header
     print!("{: <6}", "");
-    for col in 0..cols{
+    for col in 0..cols {
         let text = vp[0].get(col).unwrap().to_string();
-        print!("{}",text.truecolor(216, 222, 233).bold());
+        print!("{}", text.truecolor(216, 222, 233).bold());
     }
-    println!();
+    //println!();
     // datatypes
     //print!("{: <6}", "");
     //for col in 0..cols{
@@ -268,21 +268,23 @@ fn main() {
     //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
     //}
     println!();
-    for row in 1..rows{
-        print!("{: <6}",(row).truecolor(143, 188, 187).dimmed());
-        for col in 0..cols{
-                let text = vp[row].get(col).unwrap().to_string();
-                print!("{}",
-                    if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()){
-                        text.truecolor(94, 129, 172)
-                    }else{
-                        text.truecolor(216, 222, 233)
-                    }
-                    );
+    for row in 1..rows {
+        print!("{: <6}", (row).truecolor(143, 188, 187).dimmed());
+        for col in 0..cols {
+            let text = vp[row].get(col).unwrap().to_string();
+            print!(
+                "{}",
+                if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
+                    text.truecolor(94, 129, 172)
+                } else {
+                    text.truecolor(216, 222, 233)
+                }
+            );
         }
         println!();
     }
 
+    println!();
 } // end main
 
 #[cfg(test)]
@@ -291,22 +293,22 @@ mod tests {
 
     #[test]
     fn test_is_logical() {
-        assert_eq!(datatype::is_logical("T"),true);
-        assert_eq!(datatype::is_logical("t"),true);
-        assert_eq!(datatype::is_logical("F"),true);
-        assert_eq!(datatype::is_logical("f"),true);
-        assert_eq!(datatype::is_logical("TRUE"),true);
-        assert_eq!(datatype::is_logical("FALSE"),true);
-        assert_eq!(datatype::is_logical("True"),true);
-        assert_eq!(datatype::is_logical("False"),true);
-        assert_eq!(datatype::is_logical("true"),true);
-        assert_eq!(datatype::is_logical("false"),true);
+        assert_eq!(datatype::is_logical("T"), true);
+        assert_eq!(datatype::is_logical("t"), true);
+        assert_eq!(datatype::is_logical("F"), true);
+        assert_eq!(datatype::is_logical("f"), true);
+        assert_eq!(datatype::is_logical("TRUE"), true);
+        assert_eq!(datatype::is_logical("FALSE"), true);
+        assert_eq!(datatype::is_logical("True"), true);
+        assert_eq!(datatype::is_logical("False"), true);
+        assert_eq!(datatype::is_logical("true"), true);
+        assert_eq!(datatype::is_logical("false"), true);
     }
     #[test]
     fn test_is_na() {
-        assert_eq!(datatype::is_na(&"".to_string()),true);
-        assert_eq!(datatype::is_na(&"NA".to_string()),true);
-        assert_eq!(datatype::is_na(&"missing".to_string()),true);
-        assert_eq!(datatype::is_na(&"na".to_string()),true);
+        assert_eq!(datatype::is_na(&"".to_string()), true);
+        assert_eq!(datatype::is_na(&"NA".to_string()), true);
+        assert_eq!(datatype::is_na(&"missing".to_string()), true);
+        assert_eq!(datatype::is_na(&"na".to_string()), true);
     }
 }
