@@ -2,9 +2,7 @@
 
 Tidy Viewer (tv) is a csv pretty printer that uses column styling maximize viewer enjoyment.
 
-
-https://user-images.githubusercontent.com/9298693/119566134-cbed8c00-bd78-11eb-9879-8b32b8cbec77.mp4
-
+![Peek 2021-05-25 19-57](https://user-images.githubusercontent.com/9298693/119582922-89857880-bd93-11eb-868a-3d7ff2b9a1a6.gif)
 
 ```
 old gif
