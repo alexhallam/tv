@@ -53,10 +53,11 @@ fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
     let v = vec_col
         .into_iter()
         .map(String::from)
+        .map(|string| format_if_na(&string))
         .map(|mut string| {
             if string.len() > width {
                 string.truncate(width-1);
-                [string, ellipsis.to_string()].join("")
+                [string, ellipsis.to_string()].join(" ")
             } else {
                 let l = string.len();
                 let add_space = width-l+1;
@@ -66,7 +67,6 @@ fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
                 [string, "".to_string()].join(borrowed_string)
             }
         })
-        .map(|string| format_if_na(&string))
         .collect::<Vec<String>>();
     return v;
 }
@@ -87,7 +87,8 @@ fn header_len_str(vec_col: Vec<&str>) -> Vec<usize> {
     return v;
 }
 fn format_if_na(text: &String) -> String {
-    let s = datatype::is_na(&text);
+    let s = datatype::is_na(text);
+        // todo add repeat strings for NA
     let missing_string_value: String = "NA".to_string();
     let string: String = if s {
         missing_string_value
@@ -194,8 +195,6 @@ fn main() {
 
     // format datatypes spaces 
     let mut vec_format_datatypes: Vec<_> = vec!["#"; cols as usize];
-        print!("{:?}",vec_format_datatypes);
-
     //for i in 0..cols {
     //    let add_space = col_largest_width[i] - vec_datatypes[i].len();
     //    let borrowed_string = " ".repeat(add_space);
@@ -260,18 +259,21 @@ fn main() {
     }
     println!();
     // datatypes
-    print!("{: <6}", "");
-    for col in 0..cols{
-        let text = vec_datatypes[col].to_string();
-        print!("{}",text.truecolor(143, 188, 187).bold());
-    }
+    //print!("{: <6}", "");
+    //for col in 0..cols{
+    //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
+    //    let mut owned_string: String = vec_datatypes[col].to_string();
+    //    let borrowed_string: &str = &" ".repeat(add_space);
+    //    owned_string.push_str(borrowed_string);
+    //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
+    //}
     println!();
     for row in 1..rows{
         print!("{: <6}",(row).truecolor(143, 188, 187).dimmed());
         for col in 0..cols{
                 let text = vp[row].get(col).unwrap().to_string();
                 print!("{}",
-                    if datatype::is_na_string(vp[row].get(col).unwrap().to_string()){
+                    if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()){
                         text.truecolor(94, 129, 172)
                     }else{
                         text.truecolor(216, 222, 233)

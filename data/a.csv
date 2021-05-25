@@ -3,7 +3,7 @@ name,value,bool,date
 "abcde",0.001,F,2021-01-01
 "abcdefgh",0.01,True,
 "abcdefghijkl",0.1,F,2021-01-01
-"",1,T,2021-01-01
+"NA",1,T,2021-01-01
 "abcdefghijklmnop",10,F,2021-01-01
 "",100,,2021-01-01
 "n/a","",F,2021-01-01
