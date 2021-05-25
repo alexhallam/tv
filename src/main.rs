@@ -257,7 +257,7 @@ fn main() {
         let text = vp[0].get(col).unwrap().to_string();
         print!("{}",text.truecolor(216, 222, 233).bold());
     }
-    println!();
+    //println!();
     // datatypes
     //print!("{: <6}", "");
     //for col in 0..cols{
@@ -283,6 +283,7 @@ fn main() {
         println!();
     }
 
+        println!();
 } // end main
 
 #[cfg(test)]
