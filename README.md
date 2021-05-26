@@ -4,16 +4,18 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling maximize viewe
 
 ![Peek 2021-05-25 20-08](https://user-images.githubusercontent.com/9298693/119583678-1e3ca600-bd95-11eb-80d7-bcbd649e2a07.gif)
 
-```
-old gif
-![draft](https://user-images.githubusercontent.com/9298693/117525069-abf35580-af8e-11eb-8384-7e54b02a037e.gif)
-```
-
 # Installation
+
+The current version is alpha. I do not plan to push to crates.io until this is more polished. If you would like to try this in its raw state [install rust](https://www.rust-lang.org/tools/install) and follow the steps below.
+
+1. Clone repo
+2. `cargo build --release`
+3. cp binary to `bin`
 
 ```
 git clone https://github.com/alexhallam/tv
 cargo build --release
+sudo cp ./target/release/tv /usr/local/bin/.
 ```
 
 # Example
