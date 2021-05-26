@@ -68,16 +68,16 @@ pub fn is_na(text: &String) -> bool {
     return lgl;
 }
 
-pub fn is_na_string(text: String) -> bool {
-    lazy_static! {
-        static ref R: Regex = Regex::new(
-            r"^$|^(?:N(?:(?:(?:one|AN|a[Nn]|/A)|[Aa])|ull)|n(?:ull|an?|/a?)|(?:missing))$"
-        )
-        .unwrap();
-    }
-    let lgl = R.is_match(&text);
-    return lgl;
-}
+//pub fn is_na_string(text: String) -> bool {
+//    lazy_static! {
+//        static ref R: Regex = Regex::new(
+//            r"^$|^(?:N(?:(?:(?:one|AN|a[Nn]|/A)|[Aa])|ull)|n(?:ull|an?|/a?)|(?:missing))$"
+//        )
+//        .unwrap();
+//    }
+//    let lgl = R.is_match(&text);
+//    return lgl;
+//}
 
 pub fn is_na_string_padded(text: String) -> bool {
     lazy_static! {
