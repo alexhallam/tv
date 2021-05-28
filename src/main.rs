@@ -1,7 +1,6 @@
 use csv;
 use csv::ReaderBuilder;
-use itertools::Itertools;
-use owo_colors::{OwoColorize};
+use owo_colors::OwoColorize;
 use std::io::{self};
 use structopt::StructOpt;
 mod datatype;
@@ -15,93 +14,24 @@ mod datatype;
     cat diamonds.csv | head -n 35 | tv"
 )]
 struct Cli {
-    #[structopt(short = "c", long = "color", default_value = "1", 
-        help="There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula.")]
+    #[structopt(
+        short = "c",
+        long = "color",
+        default_value = "1",
+        help = "There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula."
+    )]
     color: usize,
-    #[structopt(short = "t", long = "title", default_value = "NA", 
-        help="Add a title to your tv. Example 'Test Data'")]
+    #[structopt(
+        short = "t",
+        long = "title",
+        default_value = "NA",
+        help = "Add a title to your tv. Example 'Test Data'"
+    )]
     title: String,
-}
-//1 nord
-//2 one_dark
-//3 gruvbox
-//4 dracula
-
-fn infer_type_from_string(text: &str) -> &str {
-    if datatype::is_time(text) {
-        return "<tst>";
-    } else if datatype::is_integer(text) {
-        return "<int>";
-    } else if datatype::is_date_time(text) {
-        return "<tdt>";
-    } else if datatype::is_date(text) {
-        return "<tsd>";
-    } else if datatype::is_double(text) {
-        return "<dbl>";
-    } else if datatype::is_logical(text) {
-        return "<lgl>";
-    } else {
-        return "<chr>";
-    }
-}
-
-fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
-    let ellipsis = '\u{2026}'.to_string();
-    let v = vec_col
-        .into_iter()
-        .map(String::from)
-        .map(|string| format_if_na(&string))
-        .map(|mut string| {
-            if string.len() > width {
-                string.truncate(width - 1);
-                [string, ellipsis.to_string()].join(" ")
-            } else {
-                let l = string.len();
-                let add_space = width - l + 1;
-                let borrowed_string: &str = &" ".repeat(add_space);
-                [string, "".to_string()].join(borrowed_string)
-            }
-        })
-        .collect::<Vec<String>>();
-    return v;
-}
-fn header_len_str(vec_col: Vec<&str>) -> Vec<usize> {
-    let v = vec_col
-        .into_iter()
-        .map(String::from)
-        .map(|string| string.len())
-        .collect::<Vec<usize>>();
-    return v;
-}
-fn format_if_na(text: &String) -> String {
-    let s = datatype::is_na(text);
-    // todo add repeat strings for NA
-    let missing_string_value: String = "NA".to_string();
-    let string: String = if s {
-        missing_string_value
-    } else {
-        text.to_string()
-    };
-    return string;
-}
-fn get_col_data_type(col: Vec<&str>) -> &str {
-    // counts the frequency of the datatypes in the column
-    // returns the most frequent. todo-make na not count and handle ties
-    let s = col
-        .into_iter()
-        .map(|x| infer_type_from_string(x))
-        .group_by(|&x| x)
-        .into_iter()
-        .map(|(key, group)| (key, group.count()))
-        .max_by_key(|&(_, count)| count)
-        .unwrap()
-        .0;
-    return s;
 }
 
 fn main() {
-
-    let opt =  Cli::from_args();
+    let opt = Cli::from_args();
     let color_option = opt.color;
     let title_option = opt.title;
     // nord
@@ -118,19 +48,44 @@ fn main() {
     let gruvbox_meta_color = (184, 187, 38);
     let gruvbox_header_color = (215, 153, 33);
     let gruvbox_std_color = (235, 219, 178);
-    let gruvbox_na_color = (204,36,29);
+    let gruvbox_na_color = (204, 36, 29);
     //// dracula
     let dracula_meta_color = (98, 114, 164);
     let dracula_header_color = (80, 250, 123);
-    let dracula_std_color = (248,248,242);
+    let dracula_std_color = (248, 248, 242);
     let dracula_na_color = (255, 121, 198);
 
-    let(meta_color,header_color,std_color,na_color) = match color_option{
-    1 => (nord_meta_color, nord_header_color,nord_std_color,nord_na_color),
-    2 => (one_dark_meta_color, one_dark_header_color,one_dark_std_color,one_dark_na_color),
-    3 => (gruvbox_meta_color, gruvbox_header_color,gruvbox_std_color,gruvbox_na_color),
-    4 => (dracula_meta_color,dracula_header_color,dracula_std_color,dracula_na_color),
-    _ => (nord_meta_color, nord_header_color,nord_std_color,nord_na_color)
+    let (meta_color, header_color, std_color, na_color) = match color_option {
+        1 => (
+            nord_meta_color,
+            nord_header_color,
+            nord_std_color,
+            nord_na_color,
+        ),
+        2 => (
+            one_dark_meta_color,
+            one_dark_header_color,
+            one_dark_std_color,
+            one_dark_na_color,
+        ),
+        3 => (
+            gruvbox_meta_color,
+            gruvbox_header_color,
+            gruvbox_std_color,
+            gruvbox_na_color,
+        ),
+        4 => (
+            dracula_meta_color,
+            dracula_header_color,
+            dracula_std_color,
+            dracula_na_color,
+        ),
+        _ => (
+            nord_meta_color,
+            nord_header_color,
+            nord_std_color,
+            nord_na_color,
+        ),
     };
 
     //   colname reader
@@ -157,7 +112,7 @@ fn main() {
     // make datatypes vector
     let mut vec_datatypes: Vec<&str> = vec!["#"; cols as usize];
     for i in 0..cols {
-        vec_datatypes[i] = get_col_data_type(v[i].clone());
+        vec_datatypes[i] = datatype::get_col_data_type(v[i].clone());
     }
 
     // vector of formatted values
@@ -166,7 +121,10 @@ fn main() {
     // get max width in columns
     let mut col_largest_width = Vec::new();
     for i in 0..cols {
-        let size: usize = header_len_str(v[i].clone()).into_iter().max().unwrap();
+        let size: usize = datatype::header_len_str(v[i].clone())
+            .into_iter()
+            .max()
+            .unwrap();
         col_largest_width.push(size);
     }
 
@@ -181,11 +139,11 @@ fn main() {
     // make vector of formatted values
     for i in 0..cols {
         if vec_datatypes[i] == "<chr>" {
-            vf[i] = trunc_strings(v[i].clone(), col_largest_width[i]);
+            vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         } else if vec_datatypes[i] == "<dbl>" {
-            vf[i] = trunc_strings(v[i].clone(), col_largest_width[i]);
+            vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         } else {
-            vf[i] = trunc_strings(v[i].clone(), col_largest_width[i]);
+            vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         }
     }
 
@@ -209,16 +167,26 @@ fn main() {
         cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
     );
     // title
-    if !datatype::is_na(&title_option.to_string()){
-    print!("{: <6}", "");
-    println!("{}",title_option.truecolor(meta_color.0, meta_color.1, meta_color.2).underline().bold());
+    if !datatype::is_na(&title_option.to_string()) {
+        print!("{: <6}", "");
+        println!(
+            "{}",
+            title_option
+                .truecolor(meta_color.0, meta_color.1, meta_color.2)
+                .underline()
+                .bold()
+        );
     }
 
     // header
     print!("{: <6}", "");
     for col in 0..cols {
         let text = vp[0].get(col).unwrap().to_string();
-        print!("{}", text.truecolor(header_color.0, header_color.1, header_color.2).bold());
+        print!(
+            "{}",
+            text.truecolor(header_color.0, header_color.1, header_color.2)
+                .bold()
+        );
     }
     //println!();
     // datatypes
@@ -232,7 +200,10 @@ fn main() {
     //}
     println!();
     for row in 1..rows {
-        print!("{: <6}", (row).truecolor(meta_color.0, meta_color.1, meta_color.2));
+        print!(
+            "{: <6}",
+            (row).truecolor(meta_color.0, meta_color.1, meta_color.2)
+        );
         for col in 0..cols {
             let text = vp[row].get(col).unwrap().to_string();
             let tmp;
