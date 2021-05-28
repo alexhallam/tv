@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -88,4 +89,78 @@ pub fn is_na_string_padded(text: String) -> bool {
     }
     let lgl = R.is_match(&text);
     return lgl;
+}
+
+// utilities
+
+pub fn infer_type_from_string(text: &str) -> &str {
+    if is_time(text) {
+        return "<tst>";
+    } else if is_integer(text) {
+        return "<int>";
+    } else if is_date_time(text) {
+        return "<tdt>";
+    } else if is_date(text) {
+        return "<tsd>";
+    } else if is_double(text) {
+        return "<dbl>";
+    } else if is_logical(text) {
+        return "<lgl>";
+    } else {
+        return "<chr>";
+    }
+}
+
+pub fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
+    let ellipsis = '\u{2026}'.to_string();
+    let v = vec_col
+        .into_iter()
+        .map(String::from)
+        .map(|string| format_if_na(&string))
+        .map(|mut string| {
+            if string.len() > width {
+                string.truncate(width - 1);
+                [string, ellipsis.to_string()].join(" ")
+            } else {
+                let l = string.len();
+                let add_space = width - l + 1;
+                let borrowed_string: &str = &" ".repeat(add_space);
+                [string, "".to_string()].join(borrowed_string)
+            }
+        })
+        .collect::<Vec<String>>();
+    return v;
+}
+pub fn header_len_str(vec_col: Vec<&str>) -> Vec<usize> {
+    let v = vec_col
+        .into_iter()
+        .map(String::from)
+        .map(|string| string.len())
+        .collect::<Vec<usize>>();
+    return v;
+}
+pub fn format_if_na(text: &String) -> String {
+    let s = is_na(text);
+    // todo add repeat strings for NA
+    let missing_string_value: String = "NA".to_string();
+    let string: String = if s {
+        missing_string_value
+    } else {
+        text.to_string()
+    };
+    return string;
+}
+pub fn get_col_data_type(col: Vec<&str>) -> &str {
+    // counts the frequency of the datatypes in the column
+    // returns the most frequent. todo-make na not count and handle ties
+    let s = col
+        .into_iter()
+        .map(|x| infer_type_from_string(x))
+        .group_by(|&x| x)
+        .into_iter()
+        .map(|(key, group)| (key, group.count()))
+        .max_by_key(|&(_, count)| count)
+        .unwrap()
+        .0;
+    return s;
 }
