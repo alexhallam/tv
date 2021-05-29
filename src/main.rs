@@ -28,12 +28,20 @@ struct Cli {
         help = "Add a title to your tv. Example 'Test Data'"
     )]
     title: String,
+    #[structopt(
+        short = "r",
+        long = "rows",
+        default_value = "25",
+        help = "Show how many rows to display. Default 25"
+    )]
+    row_display: usize,
 }
 
 fn main() {
     let opt = Cli::from_args();
     let color_option = opt.color;
     let title_option = opt.title;
+    let row_display_option = opt.row_display;
     // nord
     let nord_meta_color = (143, 188, 187);
     let nord_header_color = (94, 129, 172);
@@ -95,6 +103,7 @@ fn main() {
     let rdr = r
         .records()
         .into_iter()
+        .take(row_display_option + 1)
         .map(|x| x.expect("a csv record"))
         .collect::<Vec<_>>();
 
