@@ -29,6 +29,13 @@ struct Cli {
     )]
     title: String,
     #[structopt(
+        short = "f",
+        long = "footer",
+        default_value = "NA",
+        help = "Add a title to your tv. Example 'footer info'"
+    )]
+    footer: String,
+    #[structopt(
         short = "r",
         long = "rows",
         default_value = "25",
@@ -41,6 +48,7 @@ fn main() {
     let opt = Cli::from_args();
     let color_option = opt.color;
     let title_option = opt.title;
+    let footer_option = opt.footer;
     let row_display_option = opt.row_display;
     // nord
     let nord_meta_color = (143, 188, 187);
@@ -228,6 +236,16 @@ fn main() {
             );
         }
         println!();
+    }
+
+    // footer
+    if !datatype::is_na(&footer_option.to_string()) {
+        print!("{: <6}", "");
+        println!(
+            "{}",
+           footer_option 
+                .truecolor(meta_color.0, meta_color.1, meta_color.2)
+        );
     }
 
     println!();
