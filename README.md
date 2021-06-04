@@ -34,13 +34,13 @@ cat diamonds.csv | head -n 35 | tv
 
 `tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
-`xsv` ([code](https://github.com/BurntSushi/xsv))
+[xsv](https://github.com/BurntSushi/xsv)
 
-`tsv-utils` ([code](https://github.com/eBay/tsv-utils))
+[tsv-utils](https://github.com/eBay/tsv-utils)
 
-`q` ([code](https://github.com/zestyping/q))
+[q](https://github.com/zestyping/q)
 
-`miller` ([code](https://github.com/johnkerl/miller))
+[miller](https://github.com/johnkerl/miller)
 
 # Tools similar to tv
 
