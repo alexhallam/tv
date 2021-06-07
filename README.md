@@ -1,6 +1,9 @@
 [![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 
-Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.
+<h1 align="center">Tidy Viewer (tv)</h1>
+<p align="center">Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
+
+
 
 ![tv](https://user-images.githubusercontent.com/9298693/119914414-064c5a00-bf2e-11eb-8daf-017e1289369a.gif)
 
