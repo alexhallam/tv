@@ -159,6 +159,7 @@ fn main() {
             vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         } else if vec_datatypes[i] == "<dbl>" {
             vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
+            println!("{:?}",vf[i]);
         } else {
             vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         }

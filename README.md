@@ -33,18 +33,30 @@ wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamond
 cat diamonds.csv | head -n 35 | tv
 ```
 
+# Rules
+
+## Float
+
+Print only the first three digits. The first three digits represent > 99.9% the value of a number.
+
+
 # Tools to pair with tv
 
 `tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
-[xsv](https://github.com/BurntSushi/xsv)
+[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulaiton. Rust
 
-[tsv-utils](https://github.com/eBay/tsv-utils)
+[tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. D
 
-[q](https://github.com/zestyping/q)
+[q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. Python
 
-[miller](https://github.com/johnkerl/miller)
+[miller](https://github.com/johnkerl/miller) - Commane line data manipulaiton, statistics, and more. C
 
 # Tools similar to tv
 
 `column` Comes standard with linux.
+
+# Inspiration
+
+[pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting
+
