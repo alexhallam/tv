@@ -3,6 +3,13 @@ name = "tv"
 version = "0.0.2"
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
 edition = "2018"
+description = "Head, but for csvs and with color"
+license = "MIT or UNLICENSE"
+license-file = "UNLICENSE"
+repository = "https://github.com/alexhallam/tv"
+readme = "README.md"
+keywords = ["csv", "pretty-print","data-science","tabular-data","data","data viewer","tv","tabular viewer"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 console = "0.14.1"
