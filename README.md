@@ -1,6 +1,9 @@
 [![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 
-Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.
+<h1 align="center">Tidy Viewer (tv)</h1>
+<p align="center">Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
+
+
 
 ![tv](https://user-images.githubusercontent.com/9298693/119914414-064c5a00-bf2e-11eb-8daf-017e1289369a.gif)
 
@@ -34,13 +37,14 @@ cat diamonds.csv | head -n 35 | tv
 
 `tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
-[xsv](https://github.com/BurntSushi/xsv)
+[xsv](https://github.com/BurntSushi/xsv) - a command line program for indexing, slicing, analyzing, splitting and joining CSV files
 
-[tsv-utils](https://github.com/eBay/tsv-utils)
+[tsv-utils](https://github.com/eBay/tsv-utils) - command line utilities for tabular data files
 
-[q](https://github.com/zestyping/q)
+[q](https://github.com/zestyping/q) - q is a command line tool that allows direct execution of SQL-like queries on CSVs/TSVs 
 
-[miller](https://github.com/johnkerl/miller)
+[miller](https://github.com/johnkerl/miller) - Miller is like awk, sed, cut, join, and sort for data formats such as CSV, TSV, tabular JSON and positionally-indexed.
+
 
 # Tools similar to tv
 
