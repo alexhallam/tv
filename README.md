@@ -59,7 +59,8 @@ cat diamonds.csv | head -n 35 | tv
 
 # Tools similar to tv
 
-`column` Comes standard with linux. There are some tradoffs between tidy-viewer and column. Because tidy-viewer uses colors it is not something string a pipe after. This is 
-because the color names get dumped as text. Tidy-viewer is built to be piped into, but not out of. `column` is nice, but I have found that is does not format quoted commas
-in a way I would expect. It also does not search for missing values and fill in NAs.
+`column` comes standard with linux. 
 
+There are some tradoffs between tidy-viewer and column. Tidy-viewer is built to be piped into, but not out of. Because tidy-viewer uses colors the color names get dumped as text when piped to another command. 
+
+`column` is nice, but I have found that is does not format quoted commas in a way I would expect. It also does not search for missing values and fill in NAs.
