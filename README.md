@@ -9,6 +9,17 @@
 
 # Installation
 
+1. Cargo Install
+
+The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source.
+
+```
+cargo install tidy-viewer 
+```
+
+
+2. Install from source
+
 The current version is alpha. I do not plan to push to crates.io until this is more polished. If you would like to try this in its raw state [install rust](https://www.rust-lang.org/tools/install) and follow the steps below.
 
 1. Clone repo
@@ -48,4 +59,7 @@ cat diamonds.csv | head -n 35 | tv
 
 # Tools similar to tv
 
-`column` Comes standard with linux.
+`column` Comes standard with linux. There are some tradoffs between tidy-viewer and column. Because tidy-viewer uses colors it is not something string a pipe after. This is 
+because the color names get dumped as text. Tidy-viewer is built to be piped into, but not out of. `column` is nice, but I have found that is does not format quoted commas
+in a way I would expect. It also does not search for missing values and fill in NAs.
+
