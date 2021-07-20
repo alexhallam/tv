@@ -17,6 +17,11 @@ The following will install from the [crates.io](https://crates.io/crates/tidy-vi
 cargo install tidy-viewer 
 ```
 
+For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
+
+```
+echo `alias tv='tidy-viewer'` >> `~/.bashrc`
+```
 
 2. Install from source
 
@@ -25,12 +30,14 @@ The current version is alpha. I do not plan to push to crates.io until this is m
 1. Clone repo
 2. `cargo build --release`
 3. cp binary to `bin`
+4. Add `alias tv='tidy-viewer'` to `~/.bashrc`
 
 ```
 git clone https://github.com/alexhallam/tv
 cd tv
 cargo build --release
 sudo cp ./target/release/tv /usr/local/bin/.
+echo `alias tv='tidy-viewer'` >> `~/.bashrc`
 ```
 
 # Example
@@ -44,9 +51,24 @@ wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamond
 cat diamonds.csv | head -n 35 | tv
 ```
 
+# Rules
+
+## Float
+
+Print only the first three digits. The first three digits represent > 99.9% the value of a number.
+
+
 # Tools to pair with tv
 
 `tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
+
+[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulaiton. Rust
+
+[tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. D
+
+[q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. Python
+
+[miller](https://github.com/johnkerl/miller) - Commane line data manipulaiton, statistics, and more. C
 
 [xsv](https://github.com/BurntSushi/xsv) - a command line program for indexing, slicing, analyzing, splitting and joining CSV files
 
@@ -56,11 +78,11 @@ cat diamonds.csv | head -n 35 | tv
 
 [miller](https://github.com/johnkerl/miller) - Miller is like awk, sed, cut, join, and sort for data formats such as CSV, TSV, tabular JSON and positionally-indexed.
 
-
 # Tools similar to tv
 
-`column` comes standard with linux. 
+`column` Comes standard with linux.
 
-There are some tradoffs between tidy-viewer and column. Tidy-viewer is built to be piped into, but not out of. Because tidy-viewer uses colors the color names get dumped as text when piped to another command. 
+# Inspiration
 
-`column` is nice, but I have found that is does not format quoted commas in a way I would expect. It also does not search for missing values and fill in NAs.
+[pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting
+
