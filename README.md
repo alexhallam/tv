@@ -17,6 +17,11 @@ The following will install from the [crates.io](https://crates.io/crates/tidy-vi
 cargo install tidy-viewer 
 ```
 
+For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
+
+```
+echo `alias tv='tidy-viewer'` >> `~/.bashrc`
+```
 
 2. Install from source
 
@@ -25,12 +30,14 @@ The current version is alpha. I do not plan to push to crates.io until this is m
 1. Clone repo
 2. `cargo build --release`
 3. cp binary to `bin`
+4. Add `alias tv='tidy-viewer'` to `~/.bashrc`
 
 ```
 git clone https://github.com/alexhallam/tv
 cd tv
 cargo build --release
 sudo cp ./target/release/tv /usr/local/bin/.
+echo `alias tv='tidy-viewer'` >> `~/.bashrc`
 ```
 
 # Example
@@ -62,7 +69,7 @@ Print only the first three digits. The first three digits represent > 99.9% the 
 [q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. Python
 
 [miller](https://github.com/johnkerl/miller) - Commane line data manipulaiton, statistics, and more. C
-=======
+
 [xsv](https://github.com/BurntSushi/xsv) - a command line program for indexing, slicing, analyzing, splitting and joining CSV files
 
 [tsv-utils](https://github.com/eBay/tsv-utils) - command line utilities for tabular data files

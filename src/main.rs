@@ -17,8 +17,8 @@ struct Cli {
     #[structopt(
         short = "c",
         long = "color",
-        default_value = "1",
-        help = "There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula."
+        default_value = "0",
+        help = "There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula. Note that colors will make it difficult to pipe output to other utilities"
     )]
     color: usize,
     #[structopt(
@@ -36,8 +36,8 @@ struct Cli {
     )]
     footer: String,
     #[structopt(
-        short = "r",
-        long = "rows",
+        short = "n",
+        long = "number of rows to output",
         default_value = "25",
         help = "Show how many rows to display. Default 25"
     )]
@@ -159,7 +159,6 @@ fn main() {
             vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         } else if vec_datatypes[i] == "<dbl>" {
             vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
-            println!("{:?}",vf[i]);
         } else {
             vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         }
@@ -173,9 +172,65 @@ fn main() {
         }
     }
 
+    if color_option < 1 {
     let meta_text = "tv dim:";
     let div = "x";
-    // meta
+    print!("{: <6}", "");
+    println!(
+        "{} {} {} {}",
+        meta_text,
+        (rows - 1),
+        div,
+        cols,
+    );
+    if !datatype::is_na(&title_option.to_string()) {
+        print!("{: <6}", "");
+        println!(
+            "{}",
+            title_option
+        );
+    }
+    print!("{: <6}", "");
+    for col in 0..cols {
+        let text = vp[0].get(col).unwrap().to_string();
+        print!("{}",text);
+    }
+    println!();
+    for row in 1..rows {
+        print!(
+            "{: <6}",
+            (row)
+        );
+        for col in 0..cols {
+            let text = vp[row].get(col).unwrap().to_string();
+            let tmp;
+            print!(
+                "{}",
+                if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
+                    tmp = text;
+                    tmp
+                } else {
+                    tmp = text;
+                    tmp
+                }
+            );
+        }
+        println!();
+    }
+    if !datatype::is_na(&footer_option.to_string()) {
+        print!("{: <6}", "");
+        println!(
+            "{}",
+           footer_option 
+        );
+    }
+
+    println!();
+    }//end if
+    else{
+    // color
+    let meta_text = "tv dim:";
+    let div = "x";
     print!("{: <6}", "");
     println!(
         "{} {} {} {}",
@@ -250,6 +305,7 @@ fn main() {
     }
 
     println!();
+    }//end color else
 } // end main
 
 #[cfg(test)]
