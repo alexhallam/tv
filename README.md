@@ -9,7 +9,7 @@
 
 # Installation
 
-1. Cargo Install
+### 1. Cargo Install
 
 The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source.
 
@@ -24,7 +24,7 @@ For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
 echo `alias tv='tidy-viewer'` >> `~/.bashrc`
 ```
 
-2. Install from source
+### 2. Install from source
 
 The current version is alpha. I do not plan to push to crates.io until this is more polished. If you would like to try this in its raw state [install rust](https://www.rust-lang.org/tools/install) and follow the steps below.
 
@@ -52,7 +52,9 @@ wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamond
 cat diamonds.csv | head -n 35 | tv
 ```
 
-# Rules
+# Rules (In-progress)
+
+I would like to get some sig-fig logic in here.
 
 ## Float
 
