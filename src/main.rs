@@ -17,8 +17,8 @@ struct Cli {
     #[structopt(
         short = "c",
         long = "color",
-        default_value = "0",
-        help = "There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula. Note that colors will make it difficult to pipe output to other utilities"
+        default_value = "1",
+        help = "There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula. An input of (0)bw will remove color properties. Note that colors will make it difficult to pipe output to other utilities"
     )]
     color: usize,
     #[structopt(
