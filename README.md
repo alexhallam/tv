@@ -9,6 +9,17 @@
 
 # Installation
 
+1. Cargo Install
+
+The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source.
+
+```
+cargo install tidy-viewer 
+```
+
+
+2. Install from source
+
 The current version is alpha. I do not plan to push to crates.io until this is more polished. If you would like to try this in its raw state [install rust](https://www.rust-lang.org/tools/install) and follow the steps below.
 
 1. Clone repo
