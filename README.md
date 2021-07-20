@@ -63,7 +63,9 @@ Print only the first three digits. The first three digits represent > 99.9% the 
 
 `tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
-[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulaiton. Rust
+[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. Rust
+
+[csvtk](https://bioinf.shenwei.me/csvtk/) - Command line csv data manipulation. Go
 
 [tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. D
 
