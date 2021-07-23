@@ -3,7 +3,9 @@
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
 
+![logp](https://github.com/alexhallam/tv/blob/main/TV.gif)
 
+# Pretty Printing
 
 ![tv](https://user-images.githubusercontent.com/9298693/119914414-064c5a00-bf2e-11eb-8daf-017e1289369a.gif)
 
