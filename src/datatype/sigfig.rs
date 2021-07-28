@@ -48,31 +48,31 @@ use core::str;
 //
 //
 
-struct DecimalSplits {
-    val: f64,
-    sigfig: i64,
+pub struct DecimalSplits {
+    pub val: f64,
+    pub sigfig: i64,
 }
 
 impl DecimalSplits {
-    fn value(&self) -> f64 {
+    pub fn value(&self) -> f64 {
         self.val
     }
-    fn sig_fig(&self) -> i64 {
+    pub fn sig_fig(&self) -> i64 {
         self.sigfig
     }
-    fn neg(&self) -> bool {
+    pub fn neg(&self) -> bool {
         is_neg(self.val)
     }
-    fn lhs(&self) -> f64 {
+    pub fn lhs(&self) -> f64 {
         get_lhs(self.val)
     }
-    fn rhs(&self) -> f64 {
+    pub fn rhs(&self) -> f64 {
         get_rhs(self.val)
     }
-    fn dec(&self) -> bool {
+    pub fn dec(&self) -> bool {
         is_decimal(self.val)
     }
-    fn final_string(&self) -> String {
+    pub fn final_string(&self) -> String {
         get_final_string(
             self.value(),
             self.lhs(),
@@ -81,29 +81,29 @@ impl DecimalSplits {
             self.sig_fig(),
         )
     }
-    fn sigfig_index_lhs_or_rhs(&self) -> Option<bool> {
+    pub fn sigfig_index_lhs_or_rhs(&self) -> Option<bool> {
         sigfig_index_lhs_or_rhs(self.final_string(), self.sig_fig())
     }
-    fn sigfig_index_from(&self) -> Option<usize> {
+    pub fn sigfig_index_from(&self) -> Option<usize> {
         sigfig_index_from(self.final_string(), self.sig_fig())
     }
-    fn sigfig_index_to(&self) -> Option<usize> {
+    pub fn sigfig_index_to(&self) -> Option<usize> {
         sigfig_index_to(self.final_string(), self.sig_fig())
     }
 }
 
 #[derive(Debug)]
-struct DecimalSplitsList {
-    val: f64,
-    sigfig: i64,
-    neg: bool,
-    lhs: f64,
-    rhs: f64,
-    dec: bool,
-    final_string: String,
-    sigfig_index_lhs_or_rhs: Option<bool>, // lhs => True; rhs => False
-    sigfig_index_from: Option<usize>,
-    sigfig_index_to: Option<usize>,
+pub struct DecimalSplitsList {
+    pub val: f64,
+    pub sigfig: i64,
+    pub neg: bool,
+    pub lhs: f64,
+    pub rhs: f64,
+    pub dec: bool,
+    pub final_string: String,
+    pub sigfig_index_lhs_or_rhs: Option<bool>, // lhs => True; rhs => False
+    pub sigfig_index_from: Option<usize>,
+    pub sigfig_index_to: Option<usize>,
 }
 
 fn is_neg(x: f64) -> bool {
@@ -124,7 +124,7 @@ fn is_decimal(x: f64) -> bool {
     let l = x / r;
     l > 1.0
 }
-fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> String {
+pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> String {
     if lhs == 0.0 {
         //n = ((floor(log10(abs(x))) + 1 - sigfig)
         //r =(10^n) * round(x / (10^n))
@@ -350,30 +350,6 @@ fn sigfig_index_to(final_string: String, sigfig: i64) -> Option<usize> {
         } else {
             return None;
         }
-    }
-}
-fn main() {
-    let f12345 = vec![12345.0, 1234.5, 123.45, 12.345, 1.2345, 0.12345];
-
-    for i in 0..f12345.len() {
-        let value = f12345[i];
-        let x = DecimalSplits {
-            val: value,
-            sigfig: 3,
-        };
-        let list = DecimalSplitsList {
-            val: x.value(),
-            sigfig: x.sig_fig(),
-            neg: x.neg(),
-            lhs: x.lhs(),
-            rhs: x.rhs(),
-            dec: x.dec(),
-            final_string: x.final_string(),
-            sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
-            sigfig_index_from: x.sigfig_index_from(),
-            sigfig_index_to: x.sigfig_index_to(),
-        };
-        println!("{:#?}", list)
     }
 }
 
