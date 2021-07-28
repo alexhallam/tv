@@ -13,17 +13,14 @@
 
 ### 1. Cargo Install
 
-The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source.
+The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
 
 ```
 cargo install tidy-viewer
 sudo cp /home/ubuntu/.cargo/bin/tidy-viewer /usr/local/bin/.
-```
-
-For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
-
-```
+# convenience tv
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ### 2. Install from source
