@@ -23,7 +23,7 @@ sudo cp /home/ubuntu/.cargo/bin/tidy-viewer /usr/local/bin/.
 For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
 
 ```
-echo `alias tv='tidy-viewer'` >> `~/.bashrc`
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
 ```
 
 ### 2. Install from source
