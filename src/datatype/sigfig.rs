@@ -257,8 +257,13 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
                     let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
                     let len_to_take_rhs = ((sigfig + 1) as usize) - len_to_take_lhs;
                     let len_to_take = len_to_take_lhs + len_to_take_rhs;
-                    let r = total_string[..len_to_take].to_string();
-                    r
+                    if len_to_take >= total_string.len() {
+                        let r = total_string.to_string();
+                        r
+                    } else {
+                        let r = total_string[..len_to_take].to_string();
+                        r
+                    }
                 }
             }
         }
