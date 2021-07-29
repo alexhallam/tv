@@ -7,7 +7,7 @@
 
 # Pretty Printing
 
-![tv intro](gif/tv_intro.GIF)
+[![asciicast](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX.svg)](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX)
 
 # Installation
 
@@ -45,9 +45,6 @@ echo `alias tv='tidy-viewer'` >> `~/.bashrc`
 
 # Example
 
-![tv intro](gif/tv_diamonds.GIF)
-
-
 ```
 # Download the diamonds data
 wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
@@ -58,8 +55,7 @@ cat diamonds.csv | head -n 35 | tv
 
 # Significant Figure Definitions & Rules
 
-![tv sigfig](gif/tv_sigfig.GIF)
-
+[![asciicast](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj.svg)](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj)
 
 > The first three digits. The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
 
