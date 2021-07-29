@@ -3,11 +3,11 @@
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
 
-![logp](https://github.com/alexhallam/tv/blob/main/TV.gif)
+![logo](gif/TV.gif)
 
 # Pretty Printing
 
-![tv](https://user-images.githubusercontent.com/9298693/119914414-064c5a00-bf2e-11eb-8daf-017e1289369a.gif)
+![tv intro](gif/tv_intro.GIF)
 
 # Installation
 
@@ -45,6 +45,8 @@ echo `alias tv='tidy-viewer'` >> `~/.bashrc`
 
 # Example
 
+![tv intro](gif/tv_diamonds.GIF)
+
 
 ```
 # Download the diamonds data
@@ -55,6 +57,9 @@ cat diamonds.csv | head -n 35 | tv
 ```
 
 # Significant Figure Definitions & Rules
+
+![tv sigfig](gif/tv_sigfig.GIF)
+
 
 > The first three digits. The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
 
@@ -127,6 +132,7 @@ There are only 4 outputs possible. The significant figures to display are set by
 2. **lhs + point (`1234.5 -> 1234.`)**: If fractional digits are present and lhs >= sigfig then return lhs with point. This is to let the user know that some decimal dust is beyond the main mass of the number.
 3. **lhs + point + rhs (`1.2345 -> 1.23`)**: If fractional digits are present and lhs < sigfig return the first three digits of the number.
 4. **long rhs (`0.00001 -> 0.0001`)**: This is reserved for values with leading 0s in the rhs.
+
 
 
 ```text
