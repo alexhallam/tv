@@ -1,6 +1,7 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
+mod sigfig;
 
 pub fn is_logical(text: &str) -> bool {
     // col_logical -l, T,F,TRUE,FALSE,True,False,true,false,t,f,1,0
@@ -117,6 +118,8 @@ pub fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
         .into_iter()
         .map(String::from)
         .map(|string| format_if_na(&string))
+        // add
+        .map(|string| format_if_num(&string))
         .map(|mut string| {
             if string.len() > width {
                 string.truncate(width - 1);
@@ -150,6 +153,30 @@ pub fn format_if_na(text: &String) -> String {
     };
     return string;
 }
+
+fn format_if_num(text: &str) -> String {
+    let s = is_double(text);
+    if s {
+        let xf = text.to_string().parse::<f64>().unwrap();
+        let x = sigfig::DecimalSplits { val: xf, sigfig: 3 };
+        let list = sigfig::DecimalSplitsList {
+            val: x.value(),
+            sigfig: x.sig_fig(),
+            neg: x.neg(),
+            lhs: x.lhs(),
+            rhs: x.rhs(),
+            dec: x.dec(),
+            final_string: x.final_string(),
+            sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
+            sigfig_index_from: x.sigfig_index_from(),
+            sigfig_index_to: x.sigfig_index_to(),
+        };
+        list.final_string
+    } else {
+        text.to_string()
+    }
+}
+
 pub fn get_col_data_type(col: Vec<&str>) -> &str {
     // counts the frequency of the datatypes in the column
     // returns the most frequent. todo-make na not count and handle ties

@@ -3,11 +3,11 @@
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
 
-![logp](https://github.com/alexhallam/tv/blob/main/TV.gif)
+![logo](gif/TV.gif)
 
 # Pretty Printing
 
-![tv](https://user-images.githubusercontent.com/9298693/119914414-064c5a00-bf2e-11eb-8daf-017e1289369a.gif)
+[![asciicast](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX.svg)](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX)
 
 # Installation
 
@@ -42,7 +42,6 @@ source ~/.bashrc
 
 # Example
 
-
 ```sh
 # Download the diamonds data
 wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
@@ -51,14 +50,112 @@ wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamond
 cat diamonds.csv | head -n 35 | tv
 ```
 
-# Rules (In-progress)
+# Significant Figure Definitions & Rules
 
-I would like to get some sig-fig logic in here.
+[![asciicast](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj.svg)](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj)
 
-## Float
+> The first three digits. The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
 
-Print only the first three digits. The first three digits represent > 99.9% the value of a number.
+`tv` uses the same significant figure (sigfig) rules that the R package `pillar` uses.
 
+The purpose of the sigfig rules in `tv` is to guide the eye to the most important information in a number. This section defines terms and the decision tree used in the calculation of the final value displayed.
+
+## Definitions
+
+```text
+     ┌─────┐      ┌─────┐     ─┐
+     │     │      │     │      │
+     │     │      │     │      │
+     │     │      │     │      │
+     │     │      │     │      │
+     │     │  ┌┐  │     │      │
+     └─────┘  └┘  └─────┘    ──┴─
+   │        │    │                │
+   └────────┘  ▲ └────────────────┘
+left hand side │  right hand side
+     (lhs)     │       (rhs)
+
+            decimal
+```
+
+**left hand side (lhs)**: digits on the left hand side of the decimal.
+
+**right hand side (rhs)**: digits on the right hand side of the decimal.
+
+```text
+
+ ┌─────┐      ┌─────┐     ─┐     ┌─────┐
+ │     │      │     │      │     │     │
+ │     │      │     │      │     │     │
+ │     │      │     │      │     │     │
+ │     │      │     │      │     │     │
+ │     │  ┌┐  │     │      │     │     │
+ └─────┘  └┘  └─────┘    ──┴─    └─────┘
+
+│                     │         │       │
+└─────────────────────┘         └───────┘
+       leading 0s              trailing 0s
+```
+**leading 0s**: 0s to the left of a non-zero.
+
+**trailing 0s**: 0s to the right of a non-zero. The zeros in 500m are trailing as well as the 0s in 0.500km. 
+
+
+```text
+ ─┐     ┌─────┐       ─┐
+  │     │     │        │
+  │     │     │        │
+  │     │     │        │
+  │     │     │        │
+  │     │     │  ┌┐    │
+──┴─    └─────┘  └┘  ──┴─
+
+                   │        │
+                   └────────┘
+              fractional digit(s)
+```
+
+**fractional digits**: Digits on the rhs of the decimal. The represent the non-integer part of a number.
+
+## Rules
+
+There are only 4 outputs possible. The significant figures to display are set by the user. Assume `sigfig = 3`:
+
+1. **lhs only (`12345.0 -> 12345`)**: If no fractional digits are present and lhs >= sigfig then return lhs
+2. **lhs + point (`1234.5 -> 1234.`)**: If fractional digits are present and lhs >= sigfig then return lhs with point. This is to let the user know that some decimal dust is beyond the main mass of the number.
+3. **lhs + point + rhs (`1.2345 -> 1.23`)**: If fractional digits are present and lhs < sigfig return the first three digits of the number.
+4. **long rhs (`0.00001 -> 0.0001`)**: This is reserved for values with leading 0s in the rhs.
+
+
+
+```text
+# Psuedo Code: Sigfig logic assuming sigfig = 3
+if lhs == 0:
+    //n = ((floor(log10(abs(x))) + 1 - sigfig)
+    //r =(10^n) * round(x / (10^n))
+    //return r
+    // (0.12345 -> 0.123)
+else:
+    if log10(lhs) + 1 > sigfig:
+        if rhs > 0:
+            //concatonate:
+            //(lhs)
+            //(point)
+            //(123.45 -> 123.)
+            //(123.45 -> 123.)
+        else:
+            //concatonate:
+            //(lhs)
+            //(1234.0 -> 1234)
+            //(100.0 -> 100)
+    else:
+        //concatonate:
+        //(lhs)
+        //(point)
+        //sigfig - log10(lhs) from rhs
+        //(12.345 -> 12.3)
+        //(1.2345 -> 1.23)
+```
 
 # Tools to pair with tv
 
@@ -84,7 +181,7 @@ Print only the first three digits. The first three digits represent > 99.9% the 
 
 # Tools similar to tv
 
-`column` Comes standard with linux.
+`column` Comes standard with linux. To get similar functionality run `column file.csv -ts,`
 
 # Inspiration
 
