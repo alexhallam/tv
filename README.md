@@ -13,17 +13,13 @@
 
 ### 1. Cargo Install
 
-The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source.
+The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
 
-```
+```sh
 cargo install tidy-viewer
 sudo cp /home/ubuntu/.cargo/bin/tidy-viewer /usr/local/bin/.
-```
-
-For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
-
-```
-echo `alias tv='tidy-viewer'` >> `~/.bashrc`
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ### 2. Install from source
@@ -35,17 +31,18 @@ The current version is alpha. I do not plan to push to crates.io until this is m
 3. cp binary to `bin`
 4. Add `alias tv='tidy-viewer'` to `~/.bashrc`
 
-```
+```sh
 git clone https://github.com/alexhallam/tv
 cd tv
 cargo build --release
 sudo cp ./target/release/tv /usr/local/bin/.
-echo `alias tv='tidy-viewer'` >> `~/.bashrc`
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 # Example
 
-```
+```sh
 # Download the diamonds data
 wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
 
