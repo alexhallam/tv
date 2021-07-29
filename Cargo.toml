@@ -1,6 +1,6 @@
 [package]
 name = "tidy-viewer"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
 edition = "2018"
 description = "Head, but for csvs and with color"
