@@ -8,7 +8,7 @@ license = "Unlicense/MIT"
 name = "tidy-viewer"
 readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
-version = "0.0.5"
+version = "0.0.6"
 
 [dependencies]
 console = "0.14.1"
