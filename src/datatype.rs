@@ -25,7 +25,7 @@ pub fn is_double(text: &str) -> bool {
     lazy_static! {
         // for exp values, but seems to match other strings also
         //static ref R: Regex = Regex::new(r"[+-]?[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?").unwrap();
-        static ref R: Regex = Regex::new(r"[+-]?[0-9]?+(\.[0-9]+)([Ee][+-]?[0-9]+)?").unwrap();
+        static ref R: Regex = Regex::new(r"^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$").unwrap();
 
     }
     let lgl = R.is_match(&text);

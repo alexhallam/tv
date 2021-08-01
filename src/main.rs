@@ -4,6 +4,7 @@ use owo_colors::OwoColorize;
 use std::io::{self};
 use structopt::StructOpt;
 mod datatype;
+mod term_attr;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -104,6 +105,8 @@ fn main() {
         ),
     };
 
+    // term_attr
+
     //   colname reader
     let mut r = ReaderBuilder::new()
         .has_headers(false)
@@ -172,140 +175,144 @@ fn main() {
         }
     }
 
-    if color_option < 1 {
-    let meta_text = "tv dim:";
-    let div = "x";
-    print!("{: <6}", "");
-    println!(
-        "{} {} {} {}",
-        meta_text,
-        (rows - 1),
-        div,
-        cols,
-    );
-    if !datatype::is_na(&title_option.to_string()) {
-        print!("{: <6}", "");
-        println!(
-            "{}",
-            title_option
-        );
-    }
-    print!("{: <6}", "");
-    for col in 0..cols {
-        let text = vp[0].get(col).unwrap().to_string();
-        print!("{}",text);
-    }
-    println!();
-    for row in 1..rows {
-        print!(
-            "{: <6}",
-            (row)
-        );
-        for col in 0..cols {
-            let text = vp[row].get(col).unwrap().to_string();
-            let tmp;
-            print!(
-                "{}",
-                if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
-                    tmp = text;
-                    tmp
-                } else {
-                    tmp = text;
-                    tmp
-                }
-            );
-        }
-        println!();
-    }
-    if !datatype::is_na(&footer_option.to_string()) {
-        print!("{: <6}", "");
-        println!(
-            "{}",
-           footer_option 
-        );
-    }
-
-    println!();
-    }//end if
-    else{
-    // color
-    let meta_text = "tv dim:";
-    let div = "x";
-    print!("{: <6}", "");
-    println!(
-        "{} {} {} {}",
-        meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        (rows - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
-        div.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
-    );
-    // title
-    if !datatype::is_na(&title_option.to_string()) {
-        print!("{: <6}", "");
-        println!(
-            "{}",
-            title_option
-                .truecolor(meta_color.0, meta_color.1, meta_color.2)
-                .underline()
-                .bold()
-        );
-    }
-
-    // header
-    print!("{: <6}", "");
-    for col in 0..cols {
-        let text = vp[0].get(col).unwrap().to_string();
-        print!(
-            "{}",
-            text.truecolor(header_color.0, header_color.1, header_color.2)
-                .bold()
-        );
-    }
-    //println!();
-    // datatypes
-    //print!("{: <6}", "");
-    //for col in 0..cols{
-    //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
-    //    let mut owned_string: String = vec_datatypes[col].to_string();
-    //    let borrowed_string: &str = &" ".repeat(add_space);
-    //    owned_string.push_str(borrowed_string);
-    //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
+    // how wide will the print be?
+    //fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u16)) -> usize {
+    //    let mut j = format!("{: <6}", "");
+    //    for col in 0..cols {
+    //        let text = vp[0].get(col).unwrap().to_string();
+    //        j.push_str(&text);
+    //        let total_width = j.chars().count();
+    //        let term_width = term_tuple.1 as usize;
+    //        if total_width < term_width {
+    //            println!("{:?}", col);
+    //            return col;
+    //        }
+    //    }
+    //    return 999;
     //}
-    println!();
-    for row in 1..rows {
-        print!(
-            "{: <6}",
-            (row).truecolor(meta_color.0, meta_color.1, meta_color.2)
-        );
+
+    //let num_cols_to_print = get_num_cols_to_print(cols, vp.clone(), term_tuple);
+    //println!("{:?}", num_cols_to_print);
+
+    if color_option < 1 {
+        let meta_text = "tv dim:";
+        let div = "x";
+        print!("{: <6}", "");
+        println!("{} {} {} {}", meta_text, (rows - 1), div, cols,);
+        if !datatype::is_na(&title_option.to_string()) {
+            print!("{: <6}", "");
+            println!("{}", title_option);
+        }
+        print!("{: <6}", "");
         for col in 0..cols {
-            let text = vp[row].get(col).unwrap().to_string();
-            let tmp;
-            print!(
-                "{}",
-                if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
-                    tmp = text.truecolor(na_color.0, na_color.1, na_color.2);
-                    tmp
-                } else {
-                    tmp = text.truecolor(std_color.0, std_color.1, std_color.2);
-                    tmp
-                }
-            );
+            let text = vp[0].get(col).unwrap().to_string();
+            print!("{}", text);
         }
         println!();
-    }
+        for row in 1..rows {
+            print!("{: <6}", (row));
+            for col in 0..cols {
+                let text = vp[row].get(col).unwrap().to_string();
+                let tmp;
+                print!(
+                    "{}",
+                    if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
+                        tmp = text;
+                        tmp
+                    } else {
+                        tmp = text;
+                        tmp
+                    }
+                );
+            }
+            println!();
+        }
+        if !datatype::is_na(&footer_option.to_string()) {
+            print!("{: <6}", "");
+            println!("{}", footer_option);
+        }
 
-    // footer
-    if !datatype::is_na(&footer_option.to_string()) {
+        println!();
+    }
+    //end if
+    else {
+        // color
+        let meta_text = "tv dim:";
+        let div = "x";
         print!("{: <6}", "");
         println!(
-            "{}",
-           footer_option 
-                .truecolor(meta_color.0, meta_color.1, meta_color.2)
+            "{} {} {} {}",
+            meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
+            (rows - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
+            div.truecolor(meta_color.0, meta_color.1, meta_color.2),
+            cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
         );
-    }
+        // title
+        if !datatype::is_na(&title_option.to_string()) {
+            print!("{: <6}", "");
+            println!(
+                "{}",
+                title_option
+                    .truecolor(meta_color.0, meta_color.1, meta_color.2)
+                    .underline()
+                    .bold()
+            );
+        }
 
-    println!();
-    }//end color else
+        // header
+        print!("{: <6}", "");
+        for col in 0..cols {
+            let text = vp[0].get(col).unwrap().to_string();
+            print!(
+                "{}",
+                text.truecolor(header_color.0, header_color.1, header_color.2)
+                    .bold()
+            );
+        }
+        //println!();
+        // datatypes
+        //print!("{: <6}", "");
+        //for col in 0..cols{
+        //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
+        //    let mut owned_string: String = vec_datatypes[col].to_string();
+        //    let borrowed_string: &str = &" ".repeat(add_space);
+        //    owned_string.push_str(borrowed_string);
+        //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
+        //}
+        println!();
+        for row in 1..rows {
+            print!(
+                "{: <6}",
+                (row).truecolor(meta_color.0, meta_color.1, meta_color.2)
+            );
+            for col in 0..cols {
+                let text = vp[row].get(col).unwrap().to_string();
+                let tmp;
+                print!(
+                    "{}",
+                    if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
+                        tmp = text.truecolor(na_color.0, na_color.1, na_color.2);
+                        tmp
+                    } else {
+                        tmp = text.truecolor(std_color.0, std_color.1, std_color.2);
+                        tmp
+                    }
+                );
+            }
+            println!();
+        }
+
+        // footer
+        if !datatype::is_na(&footer_option.to_string()) {
+            print!("{: <6}", "");
+            println!(
+                "{}",
+                footer_option.truecolor(meta_color.0, meta_color.1, meta_color.2)
+            );
+        }
+
+        println!();
+    } //end color else
 } // end main
 
 #[cfg(test)]

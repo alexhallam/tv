@@ -1,22 +1,23 @@
 [package]
-name = "tidy-viewer"
-version = "0.0.5"
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
-edition = "2018"
-description = "Head, but for csvs and with color"
-license = "Unlicense/MIT"
-repository = "https://github.com/alexhallam/tv"
-readme = "README.md"
-keywords = ["csv", "pretty-print","data-viewer","tv","tabular-data-viewer"]
 categories = ["command-line-utilities"]
+description = "Head, but for csvs and with color"
+edition = "2018"
+keywords = ["csv", "pretty-print", "data-viewer", "tv", "tabular-data-viewer"]
+license = "Unlicense/MIT"
+name = "tidy-viewer"
+readme = "README.md"
+repository = "https://github.com/alexhallam/tv"
+version = "0.0.5"
 
 [dependencies]
 console = "0.14.1"
-tabwriter = "1.2.1"
+crossterm = "0.20.0"
+csv = "1.1.6"
+itertools = "0.10.0"
+lazy_static = "1.4.0"
 owo-colors = "1.3.0"
 pad = "0.1"
 regex = "1.4.5"
-csv = "1.1.6"
 structopt = "0.3.21"
-itertools = "0.10.0"
-lazy_static = "1.4.0"
+tabwriter = "1.2.1"
