@@ -200,7 +200,7 @@ fn main() {
         let meta_text = "tv dim:";
         let div = "x";
         print!("{: <6}", "");
-        println!("{} {} {} {} {}", meta_text, (rows - 1), div, cols, rows_in_file);
+        println!("{} {} {} {}", meta_text, (rows - 1), div, cols);
         if !datatype::is_na(&title_option.to_string()) {
             print!("{: <6}", "");
             println!("{}", title_option);
