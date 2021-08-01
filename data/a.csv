@@ -11,3 +11,4 @@ name,value,bool,date
 "abcdefghijklmnop",10,F,2021-01-01
 "",100,,2021-01-01
 "n/a","",F,2021-01-01
+"floatlike",2/ 2.5 Gallon,F,2021-01-01
