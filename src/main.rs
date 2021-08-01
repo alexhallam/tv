@@ -105,8 +105,6 @@ fn main() {
         ),
     };
 
-    // term_attr
-
     //   colname reader
     let mut r = ReaderBuilder::new()
         .has_headers(false)
@@ -114,12 +112,16 @@ fn main() {
     let rdr = r
         .records()
         .into_iter()
-        .take(row_display_option + 1)
+        //.take(row_display_option + 1)
         .map(|x| x.expect("a csv record"))
         .collect::<Vec<_>>();
 
     let cols: usize = rdr[0].len();
-    let rows: usize = rdr.len();
+    let rows: usize = if rdr.len() > row_display_option + 1 {row_display_option + 1}else{rdr.len()};
+    let rows_in_file: usize = rdr.len();
+    let rows_remaining: usize = rows_in_file - rows;
+    let ellipsis = '\u{2026}'.to_string();
+    let row_remaining_text: String = format!("{} with {} more rows", ellipsis, rows_remaining);
 
     // csv gets records in rows. This makes them cols
     let mut v: Vec<Vec<&str>> = vec![vec!["#"; rows as usize]; cols as usize];
@@ -198,7 +200,7 @@ fn main() {
         let meta_text = "tv dim:";
         let div = "x";
         print!("{: <6}", "");
-        println!("{} {} {} {}", meta_text, (rows - 1), div, cols,);
+        println!("{} {} {} {} {}", meta_text, (rows - 1), div, cols, rows_in_file);
         if !datatype::is_na(&title_option.to_string()) {
             print!("{: <6}", "");
             println!("{}", title_option);
@@ -243,7 +245,7 @@ fn main() {
         println!(
             "{} {} {} {}",
             meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
-            (rows - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
+            (rows_in_file - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
             div.truecolor(meta_color.0, meta_color.1, meta_color.2),
             cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
         );
@@ -301,6 +303,17 @@ fn main() {
             }
             println!();
         }
+
+        // additional row info
+        
+        if rows_remaining > 0 {
+            print!("{: <6}", "");
+            println!(
+                "{}",
+                row_remaining_text.truecolor(meta_color.0, meta_color.1, meta_color.2)
+            );
+        }
+
 
         // footer
         if !datatype::is_na(&footer_option.to_string()) {

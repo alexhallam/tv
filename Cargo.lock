@@ -203,6 +203,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18794a8ad5b29321f790b55d93dfba91e125cb1a9edbd4f8e3150acc771c1a5e"
 
 [[package]]
+name = "linecount"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5d5a4a243b9cf052d37af99679cc93b08a791f444a4a1b21bb4efcaf01847d8"
+
+[[package]]
 name = "lock_api"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -506,6 +512,7 @@ dependencies = [
  "csv",
  "itertools",
  "lazy_static",
+ "linecount",
  "owo-colors",
  "pad",
  "regex",
