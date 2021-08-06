@@ -7,7 +7,7 @@ Column count was wrong.
 * [BUG #28](https://github.com/alexhallam/tv/issues/19):
 Accidental extra info printed from debug.
 
-0.0.8 (2021-08-05)
+0.0.9 (2021-08-05)
 ==================
 Feature Enhancement:
 
