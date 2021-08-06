@@ -47,7 +47,7 @@ struct Cli {
 
 fn main() {
     let term_tuple = size().unwrap();
-    println!("rows {} cols {}", term_tuple.1, term_tuple.0);
+    //println!("rows {} cols {}", term_tuple.1, term_tuple.0);
     let opt = Cli::from_args();
     let color_option = opt.color;
     let title_option = opt.title;
@@ -211,7 +211,7 @@ fn main() {
         meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
         (rows_in_file - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
         div.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
+        (cols - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
     );
     // title
     if !datatype::is_na(&title_option.to_string()) {
