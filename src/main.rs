@@ -4,7 +4,7 @@ use owo_colors::OwoColorize;
 use std::io::{self};
 use structopt::StructOpt;
 mod datatype;
-mod term_attr;
+use crossterm::terminal::size;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -46,6 +46,8 @@ struct Cli {
 }
 
 fn main() {
+    let term_tuple = size().unwrap();
+    println!("rows {} cols {}", term_tuple.1, term_tuple.0);
     let opt = Cli::from_args();
     let color_option = opt.color;
     let title_option = opt.title;
@@ -117,7 +119,11 @@ fn main() {
         .collect::<Vec<_>>();
 
     let cols: usize = rdr[0].len();
-    let rows: usize = if rdr.len() > row_display_option + 1 {row_display_option + 1}else{rdr.len()};
+    let rows: usize = if rdr.len() > row_display_option + 1 {
+        row_display_option + 1
+    } else {
+        rdr.len()
+    };
     let rows_in_file: usize = rdr.len();
     let rows_remaining: usize = rows_in_file - rows;
     let ellipsis = '\u{2026}'.to_string();
@@ -178,154 +184,134 @@ fn main() {
     }
 
     // how wide will the print be?
-    //fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u16)) -> usize {
-    //    let mut j = format!("{: <6}", "");
-    //    for col in 0..cols {
-    //        let text = vp[0].get(col).unwrap().to_string();
-    //        j.push_str(&text);
-    //        let total_width = j.chars().count();
-    //        let term_width = term_tuple.1 as usize;
-    //        if total_width < term_width {
-    //            println!("{:?}", col);
-    //            return col;
-    //        }
-    //    }
-    //    return 999;
-    //}
-
-    //let num_cols_to_print = get_num_cols_to_print(cols, vp.clone(), term_tuple);
-    //println!("{:?}", num_cols_to_print);
-
-    if color_option < 1 {
-        let meta_text = "tv dim:";
-        let div = "x";
-        print!("{: <6}", "");
-        println!("{} {} {} {}", meta_text, (rows - 1), div, cols);
-        if !datatype::is_na(&title_option.to_string()) {
-            print!("{: <6}", "");
-            println!("{}", title_option);
-        }
-        print!("{: <6}", "");
+    fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u16)) -> usize {
+        let mut last = 0;
+        let mut j = format!("{: <6}", "");
         for col in 0..cols {
             let text = vp[0].get(col).unwrap().to_string();
-            print!("{}", text);
-        }
-        println!();
-        for row in 1..rows {
-            print!("{: <6}", (row));
-            for col in 0..cols {
-                let text = vp[row].get(col).unwrap().to_string();
-                let tmp;
-                print!(
-                    "{}",
-                    if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
-                        tmp = text;
-                        tmp
-                    } else {
-                        tmp = text;
-                        tmp
-                    }
-                );
+            j.push_str(&text);
+            let total_width = j.chars().count();
+            let term_width = term_tuple.0 as usize;
+            if total_width > term_width {
+                break;
             }
-            println!();
+            last = col;
         }
-        if !datatype::is_na(&footer_option.to_string()) {
-            print!("{: <6}", "");
-            println!("{}", footer_option);
-        }
-
-        println!();
+        return last;
     }
-    //end if
-    else {
-        // color
-        let meta_text = "tv dim:";
-        let div = "x";
+
+    let num_cols_to_print = get_num_cols_to_print(cols, vp.clone(), term_tuple);
+
+    // color
+    let meta_text = "tv dim:";
+    let div = "x";
+    print!("{: <6}", "");
+    println!(
+        "{} {} {} {}",
+        meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
+        (rows_in_file - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
+        div.truecolor(meta_color.0, meta_color.1, meta_color.2),
+        cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
+    );
+    // title
+    if !datatype::is_na(&title_option.to_string()) {
         print!("{: <6}", "");
         println!(
-            "{} {} {} {}",
-            meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
-            (rows_in_file - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
-            div.truecolor(meta_color.0, meta_color.1, meta_color.2),
-            cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
+            "{}",
+            title_option
+                .truecolor(meta_color.0, meta_color.1, meta_color.2)
+                .underline()
+                .bold()
         );
-        // title
-        if !datatype::is_na(&title_option.to_string()) {
-            print!("{: <6}", "");
-            println!(
-                "{}",
-                title_option
-                    .truecolor(meta_color.0, meta_color.1, meta_color.2)
-                    .underline()
-                    .bold()
-            );
-        }
+    }
 
-        // header
-        print!("{: <6}", "");
-        for col in 0..cols {
-            let text = vp[0].get(col).unwrap().to_string();
+    // header
+    print!("{: <6}", "");
+    //for col in 0..cols {
+    for col in 0..num_cols_to_print {
+        let text = vp[0].get(col).unwrap().to_string();
+        print!(
+            "{}",
+            text.truecolor(header_color.0, header_color.1, header_color.2)
+                .bold()
+        );
+    }
+    //println!();
+    // datatypes
+    //print!("{: <6}", "");
+    //for col in 0..cols{
+    //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
+    //    let mut owned_string: String = vec_datatypes[col].to_string();
+    //    let borrowed_string: &str = &" ".repeat(add_space);
+    //    owned_string.push_str(borrowed_string);
+    //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
+    //}
+    println!();
+    for row in 1..rows {
+        print!(
+            "{: <6}",
+            (row).truecolor(meta_color.0, meta_color.1, meta_color.2)
+        );
+        //for col in 0..cols {
+        for col in 0..num_cols_to_print {
+            let text = vp[row].get(col).unwrap().to_string();
+            let tmp;
             print!(
                 "{}",
-                text.truecolor(header_color.0, header_color.1, header_color.2)
-                    .bold()
+                if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
+                    tmp = text.truecolor(na_color.0, na_color.1, na_color.2);
+                    tmp
+                } else {
+                    tmp = text.truecolor(std_color.0, std_color.1, std_color.2);
+                    tmp
+                }
             );
         }
-        //println!();
-        // datatypes
-        //print!("{: <6}", "");
-        //for col in 0..cols{
-        //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
-        //    let mut owned_string: String = vec_datatypes[col].to_string();
-        //    let borrowed_string: &str = &" ".repeat(add_space);
-        //    owned_string.push_str(borrowed_string);
-        //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
-        //}
         println!();
-        for row in 1..rows {
+    }
+
+    // additional row info
+
+    if rows_remaining > 0 {
+        print!("{: <6}", "");
+        print!(
+            "{}",
+            row_remaining_text.truecolor(meta_color.0, meta_color.1, meta_color.2)
+        );
+        //println!("num_cols_to_print {:?} cols {:?}", num_cols_to_print, cols);
+        let extra_cols_to_mention = num_cols_to_print + 1;
+        let remainder_cols = cols - extra_cols_to_mention;
+        if extra_cols_to_mention < cols {
+            let meta_text_and = "and";
+            let meta_text_var = "more variables";
+            let meta_text_comma = ",";
             print!(
-                "{: <6}",
-                (row).truecolor(meta_color.0, meta_color.1, meta_color.2)
+                " {} {} {}:",
+                meta_text_and.truecolor(meta_color.0, meta_color.1, meta_color.2),
+                remainder_cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
+                meta_text_var.truecolor(meta_color.0, meta_color.1, meta_color.2)
             );
-            for col in 0..cols {
-                let text = vp[row].get(col).unwrap().to_string();
-                let tmp;
+            for col in extra_cols_to_mention..cols {
+                let text = rdr[0].get(col).unwrap();
                 print!(
-                    "{}",
-                    if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
-                        tmp = text.truecolor(na_color.0, na_color.1, na_color.2);
-                        tmp
-                    } else {
-                        tmp = text.truecolor(std_color.0, std_color.1, std_color.2);
-                        tmp
-                    }
+                    " {}{}",
+                    text.truecolor(meta_color.0, meta_color.1, meta_color.2),
+                    meta_text_comma.truecolor(meta_color.0, meta_color.1, meta_color.2),
                 );
             }
-            println!();
         }
+    }
 
-        // additional row info
-        
-        if rows_remaining > 0 {
-            print!("{: <6}", "");
-            println!(
-                "{}",
-                row_remaining_text.truecolor(meta_color.0, meta_color.1, meta_color.2)
-            );
-        }
+    // footer
+    if !datatype::is_na(&footer_option.to_string()) {
+        println!("{: <6}", "");
+        println!(
+            "{}",
+            footer_option.truecolor(meta_color.0, meta_color.1, meta_color.2)
+        );
+    }
 
-
-        // footer
-        if !datatype::is_na(&footer_option.to_string()) {
-            print!("{: <6}", "");
-            println!(
-                "{}",
-                footer_option.truecolor(meta_color.0, meta_color.1, meta_color.2)
-            );
-        }
-
-        println!();
-    } //end color else
+    println!();
 } // end main
 
 #[cfg(test)]
