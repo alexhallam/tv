@@ -184,7 +184,23 @@ else:
 
 `column` Comes standard with linux. To get similar functionality run `column file.csv -ts,`
 
+Though `column` is similar I do think there are some reasons `tv` is a better tool.
+
+## 1. NA comprehension
+
+`NA` values very important! Viewers should have their attention drawn to these empty cells. In the image below `NA` values are not only invisible, but it seems to be causing incorrect alignment in other columns.
+
+![na_comp](img/column_v_tv1.png)
+
+## 2. Column Overflow Logic
+
+In cases where the terminal width can't fit all of the columns in a dataframe, column will try to smush data on the rows below. This results in an unpleasant viewing experience. 
+
+`tv` can automatically tell when there will be too many columns to print. When this occurs it will only print the columns that fit in the terminal and mention the extras in the footer below the table.
+
+![na_comp](img/column_v_tv2.png)
+
 # Inspiration
 
-[pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting
+[pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting. Fantastic original work by [Kirill Müller](https://github.com/krlmlr) and [Hadley Wickham](http://hadley.nz/). `tv` makes an atempt to port their ideas to the terminal.
 
