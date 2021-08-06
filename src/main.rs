@@ -195,7 +195,7 @@ fn main() {
             if total_width > term_width {
                 break;
             }
-            last = col;
+            last = col + 1;
         }
         return last;
     }
@@ -211,7 +211,7 @@ fn main() {
         meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
         (rows_in_file - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
         div.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        (cols - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
+        (cols).truecolor(meta_color.0, meta_color.1, meta_color.2),
     );
     // title
     if !datatype::is_na(&title_option.to_string()) {
@@ -279,17 +279,19 @@ fn main() {
             row_remaining_text.truecolor(meta_color.0, meta_color.1, meta_color.2)
         );
         //println!("num_cols_to_print {:?} cols {:?}", num_cols_to_print, cols);
-        let extra_cols_to_mention = num_cols_to_print + 1;
+        let extra_cols_to_mention = num_cols_to_print;
         let remainder_cols = cols - extra_cols_to_mention;
         if extra_cols_to_mention < cols {
             let meta_text_and = "and";
             let meta_text_var = "more variables";
             let meta_text_comma = ",";
+            let meta_text_colon = ":";
             print!(
-                " {} {} {}:",
+                " {} {} {}{}",
                 meta_text_and.truecolor(meta_color.0, meta_color.1, meta_color.2),
                 remainder_cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                meta_text_var.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                meta_text_var.truecolor(meta_color.0, meta_color.1, meta_color.2),
+                meta_text_colon.truecolor(meta_color.0, meta_color.1, meta_color.2)
             );
             for col in extra_cols_to_mention..cols {
                 let text = rdr[0].get(col).unwrap();
