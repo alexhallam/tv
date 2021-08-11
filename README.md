@@ -180,7 +180,7 @@ Though `column` is similar I do think there are some reasons `tv` is a better to
 
 ## 1. NA comprehension
 
-`NA` values very important! Viewers should have their attention drawn to these empty cells. In the image below `NA` values are not only invisible, but it seems to be causing incorrect alignment in other columns.
+`NA` values are very important! Viewers should have their attention drawn to these empty cells. In the image below `NA` values are not only invisible, but it seems to be causing incorrect alignment in other columns.
 
 ![na_comp](img/column_v_tv1.png)
 
