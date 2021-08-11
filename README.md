@@ -55,7 +55,7 @@ cat diamonds.csv | head -n 35 | tv
 
 [![asciicast](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj.svg)](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj)
 
-> The first three digits. The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
+> The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
 
 `tv` uses the same significant figure (sigfig) rules that the R package `pillar` uses.
 
