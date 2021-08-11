@@ -48,7 +48,7 @@ source ~/.bashrc
 wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
 
 # pipe 35 records to tv
-cat diamonds.csv | head -n 35 | tv
+cat diamonds.csv | tv
 ```
 
 # Significant Figure Definitions & Rules
