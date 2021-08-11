@@ -170,7 +170,7 @@ else:
 
 [q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. Python
 
-[miller](https://github.com/johnkerl/miller) - Commane line data manipulaiton, statistics, and more. C
+[miller](https://github.com/johnkerl/miller) - Command line data manipulation, statistics, and more. C
 
 # Tools similar to tv
 
