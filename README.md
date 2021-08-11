@@ -172,14 +172,6 @@ else:
 
 [miller](https://github.com/johnkerl/miller) - Commane line data manipulaiton, statistics, and more. C
 
-[xsv](https://github.com/BurntSushi/xsv) - a command line program for indexing, slicing, analyzing, splitting and joining CSV files
-
-[tsv-utils](https://github.com/eBay/tsv-utils) - command line utilities for tabular data files
-
-[q](https://github.com/zestyping/q) - q is a command line tool that allows direct execution of SQL-like queries on CSVs/TSVs 
-
-[miller](https://github.com/johnkerl/miller) - Miller is like awk, sed, cut, join, and sort for data formats such as CSV, TSV, tabular JSON and positionally-indexed.
-
 # Tools similar to tv
 
 `column` Comes standard with linux. To get similar functionality run `column file.csv -ts,`
