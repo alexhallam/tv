@@ -12,6 +12,12 @@
 
 # Installation
 
+The following install options are available
+
+1. Cargo Install from crates.io
+2. Cargo Install from source
+3. Debian `.deb` install
+
 ### 1. Cargo Install
 
 The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
@@ -37,6 +43,16 @@ git clone https://github.com/alexhallam/tv
 cd tv
 cargo build --release
 sudo cp ./target/release/tv /usr/local/bin/.
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 3. Debian
+
+```
+git clone https://github.com/alexhallam/tv
+cd tv
+sudo dpkg -i target/debian/tidy-viewer_<version_number>_amd64.deb
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
