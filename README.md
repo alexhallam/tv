@@ -49,7 +49,7 @@ source ~/.bashrc
 
 ### 3. Debian
 
-```
+```sh
 git clone https://github.com/alexhallam/tv
 cd tv
 sudo dpkg -i target/debian/tidy-viewer_<version_number>_amd64.deb
