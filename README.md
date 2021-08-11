@@ -4,7 +4,7 @@
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
 
-![logo](gif/TV.png)
+![logo](img/TVBlue.png)
 
 # Pretty Printing
 
