@@ -125,7 +125,7 @@ There are only 4 outputs possible. The significant figures to display are set by
 1. **lhs only (`12345.0 -> 12345`)**: If no fractional digits are present and lhs >= sigfig then return lhs
 2. **lhs + point (`1234.5 -> 1234.`)**: If fractional digits are present and lhs >= sigfig then return lhs with point. This is to let the user know that some decimal dust is beyond the main mass of the number.
 3. **lhs + point + rhs (`1.2345 -> 1.23`)**: If fractional digits are present and lhs < sigfig return the first three digits of the number.
-4. **long rhs (`0.00001 -> 0.0001`)**: This is reserved for values with leading 0s in the rhs.
+4. **long rhs (`0.00001 -> 0.00001`)**: This is reserved for values with leading 0s in the rhs.
 
 
 
