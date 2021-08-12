@@ -16,7 +16,8 @@ The following install options are available
 
 1. Cargo Install from crates.io
 2. Cargo Install from source
-3. Debian `.deb` install
+3. Linux Install
+4. Debian `.deb` install
 
 ### 1. Cargo Install
 
@@ -47,7 +48,16 @@ echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 3. Debian
+### 3. Linux Install
+
+```sh
+wget https://github.com/alexhallam/tv/releases/download/0.0.10/tidy-viewer
+chmod +x tidy-viewer
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 4. Debian
 
 ```sh
 git clone https://github.com/alexhallam/tv
