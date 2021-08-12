@@ -18,6 +18,7 @@ The following install options are available
 2. Cargo Install from source
 3. Linux Install
 4. Debian `.deb` install
+5. AUR install (todo)
 
 ### 1. Cargo Install
 
@@ -65,6 +66,11 @@ cd tv
 sudo dpkg -i target/debian/tidy-viewer_<version_number>_amd64.deb
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
+```
+
+### 5. AUR
+
+```sh
 ```
 
 # Example
