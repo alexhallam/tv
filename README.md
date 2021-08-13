@@ -179,9 +179,9 @@ There are only 4 outputs possible. The significant figures to display are set by
 ```text
 # Psuedo Code: Sigfig logic assuming sigfig = 3
 if lhs == 0:
-    //n = ((floor(log10(abs(x))) + 1 - sigfig)
-    //r =(10^n) * round(x / (10^n))
-    //return r
+    n = ((floor(log10(abs(x))) + 1 - sigfig)
+    r =(10^n) * round(x / (10^n))
+    return r
     // (0.12345 -> 0.123)
 else:
     if log10(lhs) + 1 > sigfig:
@@ -189,7 +189,6 @@ else:
             //concatonate:
             //(lhs)
             //(point)
-            //(123.45 -> 123.)
             //(123.45 -> 123.)
         else:
             //concatonate:
