@@ -68,19 +68,34 @@ echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 5. AUR
+### 5. AUR (ToDo)
 
 ```sh
 ```
 
-# Example
+# Examples
 
+Have some fun with the following datasets!
+
+### Diamonds
 ```sh
 # Download the diamonds data
 wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
 
-# pipe 35 records to tv
+# pipe to tv
 cat diamonds.csv | tv
+```
+
+### Starwars
+```sh
+wget https://raw.githubusercontent.com/tidyverse/dplyr/master/data-raw/starwars.csv
+cat starwars.csv | tv
+```
+
+### Pigeon Racing
+```sh
+wget https://raw.githubusercontent.com/joanby/python-ml-course/master/datasets/pigeon-race/pigeon-racing.csv
+cat pigeon-racing.csv | tv
 ```
 
 # Significant Figure Definitions & Rules
