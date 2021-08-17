@@ -10,6 +10,21 @@ readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
 version = "0.0.10"
 
+[package.metadata.deb]
+maintainer = "Alex Hallam <alexhallam6.28@gmail.com>"
+license-file = ["UNLICENSE", "0"]
+extended-description = """\
+Tidy Viewer (tv) is a csv pretty printer that uses \
+column styling to maximize viewer enjoyment.
+"""
+depends = "$auto"
+section = "utility"
+priority = "optional"
+assets = [
+    ["target/release/tidy-viewer", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/cargo-deb/README", "644"],
+]
+
 [dependencies]
 console = "0.14.1"
 crossterm = "0.20.0"
