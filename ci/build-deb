@@ -27,6 +27,7 @@ fi
 # we force a debug build, copy out the man page (and shell completions)
 # produced from that build, put it into a predictable location and then build
 # the deb, which knows where to look.
+
 cargo build
 
 DEPLOY_DIR=deployment/deb
