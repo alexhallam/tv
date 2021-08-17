@@ -120,7 +120,7 @@ jobs:
       run: ${{ env.CARGO }} build --verbose --workspace ${{ env.TARGET_FLAGS }}
 
     - name: Build tidy-viewer with PCRE2
-      run: ${{ env.CARGO }} build --verbose --workspace --features pcre2 ${{ env.TARGET_FLAGS }}
+      run: ${{ env.CARGO }} build --verbose --workspace ${{ env.TARGET_FLAGS }}
 
     # This is useful for debugging problems when the expected build artifacts
     # (like shell completions and man pages) aren't generated.
@@ -138,7 +138,7 @@ jobs:
 
     - name: Run tests with PCRE2 (sans cross)
       if: matrix.target == ''
-      run: ${{ env.CARGO }} test --verbose --workspace --features pcre2 ${{ env.TARGET_FLAGS }}
+      run: ${{ env.CARGO }} test --verbose --workspace ${{ env.TARGET_FLAGS }}
 
     - name: Run tests without PCRE2 (with cross)
       # These tests should actually work, but they almost double the runtime.
