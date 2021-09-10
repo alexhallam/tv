@@ -8,22 +8,22 @@ license = "Unlicense/MIT"
 name = "tidy-viewer"
 readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
-version = "0.0.10"
+version = "0.0.11"
 
 [package.metadata.deb]
-maintainer = "Alex Hallam <alexhallam6.28@gmail.com>"
-license-file = ["UNLICENSE", "0"]
+assets = [
+  ["target/release/tidy-viewer", "usr/bin/", "755"],
+  ["README.md", "usr/share/doc/cargo-deb/README", "644"],
+]
+depends = "$auto"
 extended-description = """\
 Tidy Viewer (tv) is a csv pretty printer that uses \
 column styling to maximize viewer enjoyment.
 """
-depends = "$auto"
-section = "utility"
+license-file = ["UNLICENSE", "0"]
+maintainer = "Alex Hallam <alexhallam6.28@gmail.com>"
 priority = "optional"
-assets = [
-    ["target/release/tidy-viewer", "usr/bin/", "755"],
-    ["README.md", "usr/share/doc/cargo-deb/README", "644"],
-]
+section = "utility"
 
 [dependencies]
 console = "0.14.1"
