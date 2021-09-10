@@ -12,7 +12,7 @@
 #
 # Reference:
 # https://eugene-babichenko.github.io/blog/2020/05/09/github-actions-cross-platform-auto-releases/
-
+# staging="tv-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
 name: release
 on:
   push:
@@ -155,8 +155,6 @@ jobs:
       shell: bash
       run: |
         outdir="$(ci/cargo-out-dir "${{ env.TARGET_DIR }}")"
-        # staging="tv-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
-        echo $outdir
         staging="tidy-viewer-${{ needs.create-release.outputs.tidy-viewer_version }}-${{ matrix.target }}"
         mkdir -p "$staging"/{complete,doc}
 
