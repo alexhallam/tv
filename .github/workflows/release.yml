@@ -161,10 +161,10 @@ jobs:
         cp {README.md,UNLICENSE} "$staging/"
         cp CHANGELOG.md "$staging/doc/"
 
-        [ "${{ matrix.os }}" = "windows-2019" ]; then
-        cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
-        7z a "$staging.zip" "$staging"
-        echo "ASSET=$staging.zip" >> $GITHUB_ENV
+        if [ "${{ matrix.os }}" = "windows-2019" ]; then
+          cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
+          7z a "$staging.zip" "$staging"
+          echo "ASSET=$staging.zip" >> $GITHUB_ENV
 
     - name: Upload release archive
       uses: actions/upload-release-asset@v1.0.1
