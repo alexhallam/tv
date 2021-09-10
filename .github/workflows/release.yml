@@ -165,6 +165,10 @@ jobs:
           cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
           7z a "$staging.zip" "$staging"
           echo "ASSET=$staging.zip" >> $GITHUB_ENV
+        else
+          cp "target/${{ matrix.target }}/release/tidy-viewer" "$staging/"
+          tar czf "$staging.tar.gz" "$staging"
+          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
         fi
 
     - name: Upload release archive
