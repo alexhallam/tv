@@ -40,13 +40,41 @@ struct Cli {
         short = "n",
         long = "number of rows to output",
         default_value = "25",
-        help = "Show how many rows to display. Default 25"
+        help = "Show how many rows to display."
     )]
     row_display: usize,
+    #[structopt(
+        short = "l",
+        long = "lower-column-width",
+        default_value = "2",
+        help = "The lower (minimum) width of columns. Must be 2 or larger."
+    )]
+    lower_column_width: usize,
+    #[structopt(
+        short = "u",
+        long = "upper-column-width",
+        default_value = "20",
+        help = "The upper (maxiumum) width of columns."
+    )]
+    upper_column_width: usize,
+    //#[structopt(
+    //    short = "sig",
+    //    long = "sigfig",
+    //    default_value = "3",
+    //    help = "Significant Digits. Default 3. (Comming Soon!)"
+    //)]
+    //sigfig: usize,
+    #[structopt(
+        short = "d",
+        long = "debug-mode",
+        help = "Print object details to make it easier for the maintainer to find and resolve bugs."
+    )]
+    debug_mode: bool,
 }
 
 fn main() {
     let term_tuple = size().unwrap();
+
     //println!("rows {} cols {}", term_tuple.1, term_tuple.0);
     let opt = Cli::from_args();
     let color_option = opt.color;
@@ -73,6 +101,20 @@ fn main() {
     let dracula_header_color = (80, 250, 123);
     let dracula_std_color = (248, 248, 242);
     let dracula_na_color = (255, 121, 198);
+
+    // user args
+    let lower_column_width = if opt.lower_column_width < 2 {
+        panic!("lower-column-width must be larger than 2")
+    } else {
+        opt.lower_column_width
+    };
+    let upper_column_width = if opt.upper_column_width <= lower_column_width {
+        panic!("upper-column-width must be larger than lower-column-width")
+    } else {
+        opt.upper_column_width
+    };
+    //let sigfig = opt.sigfig;
+    let debug_mode = opt.debug_mode;
 
     let (meta_color, header_color, std_color, na_color) = match color_option {
         1 => (
@@ -118,6 +160,11 @@ fn main() {
         .map(|x| x.expect("a csv record"))
         .collect::<Vec<_>>();
 
+    if debug_mode {
+        println!("{:?}", "StringRecord");
+        println!("{:?}", rdr);
+    }
+
     let cols: usize = rdr[0].len();
     let rows: usize = if rdr.len() > row_display_option + 1 {
         row_display_option + 1
@@ -143,6 +190,11 @@ fn main() {
         vec_datatypes[i] = datatype::get_col_data_type(v[i].clone());
     }
 
+    if debug_mode {
+        println!("{:?}", "vec_datatypes");
+        println!("{:?}", vec_datatypes);
+    }
+
     // vector of formatted values
     let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); rows as usize]; cols as usize];
 
@@ -154,6 +206,26 @@ fn main() {
             .max()
             .unwrap();
         col_largest_width.push(size);
+    }
+    if debug_mode {
+        println!("{:?}", "col_largest_width");
+        println!("{:?}", col_largest_width);
+    }
+
+    // column width must be bwtween the specified sizes
+    for i in 0..col_largest_width.len() {
+        if col_largest_width[i] < lower_column_width {
+            col_largest_width[i] = lower_column_width;
+        } else if col_largest_width[i] > upper_column_width {
+            col_largest_width[i] = upper_column_width;
+        } else {
+            col_largest_width[i] = col_largest_width[i];
+        }
+    }
+
+    if debug_mode {
+        println!("{:?}", "col_largest_width post-proc");
+        println!("{:?}", col_largest_width);
     }
 
     // format datatypes spaces
@@ -173,6 +245,13 @@ fn main() {
         } else {
             vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
         }
+    }
+
+    if debug_mode {
+        println!("{:?}", "Transposed Vector of Elements");
+        println!("{:?}", v);
+        println!("{:?}", "Formatted: Vector of Elements");
+        println!("{:?}", vf);
     }
 
     println!();
@@ -339,5 +418,7 @@ mod tests {
         assert_eq!(datatype::is_na(&"NA".to_string()), true);
         assert_eq!(datatype::is_na(&"missing".to_string()), true);
         assert_eq!(datatype::is_na(&"na".to_string()), true);
+        assert_eq!(datatype::is_na(&"1".to_string()), false);
+        assert_eq!(datatype::is_na(&"0".to_string()), false);
     }
 }

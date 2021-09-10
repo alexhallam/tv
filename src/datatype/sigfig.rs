@@ -125,144 +125,149 @@ fn is_decimal(x: f64) -> bool {
     l > 1.0
 }
 pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> String {
-    if lhs == 0.0 {
-        //n = ((floor(log10(abs(x))) + 1 - sigfig)
-        //r =(10^n) * round(x / (10^n))
-        let n = x.abs().log10().floor() + 1.0 - sigfig as f64;
-        let r: f64 = 10f64.powf(n) * ((x / 10f64.powf(n)).round());
-        let tmp_string = r.to_string();
-        if tmp_string.len() > 13 {
-            // 13 is arbitraty. There may be a more general solution here!
-            // Problem: debug val: 0.0001 => final_string: "0.00009999999999999999"
-            let w = (x.abs().log10().floor()).abs() as usize;
-            let fstring = format!("{:.w$}", r, w = w);
-            fstring
-        } else {
-            tmp_string
-        }
+    if lhs.abs() + rhs.abs() == 0.0 {
+        let r = "0".to_string();
+        r
     } else {
-        if lhs.log10() + 1.0 >= sigfig as f64 {
-            if rhs > 0.0 {
-                if neg == true {
-                    //concatonate:
-                    //(-)
-                    //(lhs)
-                    //(point)
-                    //(-123.45 -> -123.)
-                    let total = lhs + rhs;
-                    let total_string = total.to_string();
-                    let total_clone = total_string.clone();
-                    let split = total_clone.split(".");
-                    let vec: Vec<&str> = split.collect();
-                    let len_to_take = vec[0].len() + 1; // lhs + point
-                    let pos_string = (total_string[..len_to_take]).to_string();
-                    let neg_string = "-".to_string();
-                    let r = [neg_string, pos_string].join("");
-                    r
-                } else {
-                    //concatonate:
-                    //(lhs)
-                    //(point)
-                    //(123.45 -> 123.)
-                    //(123.45 -> 123.)
-                    let total = lhs + rhs;
-                    let total_string = total.to_string();
-                    let total_clone = total_string.clone();
-                    let split = total_clone.split(".");
-                    let vec: Vec<&str> = split.collect();
-                    let len_to_take = vec[0].len() + 1; // lhs + point
-                    let r = total_string[..len_to_take].to_string();
-                    r
-                }
+        if lhs == 0.0 {
+            //n = ((floor(log10(abs(x))) + 1 - sigfig)
+            //r =(10^n) * round(x / (10^n))
+            let n = x.abs().log10().floor() + 1.0 - sigfig as f64;
+            let r: f64 = 10f64.powf(n) * ((x / 10f64.powf(n)).round());
+            let tmp_string = r.to_string();
+            if tmp_string.len() > 13 {
+                // 13 is arbitraty. There may be a more general solution here!
+                // Problem: debug val: 0.0001 => final_string: "0.00009999999999999999"
+                let w = (x.abs().log10().floor()).abs() as usize;
+                let fstring = format!("{:.w$}", r, w = w);
+                fstring
             } else {
-                if neg == true {
-                    //concatonate:
-                    //(-)
-                    //(lhs)
-                    //(-1234.0 -> -1234)
-                    let total = lhs + rhs;
-                    let total_string = total.to_string();
-                    let total_clone = total_string.clone();
-                    let split = total_clone.split(".");
-                    let vec: Vec<&str> = split.collect();
-                    let len_to_take = vec[0].len(); // lhs
-                    let pos_string = (total_string[..len_to_take]).to_string();
-                    let neg_string = "-".to_string();
-                    let r = [neg_string, pos_string].join("");
-                    r
-                } else {
-                    //concatonate:
-                    //(lhs)
-                    //(1234.0 -> 1234)
-                    //(100.0 -> 100)
-                    //let total = lhs + rhs;
-                    //let total_string = total.to_string();
-                    let total_string = x.to_string();
-                    let total_clone = total_string.clone();
-                    let split = total_clone.split(".");
-                    let vec: Vec<&str> = split.collect();
-                    let len_to_take = vec[0].len(); // lhs
-                    let r = total_string[..len_to_take].to_string();
-                    r
-                }
+                tmp_string
             }
         } else {
-            if rhs == 0.0 {
-                //concatonate:
-                //(lhs)
-                //(point)
-                //+ sigfig - log10(lhs) from rhs
-                let total_string = x.to_string();
-                let total_clone = total_string.clone();
-                let split = total_clone.split(".");
-                let vec: Vec<&str> = split.collect();
-                let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
-                let r = total_string[..len_to_take_lhs].to_string();
-                r
-            } else {
-                if neg == true {
-                    //concatonate:
-                    //(-)
-                    //(lhs)
-                    //(point)
-                    //+ sigfig - log10(lhs) from rhs
-                    //(12.345 -> 12.3)
-                    //(1.2345 -> 1.23)
-                    // need a rhs arguments here
-                    //let total = lhs + rhs;
-                    //let total_string = total.to_string();
-                    let total_string = x.to_string();
-                    let total_clone = total_string.clone();
-                    let split = total_clone.split(".");
-                    let vec: Vec<&str> = split.collect();
-                    let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
-                    let len_to_take_rhs = ((sigfig + 1) as usize) - len_to_take_lhs;
-                    let len_to_take = len_to_take_lhs + len_to_take_rhs + 1; // +1 for the space the neg sign takes
-                    let r = total_string[..len_to_take].to_string();
-                    r
-                } else {
-                    //concatonate:
-                    //(lhs)
-                    //(point)
-                    //+ sigfig - log10(lhs) from rhs
-                    //(12.345 -> 12.3)
-                    //(1.2345 -> 1.23)
-                    // need a rhs arguments here
-                    //let total = lhs + rhs;
-                    //let total_string = total.to_string();
-                    let total_string = x.to_string();
-                    let total_clone = total_string.clone();
-                    let split = total_clone.split(".");
-                    let vec: Vec<&str> = split.collect();
-                    let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
-                    let len_to_take_rhs = ((sigfig + 1) as usize) - len_to_take_lhs;
-                    let len_to_take = len_to_take_lhs + len_to_take_rhs;
-                    if len_to_take >= total_string.len() {
-                        let r = total_string.to_string();
+            if lhs.log10() + 1.0 >= sigfig as f64 {
+                if rhs > 0.0 {
+                    if neg == true {
+                        //concatonate:
+                        //(-)
+                        //(lhs)
+                        //(point)
+                        //(-123.45 -> -123.)
+                        let total = lhs + rhs;
+                        let total_string = total.to_string();
+                        let total_clone = total_string.clone();
+                        let split = total_clone.split(".");
+                        let vec: Vec<&str> = split.collect();
+                        let len_to_take = vec[0].len() + 1; // lhs + point
+                        let pos_string = (total_string[..len_to_take]).to_string();
+                        let neg_string = "-".to_string();
+                        let r = [neg_string, pos_string].join("");
                         r
                     } else {
+                        //concatonate:
+                        //(lhs)
+                        //(point)
+                        //(123.45 -> 123.)
+                        //(123.45 -> 123.)
+                        let total = lhs + rhs;
+                        let total_string = total.to_string();
+                        let total_clone = total_string.clone();
+                        let split = total_clone.split(".");
+                        let vec: Vec<&str> = split.collect();
+                        let len_to_take = vec[0].len() + 1; // lhs + point
                         let r = total_string[..len_to_take].to_string();
                         r
+                    }
+                } else {
+                    if neg == true {
+                        //concatonate:
+                        //(-)
+                        //(lhs)
+                        //(-1234.0 -> -1234)
+                        let total = lhs + rhs;
+                        let total_string = total.to_string();
+                        let total_clone = total_string.clone();
+                        let split = total_clone.split(".");
+                        let vec: Vec<&str> = split.collect();
+                        let len_to_take = vec[0].len(); // lhs
+                        let pos_string = (total_string[..len_to_take]).to_string();
+                        let neg_string = "-".to_string();
+                        let r = [neg_string, pos_string].join("");
+                        r
+                    } else {
+                        //concatonate:
+                        //(lhs)
+                        //(1234.0 -> 1234)
+                        //(100.0 -> 100)
+                        //let total = lhs + rhs;
+                        //let total_string = total.to_string();
+                        let total_string = x.to_string();
+                        let total_clone = total_string.clone();
+                        let split = total_clone.split(".");
+                        let vec: Vec<&str> = split.collect();
+                        let len_to_take = vec[0].len(); // lhs
+                        let r = total_string[..len_to_take].to_string();
+                        r
+                    }
+                }
+            } else {
+                if rhs == 0.0 {
+                    //concatonate:
+                    //(lhs)
+                    //(point)
+                    //+ sigfig - log10(lhs) from rhs
+                    let total_string = x.to_string();
+                    let total_clone = total_string.clone();
+                    let split = total_clone.split(".");
+                    let vec: Vec<&str> = split.collect();
+                    let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
+                    let r = total_string[..len_to_take_lhs].to_string();
+                    r
+                } else {
+                    if neg == true {
+                        //concatonate:
+                        //(-)
+                        //(lhs)
+                        //(point)
+                        //+ sigfig - log10(lhs) from rhs
+                        //(12.345 -> 12.3)
+                        //(1.2345 -> 1.23)
+                        // need a rhs arguments here
+                        //let total = lhs + rhs;
+                        //let total_string = total.to_string();
+                        let total_string = x.to_string();
+                        let total_clone = total_string.clone();
+                        let split = total_clone.split(".");
+                        let vec: Vec<&str> = split.collect();
+                        let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
+                        let len_to_take_rhs = ((sigfig + 1) as usize) - len_to_take_lhs;
+                        let len_to_take = len_to_take_lhs + len_to_take_rhs + 1; // +1 for the space the neg sign takes
+                        let r = total_string[..len_to_take].to_string();
+                        r
+                    } else {
+                        //concatonate:
+                        //(lhs)
+                        //(point)
+                        //+ sigfig - log10(lhs) from rhs
+                        //(12.345 -> 12.3)
+                        //(1.2345 -> 1.23)
+                        // need a rhs arguments here
+                        //let total = lhs + rhs;
+                        //let total_string = total.to_string();
+                        let total_string = x.to_string();
+                        let total_clone = total_string.clone();
+                        let split = total_clone.split(".");
+                        let vec: Vec<&str> = split.collect();
+                        let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
+                        let len_to_take_rhs = ((sigfig + 1) as usize) - len_to_take_lhs;
+                        let len_to_take = len_to_take_lhs + len_to_take_rhs;
+                        if len_to_take >= total_string.len() {
+                            let r = total_string.to_string();
+                            r
+                        } else {
+                            let r = total_string[..len_to_take].to_string();
+                            r
+                        }
                     }
                 }
             }
@@ -360,10 +365,10 @@ fn sigfig_index_to(final_string: String, sigfig: i64) -> Option<usize> {
 
 #[test]
 fn test_f12345() {
-    let f12345 = vec![12345.0, 1234.50, 123.45, 12.345, 1.2345, 0.12345];
-    let test_sigfig = vec![3, 3, 3, 3, 3, 3];
-    let test_neg = vec![false, false, false, false, false, false];
-    let test_lhs = vec![12345.0, 1234.0, 123.0, 12.0, 1.0, 0.0];
+    let f12345 = vec![12345.0, 1234.50, 123.45, 12.345, 1.2345, 0.12345, 0.0];
+    let test_sigfig = vec![3, 3, 3, 3, 3, 3, 3];
+    let test_neg = vec![false, false, false, false, false, false, false];
+    let test_lhs = vec![12345.0, 1234.0, 123.0, 12.0, 1.0, 0.0, 0.0];
     let test_rhs = vec![
         0.0,
         0.5,
@@ -371,9 +376,10 @@ fn test_f12345() {
         0.34500000000000064,
         0.23449999999999993,
         0.12345,
+        0.0,
     ];
-    let test_dec = vec![false, true, true, true, true, true];
-    let test_final_string = vec!["12345", "1234.", "123.", "12.3", "1.23", "0.123"];
+    let test_dec = vec![false, true, true, true, true, true, false];
+    let test_final_string = vec!["12345", "1234.", "123.", "12.3", "1.23", "0.123", "0"];
 
     for i in 0..f12345.len() {
         let value = f12345[i];
