@@ -191,3 +191,15 @@ pub fn get_col_data_type(col: Vec<&str>) -> &str {
         .0;
     return s;
 }
+
+pub fn parse_delimiter(src: &str) -> Result<u8, String> {
+    let bytes = src.as_bytes();
+    match bytes.len() {
+        1 => Ok(bytes[0]),
+        _ => Err(format!(
+            "expected one byte as a delimiter, got {} bytes (\"{}\")",
+            bytes.len(),
+            src
+        )),
+    }
+}

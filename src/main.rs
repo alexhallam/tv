@@ -57,6 +57,13 @@ struct Cli {
         help = "The upper (maxiumum) width of columns."
     )]
     upper_column_width: usize,
+    #[structopt(
+        long = "delimiter",
+        default_value = ",",
+        parse(try_from_str = datatype::parse_delimiter),
+        help = "The delimiter separating the columns."
+    )]
+    delimiter: u8,
     //#[structopt(
     //    short = "sig",
     //    long = "sigfig",
@@ -152,6 +159,7 @@ fn main() {
     //   colname reader
     let mut r = ReaderBuilder::new()
         .has_headers(false)
+        .delimiter(opt.delimiter)
         .from_reader(io::stdin());
     let rdr = r
         .records()
