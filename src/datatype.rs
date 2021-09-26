@@ -121,12 +121,12 @@ pub fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
         // add
         .map(|string| format_if_num(&string))
         .map(|mut string| {
-            if string.len() > width {
+            let len = string.chars().count();
+            if len > width {
                 string.truncate(width - 1);
                 [string, ellipsis.to_string()].join(" ")
             } else {
-                let l = string.len();
-                let add_space = width - l + 1;
+                let add_space = width - len + 1;
                 let borrowed_string: &str = &" ".repeat(add_space);
                 [string, "".to_string()].join(borrowed_string)
             }
@@ -136,9 +136,8 @@ pub fn trunc_strings(vec_col: Vec<&str>, width: usize) -> Vec<String> {
 }
 pub fn header_len_str(vec_col: Vec<&str>) -> Vec<usize> {
     let v = vec_col
-        .into_iter()
-        .map(String::from)
-        .map(|string| string.len())
+        .iter()
+        .map(|&string| string.chars().count())
         .collect::<Vec<usize>>();
     return v;
 }
