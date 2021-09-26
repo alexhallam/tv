@@ -190,7 +190,6 @@ fn main() {
         v.push(column)
     }
 
-    
     if debug_mode {
         // make datatypes vector
         let mut vec_datatypes: Vec<&str> = vec!["#"; cols as usize];
