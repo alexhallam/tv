@@ -18,7 +18,7 @@ The following install options are available
 2. Cargo Install from source
 3. Linux Install
 4. Debian `.deb` install
-5. AUR install (todo)
+5. AUR install
 
 ### 1. Cargo Install
 
@@ -68,9 +68,10 @@ echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 5. AUR (ToDo)
+### 5. AUR
 
 ```sh
+paru -S tidy-viewer
 ```
 
 # Examples
