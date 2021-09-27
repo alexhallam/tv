@@ -1,3 +1,11 @@
+0.0.13 (2021-09-27)
+==================
+This version was made possible by the contributions of @Lireer! Thank You!
+
+* [PR #40](https://github.com/alexhallam/tv/pull/40) Allow users to specify the deliminator with the `delimiter` option.
+* [PR #42](https://github.com/alexhallam/tv/pull/42) `clippy` warnings and code refactoring. 
+* [PR #41](https://github.com/alexhallam/tv/pull/41) change `.len()` to `.chars().count()` to avoid potential column widths if the calue contains code points consisting of multiple bytes.
+
 0.0.12 (2021-09-09)
 ==================
 * [BUG #33](https://github.com/alexhallam/tv/issues/33) Elipses used when NA should replace on unquoted string missingness #33
