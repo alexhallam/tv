@@ -57,6 +57,7 @@ struct Cli {
     )]
     upper_column_width: usize,
     #[structopt(
+        short = "s",
         long = "delimiter",
         default_value = ",",
         parse(try_from_str = datatype::parse_delimiter),
