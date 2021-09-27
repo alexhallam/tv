@@ -1,4 +1,3 @@
-use csv;
 use csv::ReaderBuilder;
 use owo_colors::OwoColorize;
 use std::io::{self};
@@ -174,31 +173,29 @@ fn main() {
     }
 
     let cols: usize = rdr[0].len();
-    let rows: usize = if rdr.len() > row_display_option + 1 {
-        row_display_option + 1
-    } else {
-        rdr.len()
-    };
+    let rows: usize = rdr.len().min(row_display_option + 1);
     let rows_in_file: usize = rdr.len();
     let rows_remaining: usize = rows_in_file - rows;
     let ellipsis = '\u{2026}'.to_string();
     let row_remaining_text: String = format!("{} with {} more rows", ellipsis, rows_remaining);
 
     // csv gets records in rows. This makes them cols
-    let mut v: Vec<Vec<&str>> = vec![vec!["#"; rows as usize]; cols as usize];
+    let mut v: Vec<Vec<&str>> = Vec::new(); //vec![vec!["#"; rows as usize]; cols as usize];
     for col in 0..cols {
-        for row in 0..rows {
-            v[col][row] = &rdr[row].get(col).unwrap();
-        }
-    }
-
-    // make datatypes vector
-    let mut vec_datatypes: Vec<&str> = vec!["#"; cols as usize];
-    for i in 0..cols {
-        vec_datatypes[i] = datatype::get_col_data_type(v[i].clone());
+        let column = rdr
+            .iter()
+            .take(rows)
+            .map(|row| row.get(col).unwrap())
+            .collect();
+        v.push(column)
     }
 
     if debug_mode {
+        // make datatypes vector
+        let mut vec_datatypes: Vec<&str> = vec!["#"; cols as usize];
+        for i in 0..cols {
+            vec_datatypes[i] = datatype::get_col_data_type(&v[i]);
+        }
         println!("{:?}", "vec_datatypes");
         println!("{:?}", vec_datatypes);
     }
@@ -208,11 +205,8 @@ fn main() {
 
     // get max width in columns
     let mut col_largest_width = Vec::new();
-    for i in 0..cols {
-        let size: usize = datatype::header_len_str(v[i].clone())
-            .into_iter()
-            .max()
-            .unwrap();
+    for column in &v {
+        let size: usize = datatype::header_len_str(&column).into_iter().max().unwrap();
         col_largest_width.push(size);
     }
     if debug_mode {
@@ -220,16 +214,10 @@ fn main() {
         println!("{:?}", col_largest_width);
     }
 
-    // column width must be bwtween the specified sizes
-    for i in 0..col_largest_width.len() {
-        if col_largest_width[i] < lower_column_width {
-            col_largest_width[i] = lower_column_width;
-        } else if col_largest_width[i] > upper_column_width {
-            col_largest_width[i] = upper_column_width;
-        } else {
-            col_largest_width[i] = col_largest_width[i];
-        }
-    }
+    // column width must be between the specified sizes
+    col_largest_width
+        .iter_mut()
+        .for_each(|width| *width = (*width).clamp(lower_column_width, upper_column_width));
 
     if debug_mode {
         println!("{:?}", "col_largest_width post-proc");
@@ -246,13 +234,7 @@ fn main() {
 
     // make vector of formatted values
     for i in 0..cols {
-        if vec_datatypes[i] == "<chr>" {
-            vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
-        } else if vec_datatypes[i] == "<dbl>" {
-            vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
-        } else {
-            vf[i] = datatype::trunc_strings(v[i].clone(), col_largest_width[i]);
-        }
+        vf[i] = datatype::trunc_strings(&v[i], col_largest_width[i]);
     }
 
     if debug_mode {
@@ -263,11 +245,10 @@ fn main() {
     }
 
     println!();
-    let mut vp: Vec<Vec<String>> = vec![vec!["#".to_string(); cols as usize]; rows as usize];
-    for col in 0..cols {
-        for row in 0..rows {
-            vp[row][col] = vf[col].get(row).unwrap().to_string();
-        }
+    let mut vp = Vec::new();
+    for r in 0..rows {
+        let row = vf.iter().map(|col| col[r].to_string()).collect();
+        vp.push(row);
     }
 
     // how wide will the print be?
@@ -284,7 +265,7 @@ fn main() {
             }
             last = col + 1;
         }
-        return last;
+        last
     }
 
     let num_cols_to_print = get_num_cols_to_print(cols, vp.clone(), term_tuple);
@@ -301,7 +282,7 @@ fn main() {
         (cols).truecolor(meta_color.0, meta_color.1, meta_color.2),
     );
     // title
-    if !datatype::is_na(&title_option.to_string()) {
+    if !datatype::is_na(&title_option) {
         print!("{: <6}", "");
         println!(
             "{}",
@@ -334,28 +315,28 @@ fn main() {
     //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
     //}
     println!();
-    for row in 1..rows {
-        print!(
-            "{: <6}",
-            (row).truecolor(meta_color.0, meta_color.1, meta_color.2)
-        );
-        //for col in 0..cols {
-        for col in 0..num_cols_to_print {
-            let text = vp[row].get(col).unwrap().to_string();
-            let tmp;
+    vp.iter()
+        .enumerate()
+        .take(rows)
+        .skip(1)
+        .for_each(|(i, row)| {
             print!(
-                "{}",
-                if datatype::is_na_string_padded(vp[row].get(col).unwrap().to_string()) {
-                    tmp = text.truecolor(na_color.0, na_color.1, na_color.2);
-                    tmp
-                } else {
-                    tmp = text.truecolor(std_color.0, std_color.1, std_color.2);
-                    tmp
-                }
+                "{: <6}",
+                i.truecolor(meta_color.0, meta_color.1, meta_color.2)
             );
-        }
-        println!();
-    }
+            //for col in 0..cols {
+            row.iter().take(num_cols_to_print).for_each(|col| {
+                print!(
+                    "{}",
+                    if datatype::is_na_string_padded(col) {
+                        col.truecolor(na_color.0, na_color.1, na_color.2)
+                    } else {
+                        col.truecolor(std_color.0, std_color.1, std_color.2)
+                    }
+                );
+            });
+            println!();
+        });
 
     // additional row info
 
@@ -392,7 +373,7 @@ fn main() {
     }
 
     // footer
-    if !datatype::is_na(&footer_option.to_string()) {
+    if !datatype::is_na(&footer_option) {
         println!("{: <6}", "");
         println!(
             "{}",
