@@ -187,17 +187,17 @@ if lhs == 0:
 else:
     if log10(lhs) + 1 > sigfig:
         if rhs > 0:
-            //concatonate:
+            //concatenate:
             //(lhs)
             //(point)
             //(123.45 -> 123.)
         else:
-            //concatonate:
+            //concatenate:
             //(lhs)
             //(1234.0 -> 1234)
             //(100.0 -> 100)
     else:
-        //concatonate:
+        //concatenate:
         //(lhs)
         //(point)
         //sigfig - log10(lhs) from rhs
