@@ -44,7 +44,7 @@ The current version is alpha. I do not plan to push to crates.io until this is m
 git clone https://github.com/alexhallam/tv
 cd tv
 cargo build --release
-sudo cp ./target/release/tv /usr/local/bin/.
+sudo cp ./target/release/tidy-viewer /usr/local/bin/.
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
