@@ -19,6 +19,9 @@ on:
     # Enable when testing release infrastructure on a branch.
     # branches:
     # - ag/work
+    # Ignore README.md changes. No need to test code when only README changes
+    paths-ignore:
+      - 'README.md'
     tags:
     - "[0-9]+.[0-9]+.[0-9]+"
 jobs:
