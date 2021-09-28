@@ -1,6 +1,8 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
+use unicode_truncate::UnicodeTruncateStr;
+
 mod sigfig;
 
 pub fn is_logical(text: &str) -> bool {
@@ -105,11 +107,11 @@ pub fn trunc_strings(vec_col: &[&str], width: usize) -> Vec<String> {
         .map(|&string| format_if_na(string))
         // add
         .map(|string| format_if_num(&string))
-        .map(|mut string| {
+        .map(|string| {
             let len = string.chars().count();
             if len > width {
-                string.truncate(width - 1);
-                [string, ellipsis.to_string()].join(" ")
+                let (rv, _) = string.unicode_truncate(width - 1);
+                [rv.to_string(), ellipsis.to_string()].join(" ")
             } else {
                 let add_space = width - len + 1;
                 let borrowed_string: &str = &" ".repeat(add_space);
