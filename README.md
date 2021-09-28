@@ -10,15 +10,19 @@
 
 [![asciicast](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX.svg)](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX)
 
+![example](img/screen_shot_index.png)
+
 # Installation
 
 The following install options are available
 
 1. Cargo Install from crates.io
-2. Cargo Install from source
-3. Linux Install
-4. Debian `.deb` install
-5. AUR install
+2. Debian `.deb` install
+3. AUR
+4. MacOS
+5. ARM
+6. Windows
+7. Build from source (Most general)
 
 ### 1. Cargo Install
 
@@ -31,48 +35,40 @@ echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 2. Install from source
-
-The current version is alpha. I do not plan to push to crates.io until this is more polished. If you would like to try this in its raw state [install rust](https://www.rust-lang.org/tools/install) and follow the steps below.
-
-1. Clone repo
-2. `cargo build --release`
-3. cp binary to `bin`
-4. Add `alias tv='tidy-viewer'` to `~/.bashrc`
+### 2. Debian
 
 ```sh
-git clone https://github.com/alexhallam/tv
-cd tv
-cargo build --release
-sudo cp ./target/release/tidy-viewer /usr/local/bin/.
+wget tidy-viewer_<VERSION>_amd64.deb
+sudo dpkg -i target/debian/tidy-viewer_<VERSION>_amd64.deb
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 3. Linux Install
+### 3. AUR
 
-```sh
-wget https://github.com/alexhallam/tv/releases/download/0.0.10/tidy-viewer
-chmod +x tidy-viewer
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 4. Debian
-
-```sh
-git clone https://github.com/alexhallam/tv
-cd tv
-sudo dpkg -i target/debian/tidy-viewer_<version_number>_amd64.deb
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 5. AUR
+Kindly maintained by @yigitsever
 
 ```sh
 paru -S tidy-viewer
 ```
+
+### 4. Other releases
+
+We currently cut releases for the following architectures. Download from the [release page](https://github.com/alexhallam/tv/releases).
+
+* **MacOS**
+* **ARM**
+* **Windows**
+* **Build from source (Most general)**
+
+The instuctions for all of the above are very similar with the following general steps.
+
+1. Download your desired release from the [release page](https://github.com/alexhallam/tv/releases)
+2. `tar -xvzf <RELEASE_FILE_NAME>`
+3. `cd` into uncompressed folder
+4. Find binary `tidy-viewer`
+
+After the above steps I would highly reccomend you make an alias for `tidy-viewer` as shown for other builds.
 
 # Examples
 
