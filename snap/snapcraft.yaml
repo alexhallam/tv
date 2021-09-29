@@ -1,0 +1,20 @@
+name: tidy-viewer
+adopt-info: tidy-viewer
+summary: Tidy Viewer (tv)
+description: |
+  Tidy Viewer (tv) is a cross-platform CLI csv pretty printer that uses column styling to maximize viewer enjoyment.
+base: core20
+
+parts:
+  tidy-viewer:
+    source: https://github.com/alexhallam/tv.git
+    plugin: rust
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version "$(git describe --tags --abbrev=0)"
+
+apps:
+  tidy-viewer:
+    command: bin/tidy-viewer
+
+confinement: strict
