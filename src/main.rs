@@ -237,7 +237,6 @@ fn main() {
     for i in 0..cols {
         vf[i] = datatype::trunc_strings(&v[i], col_largest_width[i]);
     }
-
     if debug_mode {
         println!("{:?}", "Transposed Vector of Elements");
         println!("{:?}", v);
