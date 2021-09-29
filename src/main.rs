@@ -365,10 +365,17 @@ fn main() {
             for col in extra_cols_to_mention..cols {
                 let text = rdr[0].get(col).unwrap();
                 print!(
-                    " {}{}",
-                    text.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                    meta_text_comma.truecolor(meta_color.0, meta_color.1, meta_color.2),
+                    " {}",
+                    text.truecolor(meta_color.0, meta_color.1, meta_color.2)
                 );
+
+                // The last column mentioned in foot should not be followed by a comma
+                if col + 1 < cols {
+                    print!(
+                        "{}",
+                        meta_text_comma.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                    )
+                }
             }
         }
     }
