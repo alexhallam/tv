@@ -23,6 +23,7 @@ The following install options are available
 5. ARM
 6. Windows
 7. Build from source (Most general)
+8. Snap
 
 ### 1. Cargo Install
 
@@ -52,7 +53,7 @@ Kindly maintained by @yigitsever
 paru -S tidy-viewer
 ```
 
-### 4. Other releases
+### 4-7. Other releases
 
 We currently cut releases for the following architectures. Download from the [release page](https://github.com/alexhallam/tv/releases).
 
@@ -69,6 +70,13 @@ The instuctions for all of the above are very similar with the following general
 4. Find binary `tidy-viewer`
 
 After the above steps I would highly reccomend you make an alias for `tidy-viewer` as shown for other builds.
+
+### 8. Snap
+
+```
+sudo snap install --edge tidy-viewer
+tidy-viewer --help
+```
 
 # Examples
 
