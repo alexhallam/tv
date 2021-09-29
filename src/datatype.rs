@@ -111,7 +111,9 @@ pub fn trunc_strings(vec_col: &[&str], width: usize) -> Vec<String> {
             let len = string.chars().count();
             if len > width {
                 let (rv, _) = string.unicode_truncate(width - 1);
-                [rv.to_string(), ellipsis.to_string()].join(" ")
+                let spacer: &str = &" ";
+                let string_and_ellipses = [rv.to_string(), ellipsis.to_string()].join("");
+                [string_and_ellipses, spacer.to_string()].join("")
             } else {
                 let add_space = width - len + 1;
                 let borrowed_string: &str = &" ".repeat(add_space);
