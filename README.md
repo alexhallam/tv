@@ -205,15 +205,17 @@ else:
 
 `tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
-[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. Rust
+[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. [Rust | CLI]
 
-[csvtk](https://bioinf.shenwei.me/csvtk/) - Command line csv data manipulation. Go
+[csvtk](https://bioinf.shenwei.me/csvtk/) - Command line csv data manipulation. [Go | CLI]
 
-[tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. D
+[tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. [D | CLI]
 
-[q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. Python
+[q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. [Python | CLI]
 
-[miller](https://github.com/johnkerl/miller) - Command line data manipulation, statistics, and more. C
+[miller](https://github.com/johnkerl/miller) - Command line data manipulation, statistics, and more. [C | CLI]
+
+[VisiData](https://www.visidata.org/) - An interactive terminal user interface that is built to explore and wrangle data. [Python | TUI]
 
 # Tools similar to tv
 
