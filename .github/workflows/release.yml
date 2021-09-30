@@ -162,7 +162,7 @@ jobs:
         mkdir -p "$staging"/{complete,doc}
 
         cp {README.md,UNLICENSE} "$staging/"
-        cp CHANGELOG.md "$staging/doc/"
+        #cp CHANGELOG.md "$staging/doc/"
 
         [ "${{ matrix.os }}" = "windows-2019" ]; then
         cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
