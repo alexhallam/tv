@@ -9,7 +9,8 @@ pub fn is_logical(text: &str) -> bool {
     // col_logical -l, T,F,TRUE,FALSE,True,False,true,false,t,f,1,0
     lazy_static! {
         static ref R: Regex =
-            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False|^1$|^0$").unwrap();
+            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False|^1$|^0$")
+                .unwrap();
     }
     R.is_match(text)
 }
