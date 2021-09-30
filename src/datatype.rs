@@ -9,9 +9,9 @@ pub fn is_logical(text: &str) -> bool {
     // col_logical -l, T,F,TRUE,FALSE,True,False,true,false,t,f,1,0
     lazy_static! {
         static ref R: Regex =
-            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False").unwrap();
+            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False|^1$|^0$")
+                .unwrap();
     }
-    //let r = Regex::new(rgex).unwrap();
     R.is_match(text)
 }
 
@@ -85,6 +85,8 @@ pub fn is_na_string_padded(text: &str) -> bool {
 pub fn infer_type_from_string(text: &str) -> &'static str {
     if is_time(text) {
         "<tst>"
+    } else if is_logical(text) {
+        "<lgl>"
     } else if is_integer(text) {
         "<int>"
     } else if is_date_time(text) {
@@ -93,8 +95,6 @@ pub fn infer_type_from_string(text: &str) -> &'static str {
         "<tsd>"
     } else if is_double(text) {
         "<dbl>"
-    } else if is_logical(text) {
-        "<lgl>"
     } else {
         "<chr>"
     }
@@ -111,7 +111,9 @@ pub fn trunc_strings(vec_col: &[&str], width: usize) -> Vec<String> {
             let len = string.chars().count();
             if len > width {
                 let (rv, _) = string.unicode_truncate(width - 1);
-                [rv.to_string(), ellipsis.to_string()].join(" ")
+                let spacer: &str = &" ";
+                let string_and_ellipses = [rv.to_string(), ellipsis.to_string()].join("");
+                [string_and_ellipses, spacer.to_string()].join("")
             } else {
                 let add_space = width - len + 1;
                 let borrowed_string: &str = &" ".repeat(add_space);
