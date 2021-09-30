@@ -248,4 +248,3 @@ In cases where the terminal width can't fit all of the columns in a dataframe, c
 # Inspiration
 
 [pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting. Fantastic original work by [Kirill Müller](https://github.com/krlmlr) and [Hadley Wickham](http://hadley.nz/). `tv` makes an attempt to port their ideas to the terminal.
-
