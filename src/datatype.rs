@@ -9,9 +9,8 @@ pub fn is_logical(text: &str) -> bool {
     // col_logical -l, T,F,TRUE,FALSE,True,False,true,false,t,f,1,0
     lazy_static! {
         static ref R: Regex =
-            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False").unwrap();
+            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False|^1$|^0$").unwrap();
     }
-    //let r = Regex::new(rgex).unwrap();
     R.is_match(text)
 }
 
@@ -85,6 +84,8 @@ pub fn is_na_string_padded(text: &str) -> bool {
 pub fn infer_type_from_string(text: &str) -> &'static str {
     if is_time(text) {
         "<tst>"
+    } else if is_logical(text) {
+        "<lgl>"
     } else if is_integer(text) {
         "<int>"
     } else if is_date_time(text) {
@@ -93,8 +94,6 @@ pub fn infer_type_from_string(text: &str) -> &'static str {
         "<tsd>"
     } else if is_double(text) {
         "<dbl>"
-    } else if is_logical(text) {
-        "<lgl>"
     } else {
         "<chr>"
     }
