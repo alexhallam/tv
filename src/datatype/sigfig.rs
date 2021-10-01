@@ -722,4 +722,3 @@ fn test_bug75() {
         assert_eq!(list.final_string, test_final_string[i]);
     }
 }
-
