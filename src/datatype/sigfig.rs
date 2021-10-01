@@ -679,6 +679,7 @@ fn test_long_double() {
         assert_eq!(list.final_string, test_final_string[i]);
     }
 }
+
 #[test]
 fn test_bug75() {
     // the `rhs` break on this test. This is intentional
@@ -721,3 +722,4 @@ fn test_bug75() {
         assert_eq!(list.final_string, test_final_string[i]);
     }
 }
+
