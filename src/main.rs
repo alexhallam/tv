@@ -552,7 +552,7 @@ mod tests {
             vec!["col3", "3.333333333333333", "1.11111111111111111"],
         ];
         let col_largest_width_post_proc: Vec<usize> = vec![4, 4, 4, 4];
-        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 13 as usize]; 4 as usize];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 3 as usize]; 4 as usize];
         for i in 0..col_largest_width_post_proc.len() {
             vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
         }
@@ -564,6 +564,37 @@ mod tests {
                 ["col1 ", "3.33 ", "1.11 "],
                 ["col2 ", "3.33 ", "1.11 "],
                 ["col3 ", "3.33 ", "1.11 "]
+            ]
+        );
+    }
+
+    #[test]
+    fn unicode_pr55_csv() {
+        let v: Vec<Vec<&str>> = vec![
+            vec!["aColumn", "1"],
+            vec!["bColumn", "üÜğĞçÇşŞöÖ"],
+            vec!["cColumn", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞöÖ"],
+            vec!["dColumn", "77"],
+            vec!["eColumn", "TR"],
+            vec!["fColumn", "77"],
+            vec!["gColumn", "77"],
+        ];
+        let col_largest_width_post_proc: Vec<usize> = vec![7, 10, 20, 7, 7, 7, 7];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 2 as usize]; 7 as usize];
+        for i in 0..col_largest_width_post_proc.len() {
+            vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
+        }
+
+        assert_eq!(
+            vf,
+            [
+                ["aColumn ", "1       "],
+                ["bColumn    ", "üÜğĞçÇşŞöÖ "],
+                ["cColumn              ", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞ… "],
+                ["dColumn ", "77      "],
+                ["eColumn ", "TR      "],
+                ["fColumn ", "77      "],
+                ["gColumn ", "77      "]
             ]
         );
     }
