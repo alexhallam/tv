@@ -1,5 +1,6 @@
 [![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 [![Crate](https://img.shields.io/crates/v/tidy-viewer.svg)](https://crates.io/crates/tidy-viewer)
+<img alt="Crates.io (recent)" src="https://img.shields.io/crates/dr/tidy-viewer">
 
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a cross-platform csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
@@ -23,6 +24,7 @@ The following install options are available
 5. ARM
 6. Windows
 7. Build from source (Most general)
+8. Snap
 
 ### 1. Cargo Install
 
@@ -30,7 +32,7 @@ The following will install from the [crates.io](https://crates.io/crates/tidy-vi
 
 ```sh
 cargo install tidy-viewer
-sudo cp /home/user/.cargo/bin/tidy-viewer /usr/local/bin/.
+sudo cp /home/$USER/.cargo/bin/tidy-viewer /usr/local/bin/.
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
@@ -52,7 +54,7 @@ Kindly maintained by @yigitsever
 paru -S tidy-viewer
 ```
 
-### 4. Other releases
+### 4-7. Other releases
 
 We currently cut releases for the following architectures. Download from the [release page](https://github.com/alexhallam/tv/releases).
 
@@ -69,6 +71,13 @@ The instuctions for all of the above are very similar with the following general
 4. Find binary `tidy-viewer`
 
 After the above steps I would highly reccomend you make an alias for `tidy-viewer` as shown for other builds.
+
+### 8. Snap
+
+```
+sudo snap install --edge tidy-viewer
+tidy-viewer --help
+```
 
 # Examples
 
@@ -205,15 +214,17 @@ else:
 
 `tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
-[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. Rust
+[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. [Rust | CLI]
 
-[csvtk](https://bioinf.shenwei.me/csvtk/) - Command line csv data manipulation. Go
+[csvtk](https://bioinf.shenwei.me/csvtk/) - Command line csv data manipulation. [Go | CLI]
 
-[tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. D
+[tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. [D | CLI]
 
-[q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. Python
+[q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. [Python | CLI]
 
-[miller](https://github.com/johnkerl/miller) - Command line data manipulation, statistics, and more. C
+[miller](https://github.com/johnkerl/miller) - Command line data manipulation, statistics, and more. [C | CLI]
+
+[VisiData](https://www.visidata.org/) - An interactive terminal user interface that is built to explore and wrangle data. [Python | TUI]
 
 # Tools similar to tv
 
@@ -238,4 +249,3 @@ In cases where the terminal width can't fit all of the columns in a dataframe, c
 # Inspiration
 
 [pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting. Fantastic original work by [Kirill Müller](https://github.com/krlmlr) and [Hadley Wickham](http://hadley.nz/). `tv` makes an attempt to port their ideas to the terminal.
-

@@ -9,9 +9,9 @@ pub fn is_logical(text: &str) -> bool {
     // col_logical -l, T,F,TRUE,FALSE,True,False,true,false,t,f,1,0
     lazy_static! {
         static ref R: Regex =
-            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False").unwrap();
+            Regex::new(r"^true$|^false$|^t$|^f$|TRUE$|^FALSE$|^T$|^F$|^True|^False|^1$|^0$")
+                .unwrap();
     }
-    //let r = Regex::new(rgex).unwrap();
     R.is_match(text)
 }
 
@@ -85,6 +85,8 @@ pub fn is_na_string_padded(text: &str) -> bool {
 pub fn infer_type_from_string(text: &str) -> &'static str {
     if is_time(text) {
         "<tst>"
+    } else if is_logical(text) {
+        "<lgl>"
     } else if is_integer(text) {
         "<int>"
     } else if is_date_time(text) {
@@ -93,8 +95,6 @@ pub fn infer_type_from_string(text: &str) -> &'static str {
         "<tsd>"
     } else if is_double(text) {
         "<dbl>"
-    } else if is_logical(text) {
-        "<lgl>"
     } else {
         "<chr>"
     }
@@ -111,7 +111,9 @@ pub fn trunc_strings(vec_col: &[&str], width: usize) -> Vec<String> {
             let len = string.chars().count();
             if len > width {
                 let (rv, _) = string.unicode_truncate(width - 1);
-                [rv.to_string(), ellipsis.to_string()].join(" ")
+                let spacer: &str = &" ";
+                let string_and_ellipses = [rv.to_string(), ellipsis.to_string()].join("");
+                [string_and_ellipses, spacer.to_string()].join("")
             } else {
                 let add_space = width - len + 1;
                 let borrowed_string: &str = &" ".repeat(add_space);
@@ -124,7 +126,8 @@ pub fn trunc_strings(vec_col: &[&str], width: usize) -> Vec<String> {
 pub fn header_len_str(vec_col: &[&str]) -> Vec<usize> {
     vec_col
         .iter()
-        .map(|&string| string.chars().count())
+        .map(|&string| format_if_num(&string))
+        .map(|string| string.chars().count())
         .collect::<Vec<usize>>()
 }
 
@@ -139,7 +142,7 @@ pub fn format_if_na(text: &str) -> String {
     string.to_string()
 }
 
-fn format_if_num(text: &str) -> String {
+pub fn format_if_num(text: &str) -> String {
     if is_double(text) {
         let xf = text.to_string().parse::<f64>().unwrap();
         let x = sigfig::DecimalSplits { val: xf, sigfig: 3 };
@@ -151,6 +154,7 @@ fn format_if_num(text: &str) -> String {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),

@@ -1,3 +1,18 @@
+0.0.14 (2021-09-29)
+==================
+
+* **Feature 1** Add package to snapcraft to increase accessibility.
+* [BUG #55](https://github.com/alexhallam/tv/issues/55):
+Fix panic on Unicode string truncation
+* [BUG #40](https://github.com/alexhallam/tv/issues/30):
+Remove trailing comma.
+* [BUG #48](https://github.com/alexhallam/tv/issues/48):
+Logicals 1/0 were mentioned in comments, but not implemented.
+* [BUG #60](https://github.com/alexhallam/tv/issues/60):
+Ellipsis then space, not space then ellipsis.
+
+The rest of the updates had to do with README updates and spelling errors in code comments.
+
 0.0.13 (2021-09-27)
 ==================
 This version was made possible by the contributions of @Lireer! Thank You!
