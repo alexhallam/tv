@@ -192,6 +192,11 @@ fn main() {
     }
 
     if debug_mode {
+        println!("{:?}", "v");
+        println!("{:?}", v);
+    }
+
+    if debug_mode {
         // make datatypes vector
         let mut vec_datatypes: Vec<&str> = vec!["#"; cols as usize];
         for i in 0..cols {
@@ -416,5 +421,181 @@ mod tests {
         assert_eq!(datatype::is_na(&"na".to_string()), true);
         assert_eq!(datatype::is_na(&"1".to_string()), false);
         assert_eq!(datatype::is_na(&"0".to_string()), false);
+    }
+    // the following tests look messy, but the formatting is a neccesary condition.
+    #[test]
+    fn a_csv() {
+        let v: Vec<Vec<&str>> = vec![
+            vec![
+                "name",
+                "abc",
+                "abc",
+                "abc",
+                "abc",
+                "abc",
+                "abcde",
+                "abcdefgh",
+                "abcdefghijkl",
+                "NA",
+                "abcdefghijklmnop",
+                "",
+                "n/a",
+                "floatlike",
+            ],
+            vec![
+                "value",
+                "0.00000001",
+                "0.0000001",
+                "0.000001",
+                "0.00001",
+                "0.0001",
+                "0.001",
+                "0.01",
+                "0.1",
+                "1",
+                "10",
+                "100",
+                "",
+                "2/ 2.5 Gallon",
+            ],
+            vec![
+                "bool", "T", "T", "T", "T", "T", "F", "True", "F", "T", "F", "", "F", "F",
+            ],
+            vec![
+                "date",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+                "",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+                "2021-01-01",
+            ],
+        ];
+        let col_largest_width_post_proc: Vec<usize> = vec![16, 13, 4, 10];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 13 as usize]; 4 as usize];
+        for i in 0..col_largest_width_post_proc.len() {
+            vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
+        }
+
+        assert_eq!(
+            vf,
+            [
+                [
+                    "name             ",
+                    "abc              ",
+                    "abc              ",
+                    "abc              ",
+                    "abc              ",
+                    "abc              ",
+                    "abcde            ",
+                    "abcdefgh         ",
+                    "abcdefghijkl     ",
+                    "NA               ",
+                    "abcdefghijklmnop ",
+                    "NA               ",
+                    "NA               ",
+                    "floatlike        "
+                ],
+                [
+                    "value         ",
+                    "0.00000001    ",
+                    "0.0000001     ",
+                    "0.000001      ",
+                    "0.00001       ",
+                    "0.0001        ",
+                    "0.001         ",
+                    "0.01          ",
+                    "0.1           ",
+                    "1             ",
+                    "10            ",
+                    "100           ",
+                    "NA            ",
+                    "2/ 2.5 Gallon "
+                ],
+                [
+                    "bool ", "T    ", "T    ", "T    ", "T    ", "T    ", "F    ", "True ",
+                    "F    ", "T    ", "F    ", "NA   ", "F    ", "F    "
+                ],
+                [
+                    "date       ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "NA         ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 ",
+                    "2021-01-01 "
+                ]
+            ]
+        );
+    }
+
+    #[test]
+    fn long_doubles_74_csv() {
+        let v: Vec<Vec<&str>> = vec![
+            vec!["text", "row1", "row2"],
+            vec!["col1", "3.333333333333333", "1.11111111111111111"],
+            vec!["col2", "3.333333333333333", "1.11111111111111111"],
+            vec!["col3", "3.333333333333333", "1.11111111111111111"],
+        ];
+        let col_largest_width_post_proc: Vec<usize> = vec![4, 4, 4, 4];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 3 as usize]; 4 as usize];
+        for i in 0..col_largest_width_post_proc.len() {
+            vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
+        }
+
+        assert_eq!(
+            vf,
+            [
+                ["text ", "row1 ", "row2 "],
+                ["col1 ", "3.33 ", "1.11 "],
+                ["col2 ", "3.33 ", "1.11 "],
+                ["col3 ", "3.33 ", "1.11 "]
+            ]
+        );
+    }
+
+    #[test]
+    fn unicode_pr55_csv() {
+        let v: Vec<Vec<&str>> = vec![
+            vec!["aColumn", "1"],
+            vec!["bColumn", "üÜğĞçÇşŞöÖ"],
+            vec!["cColumn", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞöÖ"],
+            vec!["dColumn", "77"],
+            vec!["eColumn", "TR"],
+            vec!["fColumn", "77"],
+            vec!["gColumn", "77"],
+        ];
+        let col_largest_width_post_proc: Vec<usize> = vec![7, 10, 20, 7, 7, 7, 7];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 2 as usize]; 7 as usize];
+        for i in 0..col_largest_width_post_proc.len() {
+            vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
+        }
+
+        assert_eq!(
+            vf,
+            [
+                ["aColumn ", "1       "],
+                ["bColumn    ", "üÜğĞçÇşŞöÖ "],
+                ["cColumn              ", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞ… "],
+                ["dColumn ", "77      "],
+                ["eColumn ", "TR      "],
+                ["fColumn ", "77      "],
+                ["gColumn ", "77      "]
+            ]
+        );
     }
 }

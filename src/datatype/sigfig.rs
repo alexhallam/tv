@@ -81,6 +81,16 @@ impl DecimalSplits {
             self.sig_fig(),
         )
     }
+    pub fn rhs_string_len(&self, string_final_string: String) -> usize {
+        let split = string_final_string.split(".");
+        let vec = split.collect::<Vec<&str>>();
+        if vec.len() > 1 {
+            let length = vec[1].len();
+            length
+        } else {
+            0
+        }
+    }
     pub fn sigfig_index_lhs_or_rhs(&self) -> Option<bool> {
         sigfig_index_lhs_or_rhs(&self.final_string(), self.sig_fig())
     }
@@ -101,6 +111,7 @@ pub struct DecimalSplitsList {
     pub rhs: f64,
     pub dec: bool,
     pub final_string: String,
+    pub rhs_string_len: usize,
     pub sigfig_index_lhs_or_rhs: Option<bool>, // lhs => True; rhs => False
     pub sigfig_index_from: Option<usize>,
     pub sigfig_index_to: Option<usize>,
@@ -118,6 +129,9 @@ fn get_rhs(x: f64) -> f64 {
     let xint = x.trunc();
     let frac = x - xint;
     frac.abs()
+    //let s = format!("{:.12}", frac.abs()); //The 10 is arbitraty, but this condition puts a cap on sigfig size
+    //let f: f64 = s.parse::<f64>().unwrap();
+    //f
 }
 
 fn is_decimal(x: f64) -> bool {
@@ -362,6 +376,7 @@ fn test_f12345() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -431,6 +446,7 @@ fn test_f100() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -501,6 +517,7 @@ fn test_fn100() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -570,6 +587,7 @@ fn test_fn12345() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -612,4 +630,47 @@ fn test_fn12345() {
     //       12.3
     //        1.23
     //        0.123
+}
+
+#[test]
+fn test_long_double() {
+    // the `rhs` break on this test. This is intentional
+    // This problem led to the creation of `rhs_string_len` which counts
+    // length after the final string has been generated.
+    let long_double = vec![-3.33333333, -1.11111111, 3.33333333, 1.11111111];
+    let test_sigfig = vec![3, 3, 3, 3];
+    let test_neg = vec![true, true, false, false];
+    let test_lhs = vec![3.0, 1.0, 3.0, 1.0];
+    let _test_rhs = vec![0.33333333, 0.11111111, 0.33333333, 0.11111111];
+    let test_dec = vec![true, true, true, true];
+    let test_final_string = vec!["-3.33", "-1.11", "3.33", "1.11"];
+
+    for i in 0..long_double.len() {
+        let value = long_double[i];
+        let x = DecimalSplits {
+            val: value,
+            sigfig: 3,
+        };
+        let list = DecimalSplitsList {
+            val: x.value(),
+            sigfig: x.sig_fig(),
+            neg: x.neg(),
+            lhs: x.lhs(),
+            rhs: x.rhs(),
+            dec: x.dec(),
+            final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
+            sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
+            sigfig_index_from: x.sigfig_index_from(),
+            sigfig_index_to: x.sigfig_index_to(),
+        };
+        println!("{:#?}", list);
+        assert_eq!(list.val, long_double[i]);
+        assert_eq!(list.sigfig, test_sigfig[i]);
+        assert_eq!(list.neg, test_neg[i]);
+        assert_eq!(list.lhs, test_lhs[i]);
+        //assert_eq!(list.rhs, test_rhs[i]);
+        assert_eq!(list.dec, test_dec[i]);
+        assert_eq!(list.final_string, test_final_string[i]);
+    }
 }

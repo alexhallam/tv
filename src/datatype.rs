@@ -126,7 +126,8 @@ pub fn trunc_strings(vec_col: &[&str], width: usize) -> Vec<String> {
 pub fn header_len_str(vec_col: &[&str]) -> Vec<usize> {
     vec_col
         .iter()
-        .map(|&string| string.chars().count())
+        .map(|&string| format_if_num(&string))
+        .map(|string| string.chars().count())
         .collect::<Vec<usize>>()
 }
 
@@ -141,7 +142,7 @@ pub fn format_if_na(text: &str) -> String {
     string.to_string()
 }
 
-fn format_if_num(text: &str) -> String {
+pub fn format_if_num(text: &str) -> String {
     if is_double(text) {
         let xf = text.to_string().parse::<f64>().unwrap();
         let x = sigfig::DecimalSplits { val: xf, sigfig: 3 };
@@ -153,6 +154,7 @@ fn format_if_num(text: &str) -> String {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
