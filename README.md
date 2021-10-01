@@ -32,7 +32,7 @@ The following will install from the [crates.io](https://crates.io/crates/tidy-vi
 
 ```sh
 cargo install tidy-viewer
-sudo cp /home/user/.cargo/bin/tidy-viewer /usr/local/bin/.
+sudo cp /home/$USER/.cargo/bin/tidy-viewer /usr/local/bin/.
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
