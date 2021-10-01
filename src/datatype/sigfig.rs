@@ -238,8 +238,13 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         let vec: Vec<&str> = split.collect();
         let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
         let len_to_take_rhs = ((sigfig + 1) as usize) - len_to_take_lhs;
-        let len_to_take = len_to_take_lhs + len_to_take_rhs + 1; // +1 for the space the neg sign takes
-        total_string[..len_to_take].to_string()
+        if vec[1].len() > (sigfig - 2) as usize {
+            let len_to_take = len_to_take_lhs + len_to_take_rhs + 1; // +1 for the space the neg sign takes
+            total_string[..len_to_take].to_string()
+        } else {
+            let len_to_take = len_to_take_lhs + len_to_take_rhs;
+            total_string[..len_to_take].to_string()
+        }
     } else {
         //concatonate:
         //(lhs)
@@ -644,6 +649,48 @@ fn test_long_double() {
     let _test_rhs = vec![0.33333333, 0.11111111, 0.33333333, 0.11111111];
     let test_dec = vec![true, true, true, true];
     let test_final_string = vec!["-3.33", "-1.11", "3.33", "1.11"];
+
+    for i in 0..long_double.len() {
+        let value = long_double[i];
+        let x = DecimalSplits {
+            val: value,
+            sigfig: 3,
+        };
+        let list = DecimalSplitsList {
+            val: x.value(),
+            sigfig: x.sig_fig(),
+            neg: x.neg(),
+            lhs: x.lhs(),
+            rhs: x.rhs(),
+            dec: x.dec(),
+            final_string: x.final_string(),
+            rhs_string_len: x.rhs_string_len(x.final_string()),
+            sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
+            sigfig_index_from: x.sigfig_index_from(),
+            sigfig_index_to: x.sigfig_index_to(),
+        };
+        println!("{:#?}", list);
+        assert_eq!(list.val, long_double[i]);
+        assert_eq!(list.sigfig, test_sigfig[i]);
+        assert_eq!(list.neg, test_neg[i]);
+        assert_eq!(list.lhs, test_lhs[i]);
+        //assert_eq!(list.rhs, test_rhs[i]);
+        assert_eq!(list.dec, test_dec[i]);
+        assert_eq!(list.final_string, test_final_string[i]);
+    }
+}
+#[test]
+fn test_bug75() {
+    // the `rhs` break on this test. This is intentional
+    // This problem led to the creation of `rhs_string_len` which counts
+    // length after the final string has been generated.
+    let long_double = vec![-1.1];
+    let test_sigfig = vec![3];
+    let test_neg = vec![true];
+    let test_lhs = vec![1.0];
+    let _test_rhs = vec![0.1];
+    let test_dec = vec![true];
+    let test_final_string = vec!["-1.1"];
 
     for i in 0..long_double.len() {
         let value = long_double[i];
