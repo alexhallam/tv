@@ -183,7 +183,7 @@ pub fn format_if_num(text: &str) -> String {
 
 pub fn get_col_data_type(col: &[&str]) -> ValueType {
     // counts the frequency of the datatypes in the column
-    // returns the most frequent. todo-make na not count and handle ties
+    // returns the most frequent while ignoring NA values.
     col.iter()
         .map(|x| infer_type_from_string(x))
         .filter(|x| !matches!(x, &ValueType::Na))
