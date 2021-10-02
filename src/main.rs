@@ -1,6 +1,8 @@
-use csv::ReaderBuilder;
+use csv::{Reader, ReaderBuilder};
 use owo_colors::OwoColorize;
-use std::io::{self};
+use std::fs::File;
+use std::io::{self, BufReader, Read};
+use std::path::PathBuf;
 use structopt::StructOpt;
 mod datatype;
 use crossterm::terminal::size;
@@ -77,6 +79,9 @@ struct Cli {
         help = "Print object details to make it easier for the maintainer to find and resolve bugs."
     )]
     debug_mode: bool,
+
+    #[structopt(name = "FILE", parse(from_os_str), help = "File to process")]
+    file: Option<PathBuf>,
 }
 
 fn main() {
@@ -85,8 +90,8 @@ fn main() {
     //println!("rows {} cols {}", term_tuple.1, term_tuple.0);
     let opt = Cli::from_args();
     let color_option = opt.color;
-    let title_option = opt.title;
-    let footer_option = opt.footer;
+    let title_option = &opt.title;
+    let footer_option = &opt.footer;
     let row_display_option = opt.row_display;
     // nord
     let nord_meta_color = (143, 188, 187);
@@ -157,10 +162,22 @@ fn main() {
     };
 
     //   colname reader
-    let mut r = ReaderBuilder::new()
-        .has_headers(false)
-        .delimiter(opt.delimiter)
-        .from_reader(io::stdin());
+    let reader_result = build_reader(&opt);
+    let mut r = if let Ok(reader) = reader_result {
+        reader
+    } else {
+        // We can safetly use unwrap, becouse if file in case when file is None
+        // build_reader would return readeer created from stdin
+        let path_buf = opt.file.unwrap();
+        let path = path_buf.as_path();
+        if let Some(path) = path.to_str() {
+            eprintln!("Failed to open file: {}", path);
+        } else {
+            eprintln!("Failed to open file.")
+        }
+        return;
+    };
+
     let rdr = r
         .records()
         .into_iter()
@@ -287,7 +304,7 @@ fn main() {
         (cols).truecolor(meta_color.0, meta_color.1, meta_color.2),
     );
     // title
-    if !datatype::is_na(&title_option) {
+    if !datatype::is_na(title_option) {
         print!("{: <6}", "");
         println!(
             "{}",
@@ -385,7 +402,7 @@ fn main() {
     }
 
     // footer
-    if !datatype::is_na(&footer_option) {
+    if !datatype::is_na(footer_option) {
         println!("{: <6}", "");
         println!(
             "{}",
@@ -395,6 +412,22 @@ fn main() {
 
     println!();
 } // end main
+
+fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
+    let source: Box<dyn Read> = if let Some(path) = opt.file.clone() {
+        let file = File::open(path)?;
+        Box::new(BufReader::new(file))
+    } else {
+        Box::new(io::stdin())
+    };
+
+    let reader = ReaderBuilder::new()
+        .has_headers(false)
+        .delimiter(opt.delimiter)
+        .from_reader(source);
+
+    Ok(reader)
+}
 
 #[cfg(test)]
 mod tests {
@@ -597,5 +630,12 @@ mod tests {
                 ["gColumn ", "77      "]
             ]
         );
+    }
+
+    #[test]
+    fn build_reader_can_create_reader_without_file_specified() {
+        let cli = Cli::from_args();
+        let reader = build_reader(&cli);
+        assert!(reader.is_ok());
     }
 }
