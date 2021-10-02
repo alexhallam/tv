@@ -1,6 +1,9 @@
 use csv::ReaderBuilder;
 use owo_colors::OwoColorize;
-use std::{fs, io::{self}};
+use std::{
+    fs,
+    io::{self},
+};
 use structopt::StructOpt;
 mod datatype;
 use crossterm::terminal::size;
@@ -165,10 +168,10 @@ fn main() {
     };
 
     //   colname reader
-    let reader : Box<dyn io::Read>  = match datatype::is_na(input_file.as_str()) {
-        true =>  Box::new(io::stdin()),
-        false =>  Box::new(fs::File::open(input_file).expect("Unable to open file")),
-    };     
+    let reader: Box<dyn io::Read> = match datatype::is_na(input_file.as_str()) {
+        true => Box::new(io::stdin()),
+        false => Box::new(fs::File::open(input_file).expect("Unable to open file")),
+    };
 
     let mut r = ReaderBuilder::new()
         .has_headers(false)
