@@ -1,8 +1,8 @@
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
-use unicode_truncate::UnicodeTruncateStr;
 use std::str::FromStr;
+use unicode_truncate::UnicodeTruncateStr;
 
 mod sigfig;
 
