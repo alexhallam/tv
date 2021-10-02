@@ -95,7 +95,9 @@ cat diamonds.csv | tv
 ### Starwars
 ```sh
 wget https://raw.githubusercontent.com/tidyverse/dplyr/master/data-raw/starwars.csv
-cat starwars.csv | tv
+
+# Pass as agrument
+tv starwars.csv
 ```
 
 ### Pigeon Racing
