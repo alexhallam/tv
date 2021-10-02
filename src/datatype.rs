@@ -2,6 +2,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 use unicode_truncate::UnicodeTruncateStr;
+use std::str::FromStr;
 
 mod sigfig;
 
@@ -24,13 +25,7 @@ pub fn is_integer(text: &str) -> bool {
 }
 
 pub fn is_double(text: &str) -> bool {
-    lazy_static! {
-        // for exp values, but seems to match other strings also
-        //static ref R: Regex = Regex::new(r"[+-]?[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?").unwrap();
-        static ref R: Regex = Regex::new(r"^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$").unwrap();
-
-    }
-    R.is_match(text)
+    f64::from_str(text).is_ok()
 }
 
 pub fn is_time(text: &str) -> bool {
