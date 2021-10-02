@@ -82,14 +82,11 @@ impl DecimalSplits {
         )
     }
     pub fn rhs_string_len(&self, string_final_string: String) -> usize {
-        let split = string_final_string.split(".");
-        let vec = split.collect::<Vec<&str>>();
-        if vec.len() > 1 {
-            let length = vec[1].len();
-            length
-        } else {
-            0
-        }
+        string_final_string
+            .split('.')
+            .nth(1)
+            .map(|decimals| decimals.len())
+            .unwrap_or(0)
     }
     pub fn sigfig_index_lhs_or_rhs(&self) -> Option<bool> {
         sigfig_index_lhs_or_rhs(&self.final_string(), self.sig_fig())
