@@ -97,9 +97,7 @@ pub fn is_na_string_padded(text: &str) -> bool {
 // utilities
 
 pub fn infer_type_from_string(text: &str) -> ValueType {
-    if text.is_empty() {
-        ValueType::Na
-    } else if is_time(text) {
+    if is_time(text) {
         ValueType::Time
     } else if is_logical(text) {
         ValueType::Boolean
@@ -111,7 +109,9 @@ pub fn infer_type_from_string(text: &str) -> ValueType {
         ValueType::Date
     } else if is_double(text) {
         ValueType::Double
-    } else {
+    } else if text.is_empty() | is_na(text) {
+        ValueType::Na
+    } else{
         ValueType::Character
     }
 }
