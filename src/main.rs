@@ -198,9 +198,9 @@ fn main() {
 
     if debug_mode {
         // make datatypes vector
-        let mut vec_datatypes: Vec<&str> = vec!["#"; cols as usize];
-        for i in 0..cols {
-            vec_datatypes[i] = datatype::get_col_data_type(&v[i]);
+        let mut vec_datatypes = Vec::with_capacity(cols);
+        for column in &v {
+            vec_datatypes.push(datatype::get_col_data_type(&column))
         }
         println!("{:?}", "vec_datatypes");
         println!("{:?}", vec_datatypes);

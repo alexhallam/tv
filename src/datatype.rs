@@ -5,6 +5,20 @@ use unicode_truncate::UnicodeTruncateStr;
 
 mod sigfig;
 
+/// Represents the type of a value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ValueType {
+    Boolean,
+    Integer,
+    Double,
+    Date,
+    Time,
+    DateTime,
+    Character,
+    /// A missing value.
+    Na,
+}
+
 pub fn is_logical(text: &str) -> bool {
     // col_logical -l, T,F,TRUE,FALSE,True,False,true,false,t,f,1,0
     lazy_static! {
@@ -82,21 +96,23 @@ pub fn is_na_string_padded(text: &str) -> bool {
 
 // utilities
 
-pub fn infer_type_from_string(text: &str) -> &'static str {
-    if is_time(text) {
-        "<tst>"
+pub fn infer_type_from_string(text: &str) -> ValueType {
+    if text.is_empty() {
+        ValueType::Na
+    } else if is_time(text) {
+        ValueType::Time
     } else if is_logical(text) {
-        "<lgl>"
+        ValueType::Boolean
     } else if is_integer(text) {
-        "<int>"
+        ValueType::Integer
     } else if is_date_time(text) {
-        "<tdt>"
+        ValueType::DateTime
     } else if is_date(text) {
-        "<tsd>"
+        ValueType::Date
     } else if is_double(text) {
-        "<dbl>"
+        ValueType::Double
     } else {
-        "<chr>"
+        ValueType::Character
     }
 }
 
@@ -165,11 +181,12 @@ pub fn format_if_num(text: &str) -> String {
     }
 }
 
-pub fn get_col_data_type(col: &[&str]) -> &'static str {
+pub fn get_col_data_type(col: &[&str]) -> ValueType {
     // counts the frequency of the datatypes in the column
     // returns the most frequent. todo-make na not count and handle ties
     col.iter()
         .map(|x| infer_type_from_string(x))
+        .filter(|x| !matches!(x, &ValueType::Na))
         .group_by(|&x| x)
         .into_iter()
         .map(|(key, group)| (key, group.count()))
