@@ -8,10 +8,6 @@
 
 # Pretty Printing
 
-![example](img/main.png)
-
-### Starwars
-
 ![example](img/starwars.png)
 
 
