@@ -1,6 +1,5 @@
 [![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 [![Crate](https://img.shields.io/crates/v/tidy-viewer.svg)](https://crates.io/crates/tidy-viewer)
-<img alt="Crates.io (recent)" src="https://img.shields.io/crates/dr/tidy-viewer">
 
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a cross-platform csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
@@ -9,9 +8,12 @@
 
 # Pretty Printing
 
-[![asciicast](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX.svg)](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX)
+![example](img/main.png)
 
-![example](img/screen_shot_index.png)
+### Starwars
+
+![example](img/starwars.png)
+
 
 # Installation
 
@@ -108,7 +110,9 @@ cat pigeon-racing.csv | tv
 
 # Significant Figure Definitions & Rules
 
-[![asciicast](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj.svg)](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj)
+![example](img/sigs.png)
+
+![example](img/long_double.png)
 
 > The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
 
@@ -238,7 +242,7 @@ Though `column` is similar I do think there are some reasons `tv` is a better to
 
 `NA` values are very important! Viewers should have their attention drawn to these empty cells. In the image below `NA` values are not only invisible, but it seems to be causing incorrect alignment in other columns.
 
-![na_comp](img/column_v_tv1.png)
+![na_comp](img/pigeon-racing.png)
 
 ## 2. Column Overflow Logic
 
@@ -246,8 +250,44 @@ In cases where the terminal width can't fit all of the columns in a dataframe, c
 
 `tv` can automatically tell when there will be too many columns to print. When this occurs it will only print the columns that fit in the terminal and mention the extras in the footer below the table.
 
-![na_comp](img/column_v_tv2.png)
+![overflow](img/pigeon-racing.png)
 
+# Help
+
+`tv --help`
+
+```txt
+tv 0.0.20
+Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
+
+    Example Usage:
+    wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
+    cat diamonds.csv | head -n 35 | tv
+
+USAGE:
+    tv [FLAGS] [OPTIONS] [FILE]
+
+FLAGS:
+    -d, --debug-mode    Print object details to make it easier for the maintainer to find and resolve bugs.
+    -h, --help          Prints help information
+    -V, --version       Prints version information
+
+OPTIONS:
+    -c, --color <color>
+            There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula. An input of (0)bw will remove color
+            properties. Note that colors will make it difficult to pipe output to other utilities [default: 1]
+    -s, --delimiter <delimiter>                      The delimiter separating the columns. [default: ,]
+    -f, --footer <footer>                            Add a title to your tv. Example 'footer info' [default: NA]
+    -l, --lower-column-width <lower-column-width>
+            The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
+
+    -n, --number of rows to output <row-display>     Show how many rows to display. [default: 25]
+    -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
+    -u, --upper-column-width <upper-column-width>    The upper (maxiumum) width of columns. [default: 20]
+
+ARGS:
+    <FILE>    File to process
+```
 # Inspiration
 
 [pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting. Fantastic original work by [Kirill Müller](https://github.com/krlmlr) and [Hadley Wickham](http://hadley.nz/). `tv` makes an attempt to port their ideas to the terminal.

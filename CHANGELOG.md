@@ -1,9 +1,24 @@
-0.0.14 (2021-09-29)
+0.0.20 (2021-10-02)
 ==================
 
+* **Feature 1** Detect floats with `f64::from_str`
+* **Feature 2** Add the ability to pass file as argument. Not just stdin only.
+* [bug #75](https://github.com/alexhallam/tv/issues/75):
+Cut space from really long doubles.
+* [bug #25](https://github.com/alexhallam/tv/issues/25):
+Exponential notation is not captured as a float. Fixed with above feature 1.
+
+We also saw some code quality improvements in this release. [PR #82](https://github.com/alexhallam/tv/pull/82)
+
+
+0.0.19 (2021-09-29)
+==================
+
+The version number jump was due to testing out github actions on automated releases using git tags as the release name. It took a few tries to get right.
+
 * **Feature 1** Add package to snapcraft to increase accessibility.
-* [BUG #55](https://github.com/alexhallam/tv/issues/55):
-Fix panic on Unicode string truncation
+* [bug #55](https://github.com/alexhallam/tv/issues/55):
+fix panic on unicode string truncation
 * [BUG #40](https://github.com/alexhallam/tv/issues/30):
 Remove trailing comma.
 * [BUG #48](https://github.com/alexhallam/tv/issues/48):

@@ -106,7 +106,7 @@ pub fn infer_type_from_string(text: &str) -> ValueType {
         ValueType::Double
     } else if text.is_empty() | is_na(text) {
         ValueType::Na
-    } else{
+    } else {
         ValueType::Character
     }
 }
