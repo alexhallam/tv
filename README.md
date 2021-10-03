@@ -1,6 +1,5 @@
 [![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 [![Crate](https://img.shields.io/crates/v/tidy-viewer.svg)](https://crates.io/crates/tidy-viewer)
-<img alt="Crates.io (recent)" src="https://img.shields.io/crates/dr/tidy-viewer">
 
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a cross-platform csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
@@ -11,7 +10,13 @@
 
 [![asciicast](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX.svg)](https://asciinema.org/a/NUlqhMkFLyfxCeU6mea7YuHHX)
 
-![example](img/screen_shot_index.png)
+### Starwars
+
+![example](img/starwars.png)
+
+### Titanic
+
+![example](img/titanic.png)
 
 # Installation
 
@@ -108,9 +113,11 @@ cat pigeon-racing.csv | tv
 
 # Significant Figure Definitions & Rules
 
-[![asciicast](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj.svg)](https://asciinema.org/a/YvXpj0faFX91ahr2URMq0ZbBj)
-
 > The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
+
+![example](img/sigs.png)
+
+![example](img/long_double.png)
 
 `tv` uses the same significant figure (sigfig) rules that the R package `pillar` uses.
 
@@ -238,7 +245,7 @@ Though `column` is similar I do think there are some reasons `tv` is a better to
 
 `NA` values are very important! Viewers should have their attention drawn to these empty cells. In the image below `NA` values are not only invisible, but it seems to be causing incorrect alignment in other columns.
 
-![na_comp](img/column_v_tv1.png)
+![na_comp](img/pigeon-racing.png)
 
 ## 2. Column Overflow Logic
 
@@ -246,7 +253,7 @@ In cases where the terminal width can't fit all of the columns in a dataframe, c
 
 `tv` can automatically tell when there will be too many columns to print. When this occurs it will only print the columns that fit in the terminal and mention the extras in the footer below the table.
 
-![na_comp](img/column_v_tv2.png)
+![overflow](img/overflow.png)
 
 # Inspiration
 
