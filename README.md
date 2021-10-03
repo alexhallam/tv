@@ -8,12 +8,6 @@
 
 # Pretty Printing
 
-<p align="center">
-  <img width="600"
-       alt="Tidy Viewer (tv) is a cross-platform csv pretty printer that uses column styling to maximize viewer enjoyment."
-       src="">
-</p>
-
 ![example](img/main.png)
 
 ### Starwars
