@@ -21,8 +21,9 @@ The following install options are available
 4. MacOS
 5. ARM
 6. Windows
-7. Build from source (Most general)
+7. Build from source
 8. Snap
+9. Homebrew (Coming Soon)
 
 ### 1. Cargo Install
 
@@ -76,6 +77,10 @@ After the above steps I would highly reccomend you make an alias for `tidy-viewe
 sudo snap install --edge tidy-viewer
 tidy-viewer --help
 ```
+
+### 9. Homebrew (Coming Soon)
+
+See [https://github.com/alexhallam/tv/issues/47](https://github.com/alexhallam/tv/issues/47)
 
 # Examples
 
