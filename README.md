@@ -38,9 +38,11 @@ source ~/.bashrc
 
 ### 2. Debian
 
+The below instructions work with the most recent release `<VERSION>` found here [release page](https://github.com/alexhallam/tv/releases).
+
 ```sh
-wget tidy-viewer_<VERSION>_amd64.deb
-sudo dpkg -i target/debian/tidy-viewer_<VERSION>_amd64.deb
+wget https://github.com/alexhallam/tv/releases/download/<VERSION>/tidy-viewer_<VERSION>_amd64.deb
+sudo dpkg -i tidy-viewer_<VERSION>_amd64.deb
 echo "alias tv='tidy-viewer'" >> ~/.bashrc
 source ~/.bashrc
 ```
