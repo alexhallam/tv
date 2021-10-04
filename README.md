@@ -243,7 +243,7 @@ Though `column` is similar I do think there are some reasons `tv` is a better to
 
 `NA` values are very important! Viewers should have their attention drawn to these empty cells. In the image below `NA` values are not only invisible, but it seems to be causing incorrect alignment in other columns.
 
-![na_comp](img/pigeon-racing.png)
+![na_comp](img/na_comprehension.png)
 
 ## 2. Column Overflow Logic
 
