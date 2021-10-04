@@ -23,7 +23,7 @@ The following install options are available
 6. Windows
 7. Build from source
 8. Snap
-9. Homebrew (Coming Soon)
+9. Homebrew
 
 ### 1. Cargo Install
 
@@ -78,9 +78,12 @@ sudo snap install --edge tidy-viewer
 tidy-viewer --help
 ```
 
-### 9. Homebrew (Coming Soon)
+### 9. Homebrew
 
-See [https://github.com/alexhallam/tv/issues/47](https://github.com/alexhallam/tv/issues/47)
+```
+brew tap alexhallam/tidy-viewer
+brew install tidy-viewer
+```
 
 # Examples
 
