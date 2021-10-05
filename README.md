@@ -114,6 +114,12 @@ wget https://raw.githubusercontent.com/joanby/python-ml-course/master/datasets/p
 cat pigeon-racing.csv | tv
 ```
 
+### Titanic
+```sh
+wget https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv
+tv titanic.csv
+```
+
 # Significant Figure Definitions & Rules
 
 ![example](img/sigs.png)
