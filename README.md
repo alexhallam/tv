@@ -250,6 +250,10 @@ Though `column` is similar I do think there are some reasons `tv` is a better to
 
 ![na_comp](img/na_comprehension.png)
 
+There are many ways that programs will designate missing values. Some use `none`, others use `NaN`, and many more `""`, `NA`, `null`, `n/a` etc. `tv` searches for these strings and replaces them with `NA`. This is similar in spirit to the significant digit calculations and the truncation of columns with long strings. The purpose of `tv` is not to show the complete literal value, but to guide the eye.
+
+![na_comp](img/na_cases.png)
+
 ## 2. Column Overflow Logic
 
 In cases where the terminal width can't fit all of the columns in a dataframe, column will try to smush data on the rows below. This results in an unpleasant viewing experience. 
