@@ -34,7 +34,7 @@ struct Cli {
         short = "f",
         long = "footer",
         default_value = "NA",
-        help = "Add a title to your tv. Example 'footer info'"
+        help = "Add a footer to your tv. Example 'footer info'"
     )]
     footer: String,
     #[structopt(
