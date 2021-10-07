@@ -6,6 +6,10 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 mod datatype;
 use crossterm::terminal::size;
+use directories::BaseDirs;
+use serde::Deserialize;
+use serde::Serialize;
+use toml;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -66,6 +70,15 @@ struct Cli {
         help = "The delimiter separating the columns."
     )]
     delimiter: u8,
+    #[structopt(
+        long = "--print-config",
+        help = "Print current config (tv.toml). \nIf no config exists then an example config is printed for the user to copy/paste in the config directory.\nThe config (tv.toml) location is dependent on OS:\n
+        Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
+        Windows: {FOLDERID_RoamingAppData}\\tv.toml
+        macOS: $HOME/Library/Application Support/tv.toml
+        "
+    )]
+    print_config: bool,
     //#[structopt(
     //    short = "sig",
     //    long = "sigfig",
@@ -85,14 +98,84 @@ struct Cli {
 }
 
 fn main() {
-    let term_tuple = size().unwrap();
+    // toml struct
+    #[derive(Deserialize, Serialize, Debug, Clone)]
+    struct Data {
+        name: String,
+        delimiter: String,
+        title: String,
+        footer: String,
+        upper_column_width: usize,
+        lower_column_width: usize,
+        number: usize,
+        meta_color: toml::value::Array,
+        header_color: toml::value::Array,
+        std_color: toml::value::Array,
+        na_color: toml::value::Array,
+    }
 
+    let base_dir = BaseDirs::new();
+    let config_base_dir = base_dir.clone().unwrap();
+    let config_dir = config_base_dir.config_dir();
+    let conf_file = PathBuf::from("tv.toml");
+    let conf_dir_file: PathBuf = config_dir.join(conf_file.clone());
+    let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
+    let does_config_exist = !file_contents.is_none();
+    //println!("{:#?}", file_contents);
+    let config: Option<Data> = match file_contents {
+        None => None,
+        Some(x) => toml::from_str(&x.to_owned()).ok(),
+    };
+    //println!("{:#?}", config);
+
+    let exmple_config = Data {
+        name: "==Tidy-Viewer Default Config==".to_string(),
+        delimiter: ",".to_string(),
+        title: "".to_string(),
+        footer: "".to_string(),
+        upper_column_width: 20,
+        lower_column_width: 2,
+        number: 25,
+        meta_color: vec![143, 188, 187]
+            .into_iter()
+            .map(|v| toml::Value::Integer(v))
+            .collect::<Vec<_>>(),
+        header_color: vec![94, 129, 172]
+            .into_iter()
+            .map(|v| toml::Value::Integer(v))
+            .collect::<Vec<_>>(),
+        std_color: vec![216, 222, 233]
+            .into_iter()
+            .map(|v| toml::Value::Integer(v))
+            .collect::<Vec<_>>(),
+        na_color: vec![191, 97, 106]
+            .into_iter()
+            .map(|v| toml::Value::Integer(v))
+            .collect::<Vec<_>>(),
+    };
+
+    let term_tuple = size().unwrap();
     //println!("rows {} cols {}", term_tuple.1, term_tuple.0);
     let opt = Cli::from_args();
+    if opt.print_config & does_config_exist {
+        println!("{}", toml::to_string(&config).unwrap())
+    } else if opt.print_config & !does_config_exist {
+        println!("{}", toml::to_string(&exmple_config).unwrap())
+    }
     let color_option = opt.color;
-    let title_option = &opt.title;
-    let footer_option = &opt.footer;
-    let row_display_option = opt.row_display;
+    let title_option = match &config {
+        Some(x) => &x.title,
+        None => &opt.title,
+    };
+    let footer_option = match &config {
+        Some(x) => &x.footer,
+        None => &opt.footer,
+    };
+    let row_display_option = match &config {
+        Some(x) => &x.number,
+        None => &opt.row_display,
+    };
+
     // nord
     let nord_meta_color = (143, 188, 187);
     let nord_header_color = (94, 129, 172);
@@ -115,15 +198,23 @@ fn main() {
     let dracula_na_color = (255, 121, 198);
 
     // user args
-    let lower_column_width = if opt.lower_column_width < 2 {
+    let lower_column_width = match &config {
+        Some(x) => &x.lower_column_width,
+        None => &opt.lower_column_width,
+    };
+    let lower_column_width = if lower_column_width.to_owned() < 2 {
         panic!("lower-column-width must be larger than 2")
     } else {
-        opt.lower_column_width
+        lower_column_width
     };
-    let upper_column_width = if opt.upper_column_width <= lower_column_width {
+    let upper_column_width = match &config {
+        Some(x) => &x.upper_column_width,
+        None => &opt.upper_column_width,
+    };
+    let upper_column_width = if upper_column_width <= lower_column_width {
         panic!("upper-column-width must be larger than lower-column-width")
     } else {
-        opt.upper_column_width
+        upper_column_width
     };
     //let sigfig = opt.sigfig;
     let debug_mode = opt.debug_mode;
@@ -238,9 +329,9 @@ fn main() {
     }
 
     // column width must be between the specified sizes
-    col_largest_width
-        .iter_mut()
-        .for_each(|width| *width = (*width).clamp(lower_column_width, upper_column_width));
+    col_largest_width.iter_mut().for_each(|width| {
+        *width = (*width).clamp(lower_column_width.to_owned(), upper_column_width.to_owned())
+    });
 
     if debug_mode {
         println!("{:?}", "col_largest_width post-proc");
@@ -304,7 +395,7 @@ fn main() {
         (cols).truecolor(meta_color.0, meta_color.1, meta_color.2),
     );
     // title
-    if !datatype::is_na(title_option) {
+    if !datatype::is_na(&title_option.clone()) {
         print!("{: <6}", "");
         println!(
             "{}",
@@ -402,7 +493,7 @@ fn main() {
     }
 
     // footer
-    if !datatype::is_na(footer_option) {
+    if !datatype::is_na(&footer_option.clone()) {
         println!("{: <6}", "");
         println!(
             "{}",
