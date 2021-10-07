@@ -8,8 +8,12 @@ mod datatype;
 use crossterm::terminal::size;
 use directories::BaseDirs;
 use serde::Deserialize;
+use serde::Deserialize;
 use serde::Serialize;
-use toml;
+use std::convert::TryInto;
+use toml::Value::Integer;
+use toml::Value::{Array, Integer};
+use toml::{self, Value};
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -177,25 +181,25 @@ fn main() {
     };
 
     // nord
-    let nord_meta_color = (143, 188, 187);
-    let nord_header_color = (94, 129, 172);
-    let nord_std_color = (216, 222, 233);
-    let nord_na_color = (191, 97, 106);
+    let nord_meta_color = [143, 188, 187];
+    let nord_header_color = [94, 129, 172];
+    let nord_std_color = [216, 222, 233];
+    let nord_na_color = [191, 97, 106];
     // one dark
-    let one_dark_meta_color = (152, 195, 121);
-    let one_dark_header_color = (97, 175, 239);
-    let one_dark_std_color = (171, 178, 191);
-    let one_dark_na_color = (224, 108, 117);
+    let one_dark_meta_color = [152, 195, 121];
+    let one_dark_header_color = [97, 175, 239];
+    let one_dark_std_color = [171, 178, 191];
+    let one_dark_na_color = [224, 108, 117];
     //// gruv
-    let gruvbox_meta_color = (184, 187, 38);
-    let gruvbox_header_color = (215, 153, 33);
-    let gruvbox_std_color = (235, 219, 178);
-    let gruvbox_na_color = (204, 36, 29);
+    let gruvbox_meta_color = [184, 187, 38];
+    let gruvbox_header_color = [215, 153, 33];
+    let gruvbox_std_color = [235, 219, 178];
+    let gruvbox_na_color = [204, 36, 29];
     //// dracula
-    let dracula_meta_color = (98, 114, 164);
-    let dracula_header_color = (80, 250, 123);
-    let dracula_std_color = (248, 248, 242);
-    let dracula_na_color = (255, 121, 198);
+    let dracula_meta_color = [98, 114, 164];
+    let dracula_header_color = [80, 250, 123];
+    let dracula_std_color = [248, 248, 242];
+    let dracula_na_color = [255, 121, 198];
 
     // user args
     let lower_column_width = match &config {
@@ -250,6 +254,27 @@ fn main() {
             nord_std_color,
             nord_na_color,
         ),
+    };
+
+    fn get_color_from_config(a: toml::value::Array) -> [i32; 3] {
+        let i32_array: [i32; 3] = a
+            .clone()
+            .iter()
+            .map(|v| {
+                v.as_integer()
+                    .expect("Not an integer")
+                    .try_into()
+                    .expect("Does not fit in a `i32`")
+            })
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("Not 3 elements");
+        i32_array
+    }
+
+    let meta_color = match config {
+        Some(x) => get_color_from_config(config.clone().unwrap().meta_color),
+        None => nord_meta_color,
     };
 
     //   colname reader
