@@ -8,12 +8,9 @@ mod datatype;
 use crossterm::terminal::size;
 use directories::BaseDirs;
 use serde::Deserialize;
-use serde::Deserialize;
 use serde::Serialize;
 use std::convert::TryInto;
-use toml::Value::Integer;
-use toml::Value::{Array, Integer};
-use toml::{self, Value};
+use toml;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -181,25 +178,25 @@ fn main() {
     };
 
     // nord
-    let nord_meta_color = [143, 188, 187];
-    let nord_header_color = [94, 129, 172];
-    let nord_std_color = [216, 222, 233];
-    let nord_na_color = [191, 97, 106];
+    let nord_meta_color: [u8; 3] = [143, 188, 187];
+    let nord_header_color: [u8; 3] = [94, 129, 172];
+    let nord_std_color: [u8; 3] = [216, 222, 233];
+    let nord_na_color: [u8; 3] = [191, 97, 106];
     // one dark
-    let one_dark_meta_color = [152, 195, 121];
-    let one_dark_header_color = [97, 175, 239];
-    let one_dark_std_color = [171, 178, 191];
-    let one_dark_na_color = [224, 108, 117];
+    let one_dark_meta_color: [u8; 3] = [152, 195, 121];
+    let one_dark_header_color: [u8; 3] = [97, 175, 239];
+    let one_dark_std_color: [u8; 3] = [171, 178, 191];
+    let one_dark_na_color: [u8; 3] = [224, 108, 117];
     //// gruv
-    let gruvbox_meta_color = [184, 187, 38];
-    let gruvbox_header_color = [215, 153, 33];
-    let gruvbox_std_color = [235, 219, 178];
-    let gruvbox_na_color = [204, 36, 29];
+    let gruvbox_meta_color: [u8; 3] = [184, 187, 38];
+    let gruvbox_header_color: [u8; 3] = [215, 153, 33];
+    let gruvbox_std_color: [u8; 3] = [235, 219, 178];
+    let gruvbox_na_color: [u8; 3] = [204, 36, 29];
     //// dracula
-    let dracula_meta_color = [98, 114, 164];
-    let dracula_header_color = [80, 250, 123];
-    let dracula_std_color = [248, 248, 242];
-    let dracula_na_color = [255, 121, 198];
+    let dracula_meta_color: [u8; 3] = [98, 114, 164];
+    let dracula_header_color: [u8; 3] = [80, 250, 123];
+    let dracula_std_color: [u8; 3] = [248, 248, 242];
+    let dracula_na_color: [u8; 3] = [255, 121, 198];
 
     // user args
     let lower_column_width = match &config {
@@ -256,8 +253,8 @@ fn main() {
         ),
     };
 
-    fn get_color_from_config(a: toml::value::Array) -> [i32; 3] {
-        let i32_array: [i32; 3] = a
+    fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
+        let i32_array: [u8; 3] = a
             .clone()
             .iter()
             .map(|v| {
@@ -272,9 +269,21 @@ fn main() {
         i32_array
     }
 
-    let meta_color = match config {
-        Some(x) => get_color_from_config(config.clone().unwrap().meta_color),
-        None => nord_meta_color,
+    let meta_color = match &config {
+        Some(x) => get_color_from_config(&x.clone().meta_color),
+        None => meta_color,
+    };
+    let header_color = match &config {
+        Some(x) => get_color_from_config(&x.clone().header_color),
+        None => header_color,
+    };
+    let std_color = match &config {
+        Some(x) => get_color_from_config(&x.clone().std_color),
+        None => std_color,
+    };
+    let na_color = match &config {
+        Some(x) => get_color_from_config(&x.clone().na_color),
+        None => na_color,
     };
 
     //   colname reader
@@ -414,10 +423,10 @@ fn main() {
     print!("{: <6}", "");
     println!(
         "{} {} {} {}",
-        meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        (rows_in_file - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
-        div.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        (cols).truecolor(meta_color.0, meta_color.1, meta_color.2),
+        meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+        (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]),
+        div.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+        (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),
     );
     // title
     if !datatype::is_na(&title_option.clone()) {
@@ -425,7 +434,7 @@ fn main() {
         println!(
             "{}",
             title_option
-                .truecolor(meta_color.0, meta_color.1, meta_color.2)
+                .truecolor(meta_color[0], meta_color[1], meta_color[2])
                 .underline()
                 .bold()
         );
@@ -438,7 +447,7 @@ fn main() {
         let text = vp[0].get(col).unwrap().to_string();
         print!(
             "{}",
-            text.truecolor(header_color.0, header_color.1, header_color.2)
+            text.truecolor(header_color[0], header_color[1], header_color[2])
                 .bold()
         );
     }
@@ -460,16 +469,16 @@ fn main() {
         .for_each(|(i, row)| {
             print!(
                 "{: <6}",
-                i.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                i.truecolor(meta_color[0], meta_color[1], meta_color[2])
             );
             //for col in 0..cols {
             row.iter().take(num_cols_to_print).for_each(|col| {
                 print!(
                     "{}",
                     if datatype::is_na_string_padded(col) {
-                        col.truecolor(na_color.0, na_color.1, na_color.2)
+                        col.truecolor(na_color[0], na_color[1], na_color[2])
                     } else {
-                        col.truecolor(std_color.0, std_color.1, std_color.2)
+                        col.truecolor(std_color[0], std_color[1], std_color[2])
                     }
                 );
             });
@@ -482,7 +491,7 @@ fn main() {
         print!("{: <6}", "");
         print!(
             "{}",
-            row_remaining_text.truecolor(meta_color.0, meta_color.1, meta_color.2)
+            row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
         );
         //println!("num_cols_to_print {:?} cols {:?}", num_cols_to_print, cols);
         let extra_cols_to_mention = num_cols_to_print;
@@ -494,23 +503,23 @@ fn main() {
             let meta_text_colon = ":";
             print!(
                 " {} {} {}{}",
-                meta_text_and.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                remainder_cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                meta_text_var.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                meta_text_colon.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                remainder_cols.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                meta_text_var.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                meta_text_colon.truecolor(meta_color[0], meta_color[1], meta_color[2])
             );
             for col in extra_cols_to_mention..cols {
                 let text = rdr[0].get(col).unwrap();
                 print!(
                     " {}",
-                    text.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                    text.truecolor(meta_color[0], meta_color[1], meta_color[2])
                 );
 
                 // The last column mentioned in foot should not be followed by a comma
                 if col + 1 < cols {
                     print!(
                         "{}",
-                        meta_text_comma.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                        meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
                     )
                 }
             }
@@ -522,7 +531,7 @@ fn main() {
         println!("{: <6}", "");
         println!(
             "{}",
-            footer_option.truecolor(meta_color.0, meta_color.1, meta_color.2)
+            footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
         );
     }
 
