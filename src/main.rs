@@ -6,21 +6,62 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 mod datatype;
 use crossterm::terminal::size;
+use directories::BaseDirs;
+use serde::Deserialize;
+use serde::Serialize;
+use std::convert::TryInto;
+use toml;
 
-#[derive(Debug, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(
     name = "tv",
     about = "Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨\n
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
-    cat diamonds.csv | head -n 35 | tv"
+    cat diamonds.csv | head -n 35 | tv
+    
+    Configuration File Support:
+    An example config is printed to make it easy to copy/paste to `tv.toml`.
+    The config (tv.toml) location is dependent on OS:
+        * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
+        * macOS: $HOME/Library/Application Support/tv.toml
+        * Windows: {FOLDERID_RoamingAppData}\\tv.toml
+
+        ## ==Tidy-Viewer Config Example==
+        ## Remove the first column of comments for valid toml file
+        ## The delimiter separating the columns. [default: ,]
+        #delimiter = \",\"
+        ## Add a title to your tv. Example \'Test Data\' [default: NA (\"\")]
+        #title = \"\"
+        ## Add a footer to your tv. Example \'footer info\' [default: NA (\"\")]
+        #footer = \"\"
+        ## The upper (maxiumum) width of columns. [default: 20]
+        #upper_column_width = 20
+        ## The minimum width of columns. Must be 2 or larger. [default: 2]
+        #lower_column_width = 2
+        ## head number of rows to output <row-display> [default: 25]
+        #number = 35
+        ## meta_color = [R,G,B] color for row index and \"tv dim: rowsxcols\"
+        #meta_color = [64, 179, 162]
+        ## header_color = [R,G,B] color for column headers
+        #header_color = [232, 168, 124]
+        ## std_color = [R,G,B] color for standard cell data values 
+        #std_color = [133, 205, 202]
+        ## na_color = [R,G,B] color for NA values
+        #na_color = [226, 125, 95]
+"
 )]
 struct Cli {
     #[structopt(
         short = "c",
         long = "color",
-        default_value = "1",
-        help = "There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula. An input of (0)bw will remove color properties. Note that colors will make it difficult to pipe output to other utilities"
+        default_value = "0",
+        help = "There are 5 preconfigured color palettes:
+                (1)nord
+                (2)one_dark
+                (3)gruvbox
+                (4)dracula
+                (5)uncolor (Coming Soon)\nAn input of (5)uncolor will remove color properties. Note that colors will make it difficult to pipe output to other utilities.The default value of (0) is reserved to make config/option coloring logic easier."
     )]
     color: usize,
     #[structopt(
@@ -85,49 +126,110 @@ struct Cli {
 }
 
 fn main() {
-    let term_tuple = size().unwrap();
+    // toml struct
+    #[derive(Deserialize, Serialize, Debug, Clone)]
+    struct Data {
+        delimiter: String,
+        title: String,
+        footer: String,
+        upper_column_width: usize,
+        lower_column_width: usize,
+        number: usize,
+        meta_color: toml::value::Array,
+        header_color: toml::value::Array,
+        std_color: toml::value::Array,
+        na_color: toml::value::Array,
+    }
 
-    //println!("rows {} cols {}", term_tuple.1, term_tuple.0);
+    let base_dir = BaseDirs::new();
+    let config_base_dir = base_dir.clone().unwrap();
+    let config_dir = config_base_dir.config_dir();
+    let conf_file = PathBuf::from("tv.toml");
+    let conf_dir_file: PathBuf = config_dir.join(conf_file.clone());
+    let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
+    //println!("file_contents {:?}", file_contents);
+    let config: Option<Data> = match file_contents {
+        Some(x) => toml::from_str(&x.to_owned()).ok(),
+        None => None,
+    };
+    //println!("config {:#?}", config);
+
+    let term_tuple = size().unwrap();
     let opt = Cli::from_args();
     let color_option = opt.color;
-    let title_option = &opt.title;
-    let footer_option = &opt.footer;
-    let row_display_option = opt.row_display;
-    // nord
-    let nord_meta_color = (143, 188, 187);
-    let nord_header_color = (94, 129, 172);
-    let nord_std_color = (216, 222, 233);
-    let nord_na_color = (191, 97, 106);
-    // one dark
-    let one_dark_meta_color = (152, 195, 121);
-    let one_dark_header_color = (97, 175, 239);
-    let one_dark_std_color = (171, 178, 191);
-    let one_dark_na_color = (224, 108, 117);
-    //// gruv
-    let gruvbox_meta_color = (184, 187, 38);
-    let gruvbox_header_color = (215, 153, 33);
-    let gruvbox_std_color = (235, 219, 178);
-    let gruvbox_na_color = (204, 36, 29);
-    //// dracula
-    let dracula_meta_color = (98, 114, 164);
-    let dracula_header_color = (80, 250, 123);
-    let dracula_std_color = (248, 248, 242);
-    let dracula_na_color = (255, 121, 198);
-
-    // user args
-    let lower_column_width = if opt.lower_column_width < 2 {
-        panic!("lower-column-width must be larger than 2")
-    } else {
-        opt.lower_column_width
-    };
-    let upper_column_width = if opt.upper_column_width <= lower_column_width {
-        panic!("upper-column-width must be larger than lower-column-width")
-    } else {
-        opt.upper_column_width
-    };
     //let sigfig = opt.sigfig;
     let debug_mode = opt.debug_mode;
+    let is_title_defined = opt.title.chars().count() > 0;
+    let is_footer_defined = opt.title.chars().count() > 0;
+    let is_row_display_defined = !(opt.row_display == 25);
 
+    let title_option = match (&config, is_title_defined) {
+        (Some(x), false) => &x.title,
+        (Some(_x), true) => &opt.title,
+        (None, false) => &opt.title,
+        (None, true) => &opt.title,
+    };
+    let footer_option = match (&config, is_footer_defined) {
+        (Some(x), false) => &x.footer,
+        (Some(_x), true) => &opt.footer,
+        (None, false) => &opt.footer,
+        (None, true) => &opt.footer,
+    };
+
+    let row_display_option = match (&config, is_row_display_defined) {
+        (Some(x), false) => &x.number,
+        (Some(_x), true) => &opt.row_display,
+        (None, false) => &opt.row_display,
+        (None, true) => &opt.row_display,
+    };
+
+    // nord
+    let nord_meta_color: [u8; 3] = [143, 188, 187];
+    let nord_header_color: [u8; 3] = [94, 129, 172];
+    let nord_std_color: [u8; 3] = [216, 222, 233];
+    let nord_na_color: [u8; 3] = [191, 97, 106];
+    // one dark
+    let one_dark_meta_color: [u8; 3] = [152, 195, 121];
+    let one_dark_header_color: [u8; 3] = [97, 175, 239];
+    let one_dark_std_color: [u8; 3] = [171, 178, 191];
+    let one_dark_na_color: [u8; 3] = [224, 108, 117];
+    //// gruv
+    let gruvbox_meta_color: [u8; 3] = [184, 187, 38];
+    let gruvbox_header_color: [u8; 3] = [215, 153, 33];
+    let gruvbox_std_color: [u8; 3] = [235, 219, 178];
+    let gruvbox_na_color: [u8; 3] = [204, 36, 29];
+    //// dracula
+    let dracula_meta_color: [u8; 3] = [98, 114, 164];
+    let dracula_header_color: [u8; 3] = [80, 250, 123];
+    let dracula_std_color: [u8; 3] = [248, 248, 242];
+    let dracula_na_color: [u8; 3] = [255, 121, 198];
+
+    // user args
+    let lower_column_width_defined = !(opt.lower_column_width == 2);
+    let upper_column_width_defined = !(opt.lower_column_width == 20);
+    let lower_column_width = match (&config, lower_column_width_defined) {
+        (Some(x), false) => &x.lower_column_width,
+        (Some(_x), true) => &opt.lower_column_width,
+        (None, false) => &opt.lower_column_width,
+        (None, true) => &opt.lower_column_width,
+    };
+    let lower_column_width = if lower_column_width.to_owned() < 2 {
+        panic!("lower-column-width must be larger than 2")
+    } else {
+        lower_column_width
+    };
+    let upper_column_width = match (&config, upper_column_width_defined) {
+        (Some(x), false) => &x.upper_column_width,
+        (Some(_x), true) => &opt.upper_column_width,
+        (None, false) => &opt.upper_column_width,
+        (None, true) => &opt.upper_column_width,
+    };
+    let upper_column_width = if upper_column_width <= lower_column_width {
+        panic!("upper-column-width must be larger than lower-column-width")
+    } else {
+        upper_column_width
+    };
+    // logic for picking colors given config and user arguments
     let (meta_color, header_color, std_color, na_color) = match color_option {
         1 => (
             nord_meta_color,
@@ -159,6 +261,46 @@ fn main() {
             nord_std_color,
             nord_na_color,
         ),
+    };
+    fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
+        let i32_array: [u8; 3] = a
+            .clone()
+            .iter()
+            .map(|v| {
+                v.as_integer()
+                    .expect("Not an integer")
+                    .try_into()
+                    .expect("Does not fit in a `i32`")
+            })
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("Not 3 elements");
+        i32_array
+    }
+    let is_color_defined = opt.color > 0;
+    let meta_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().meta_color),
+        (Some(_x), true) => meta_color,
+        (None, false) => nord_meta_color,
+        (None, true) => meta_color,
+    };
+    let header_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().header_color),
+        (Some(_x), true) => header_color,
+        (None, false) => nord_header_color,
+        (None, true) => header_color,
+    };
+    let std_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().std_color),
+        (Some(_x), true) => std_color,
+        (None, false) => nord_std_color,
+        (None, true) => std_color,
+    };
+    let na_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().na_color),
+        (Some(_x), true) => na_color,
+        (None, false) => nord_na_color,
+        (None, true) => na_color,
     };
 
     //   colname reader
@@ -238,9 +380,9 @@ fn main() {
     }
 
     // column width must be between the specified sizes
-    col_largest_width
-        .iter_mut()
-        .for_each(|width| *width = (*width).clamp(lower_column_width, upper_column_width));
+    col_largest_width.iter_mut().for_each(|width| {
+        *width = (*width).clamp(lower_column_width.to_owned(), upper_column_width.to_owned())
+    });
 
     if debug_mode {
         println!("{:?}", "col_largest_width post-proc");
@@ -298,18 +440,18 @@ fn main() {
     print!("{: <6}", "");
     println!(
         "{} {} {} {}",
-        meta_text.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        (rows_in_file - 1).truecolor(meta_color.0, meta_color.1, meta_color.2),
-        div.truecolor(meta_color.0, meta_color.1, meta_color.2),
-        (cols).truecolor(meta_color.0, meta_color.1, meta_color.2),
+        meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+        (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]),
+        div.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+        (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),
     );
     // title
-    if !datatype::is_na(title_option) {
+    if !datatype::is_na(&title_option.clone()) {
         print!("{: <6}", "");
         println!(
             "{}",
             title_option
-                .truecolor(meta_color.0, meta_color.1, meta_color.2)
+                .truecolor(meta_color[0], meta_color[1], meta_color[2])
                 .underline()
                 .bold()
         );
@@ -322,7 +464,7 @@ fn main() {
         let text = vp[0].get(col).unwrap().to_string();
         print!(
             "{}",
-            text.truecolor(header_color.0, header_color.1, header_color.2)
+            text.truecolor(header_color[0], header_color[1], header_color[2])
                 .bold()
         );
     }
@@ -344,16 +486,16 @@ fn main() {
         .for_each(|(i, row)| {
             print!(
                 "{: <6}",
-                i.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                i.truecolor(meta_color[0], meta_color[1], meta_color[2])
             );
             //for col in 0..cols {
             row.iter().take(num_cols_to_print).for_each(|col| {
                 print!(
                     "{}",
                     if datatype::is_na_string_padded(col) {
-                        col.truecolor(na_color.0, na_color.1, na_color.2)
+                        col.truecolor(na_color[0], na_color[1], na_color[2])
                     } else {
-                        col.truecolor(std_color.0, std_color.1, std_color.2)
+                        col.truecolor(std_color[0], std_color[1], std_color[2])
                     }
                 );
             });
@@ -366,7 +508,7 @@ fn main() {
         print!("{: <6}", "");
         print!(
             "{}",
-            row_remaining_text.truecolor(meta_color.0, meta_color.1, meta_color.2)
+            row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
         );
         //println!("num_cols_to_print {:?} cols {:?}", num_cols_to_print, cols);
         let extra_cols_to_mention = num_cols_to_print;
@@ -378,23 +520,23 @@ fn main() {
             let meta_text_colon = ":";
             print!(
                 " {} {} {}{}",
-                meta_text_and.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                remainder_cols.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                meta_text_var.truecolor(meta_color.0, meta_color.1, meta_color.2),
-                meta_text_colon.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                remainder_cols.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                meta_text_var.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                meta_text_colon.truecolor(meta_color[0], meta_color[1], meta_color[2])
             );
             for col in extra_cols_to_mention..cols {
                 let text = rdr[0].get(col).unwrap();
                 print!(
                     " {}",
-                    text.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                    text.truecolor(meta_color[0], meta_color[1], meta_color[2])
                 );
 
                 // The last column mentioned in foot should not be followed by a comma
                 if col + 1 < cols {
                     print!(
                         "{}",
-                        meta_text_comma.truecolor(meta_color.0, meta_color.1, meta_color.2)
+                        meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
                     )
                 }
             }
@@ -402,11 +544,11 @@ fn main() {
     }
 
     // footer
-    if !datatype::is_na(footer_option) {
+    if !datatype::is_na(&footer_option.clone()) {
         println!("{: <6}", "");
         println!(
             "{}",
-            footer_option.truecolor(meta_color.0, meta_color.1, meta_color.2)
+            footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
         );
     }
 
