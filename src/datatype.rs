@@ -111,35 +111,84 @@ pub fn infer_type_from_string(text: &str) -> ValueType {
     }
 }
 
-pub fn trunc_strings(vec_col: &[&str], width: usize) -> Vec<String> {
+pub fn format_strings(
+    vec_col: &[&str],
+    lower_column_width: usize,
+    upper_column_width: usize,
+) -> Vec<String> {
     let ellipsis = '\u{2026}';
-    vec_col
+
+    let strings_and_fracts: Vec<(String, usize, usize)> = vec_col
         .iter()
         .map(|&string| format_if_na(string))
-        // add
         .map(|string| format_if_num(&string))
         .map(|string| {
+            // the string, and the length of its fractional digits if any
+            let (lhs, rhs) = if is_double(&string) {
+                let mut split = string.split('.');
+                (
+                    split.next().map(|lhs| lhs.len()).unwrap_or_default(),
+                    split.next().map(|rhs| rhs.len()).unwrap_or_default(),
+                )
+            } else {
+                (0, 0)
+            };
+            (string, lhs, rhs)
+        })
+        .collect();
+
+    let max_fract: usize = strings_and_fracts
+        .iter()
+        .map(|(_, _, fract)| *fract)
+        .max()
+        .unwrap_or_default();
+    let max_whole: usize = strings_and_fracts
+        .iter()
+        .map(|(_, whole, _)| *whole)
+        .max()
+        .unwrap_or_default();
+
+    let strings_and_widths: Vec<(String, usize)> = strings_and_fracts
+        .into_iter()
+        .map(|(mut string, whole, fract)| {
+            if max_fract > 0 && is_double(&string) {
+                if whole < max_whole {
+                    let mut s = String::new();
+                    s.push_str(&" ".repeat(max_whole - whole));
+                    s.push_str(&string);
+                    string = s;
+                }
+
+                string.push_str(&" ".repeat(max_fract - fract));
+            }
             let len = string.chars().count();
-            if len > width {
-                let (rv, _) = string.unicode_truncate(width - 1);
+            // the string and its length
+            (string, len)
+        })
+        .collect();
+
+    let max_width: usize = strings_and_widths
+        .iter()
+        .map(|(_, width)| *width)
+        .max()
+        .unwrap_or_default()
+        .clamp(lower_column_width, upper_column_width);
+
+    strings_and_widths
+        .into_iter()
+        .map(|(string, len)| {
+            if len > max_width {
+                let (rv, _) = string.unicode_truncate(max_width - 1);
                 let spacer: &str = &" ";
                 let string_and_ellipses = [rv.to_string(), ellipsis.to_string()].join("");
                 [string_and_ellipses, spacer.to_string()].join("")
             } else {
-                let add_space = width - len + 1;
+                let add_space = max_width - len + 1;
                 let borrowed_string: &str = &" ".repeat(add_space);
                 [string, "".to_string()].join(borrowed_string)
             }
         })
         .collect()
-}
-
-pub fn header_len_str(vec_col: &[&str]) -> Vec<usize> {
-    vec_col
-        .iter()
-        .map(|&string| format_if_num(&string))
-        .map(|string| string.chars().count())
-        .collect::<Vec<usize>>()
 }
 
 pub fn format_if_na(text: &str) -> String {
