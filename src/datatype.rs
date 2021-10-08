@@ -154,23 +154,8 @@ pub fn format_if_na(text: &str) -> String {
 }
 
 pub fn format_if_num(text: &str) -> String {
-    if is_double(text) {
-        let xf = text.to_string().parse::<f64>().unwrap();
-        let x = sigfig::DecimalSplits { val: xf, sigfig: 3 };
-        let list = sigfig::DecimalSplitsList {
-            val: x.value(),
-            sigfig: x.sig_fig(),
-            neg: x.neg(),
-            lhs: x.lhs(),
-            rhs: x.rhs(),
-            dec: x.dec(),
-            final_string: x.final_string(),
-            rhs_string_len: x.rhs_string_len(x.final_string()),
-            sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
-            sigfig_index_from: x.sigfig_index_from(),
-            sigfig_index_to: x.sigfig_index_to(),
-        };
-        list.final_string
+    if let Ok(val) = text.parse::<f64>() {
+        sigfig::DecimalSplits { val, sigfig: 3 }.final_string()
     } else {
         text.to_string()
     }
