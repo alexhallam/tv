@@ -20,8 +20,8 @@ use toml;
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
     cat diamonds.csv | head -n 35 | tv
     
-    Configuration:
-    An example config is printed for the user to copy/paste in the config directory.
+    Configuration File Support:
+    An example config is printed to make it easy to copy/paste to `tv.toml`.
     The config (tv.toml) location is dependent on OS:
         * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
         * macOS: $HOME/Library/Application Support/tv.toml
@@ -37,9 +37,9 @@ use toml;
         #footer = \"\"
         ## The upper (maxiumum) width of columns. [default: 20]
         #upper_column_width = 20
-        ## The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
+        ## The minimum width of columns. Must be 2 or larger. [default: 2]
         #lower_column_width = 2
-        ## head number of rows to output <row-display>     Show how many rows to display. [default: 25]
+        ## head number of rows to output <row-display> [default: 25]
         #number = 35
         ## meta_color = [R,G,B] color for row index and \"tv dim: rowsxcols\"
         #meta_color = [64, 179, 162]

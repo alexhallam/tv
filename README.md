@@ -1,5 +1,7 @@
 [![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 [![Crate](https://img.shields.io/crates/v/tidy-viewer.svg)](https://crates.io/crates/tidy-viewer)
+![Crates.io](https://img.shields.io/crates/d/tidy-viewer?label=creates.io%20downloads)
+![GitHub all releases](https://img.shields.io/github/downloads/alexhallam/tv/total?label=github%20release%20downloads)
 
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a cross-platform csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
@@ -10,6 +12,14 @@
 
 ![example](img/starwars.png)
 
+# Contents
+* [Installation](#installation)
+* [Examples](#examples)
+* [Significant Figure Definitions & Rules](#significant-figure-definitions-and-rules)
+* [Tools to pair with `tv`](#tools-to-pair-with-tv)
+* [Configuration Dotfile](#configuration-dotfile) (Coming Soon!)
+* [Help](#help)
+* [Inspiration](#inspiration)
 
 # Installation
 
@@ -120,7 +130,7 @@ wget https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.c
 tv titanic.csv
 ```
 
-# Significant Figure Definitions & Rules
+# Significant Figure Definitions And Rules
 
 ![example](img/sigs.png)
 
@@ -268,6 +278,10 @@ In cases where the terminal width can't fit all of the columns in a dataframe, c
 
 ![overflow](img/pigeon-racing.png)
 
+# Configuration Dotfile
+
+For information on dotfile configuration see `tv --help`. This allows users to set their own color palette, rows to print, max column width, etc.
+
 # Help
 
 `tv --help`
@@ -278,10 +292,40 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
 
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
-    cat diamonds.csv | head -n 35 | tv
+    tv diamonds.csv
+    
+    Configuration File Support:
+    An example config is printed to make it easy to copy/paste to `tv.toml`.
+    The config (tv.toml) location is dependent on OS:
+        * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
+        * macOS: $HOME/Library/Application Support/tv.toml
+        * Windows: {FOLDERID_RoamingAppData}\tv.toml
+
+        ## ==Tidy-Viewer Config Example==
+        ## Remove the first column of comments for valid toml file
+        ## The delimiter separating the columns. [default: ,]
+        #delimiter = ","
+        ## Add a title to your tv. Example 'Test Data' [default: NA ("")]
+        #title = ""
+        ## Add a footer to your tv. Example 'footer info' [default: NA ("")]
+        #footer = ""
+        ## The upper (maxiumum) width of columns. [default: 20]
+        #upper_column_width = 20
+        ## The minimum width of columns. Must be 2 or larger. [default: 2]
+        #lower_column_width = 2
+        ## head number of rows to output <row-display> [default: 25]
+        #number = 35
+        ## meta_color = [R,G,B] color for row index and "tv dim: rowsxcols"
+        #meta_color = [64, 179, 162]
+        ## header_color = [R,G,B] color for column headers
+        #header_color = [232, 168, 124]
+        ## std_color = [R,G,B] color for standard cell data values 
+        #std_color = [133, 205, 202]
+        ## na_color = [R,G,B] color for NA values
+        #na_color = [226, 125, 95]
 
 USAGE:
-    tv [FLAGS] [OPTIONS] [FILE]
+    tidy-viewer [FLAGS] [OPTIONS] [FILE]
 
 FLAGS:
     -d, --debug-mode    Print object details to make it easier for the maintainer to find and resolve bugs.
@@ -290,10 +334,17 @@ FLAGS:
 
 OPTIONS:
     -c, --color <color>
-            There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula. An input of (0)bw will remove color
-            properties. Note that colors will make it difficult to pipe output to other utilities [default: 1]
+            There are 5 preconfigured color palettes:
+                            (1)nord
+                            (2)one_dark
+                            (3)gruvbox
+                            (4)dracula
+                            (5)uncolor (Coming Soon)
+            An input of (5)uncolor will remove color properties. Note that colors will make it difficult to pipe output
+            to other utilities.The default value of (0) is reserved to make config/option coloring logic easier.
+            [default: 0]
     -s, --delimiter <delimiter>                      The delimiter separating the columns. [default: ,]
-    -f, --footer <footer>                            Add a title to your tv. Example 'footer info' [default: NA]
+    -f, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
     -l, --lower-column-width <lower-column-width>
             The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
 
@@ -303,6 +354,7 @@ OPTIONS:
 
 ARGS:
     <FILE>    File to process
+
 ```
 # Inspiration
 
