@@ -27,7 +27,7 @@ use toml;
         * macOS: $HOME/Library/Application Support/tv.toml
         * Windows: {FOLDERID_RoamingAppData}\\tv.toml
 
-        ## ==Tidy-Viewer Default Config==
+        ## ==Tidy-Viewer Config Example==
         ## Remove the first column of comments for valid toml file
         ## The delimiter separating the columns. [default: ,]
         #delimiter = \",\"
@@ -40,16 +40,15 @@ use toml;
         ## The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
         #lower_column_width = 2
         ## head number of rows to output <row-display>     Show how many rows to display. [default: 25]
-        #number = 25
+        #number = 35
         ## meta_color = [R,G,B] color for row index and \"tv dim: rowsxcols\"
-        #meta_color = [42, 157, 143]
+        #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
-        #header_color = [244, 162, 97]
+        #header_color = [232, 168, 124]
         ## std_color = [R,G,B] color for standard cell data values 
-        #std_color = [233, 196, 106]
+        #std_color = [133, 205, 202]
         ## na_color = [R,G,B] color for NA values
-        #na_color = [231, 111, 81]
-
+        #na_color = [226, 125, 95]
 "
 )]
 struct Cli {
@@ -76,7 +75,7 @@ struct Cli {
         short = "f",
         long = "footer",
         default_value = "NA",
-        help = "Add a title to your tv. Example 'footer info'"
+        help = "Add a footer to your tv. Example 'footer info'"
     )]
     footer: String,
     #[structopt(
@@ -130,7 +129,6 @@ fn main() {
     // toml struct
     #[derive(Deserialize, Serialize, Debug, Clone)]
     struct Data {
-        name: String,
         delimiter: String,
         title: String,
         footer: String,
@@ -149,16 +147,18 @@ fn main() {
     let conf_file = PathBuf::from("tv.toml");
     let conf_dir_file: PathBuf = config_dir.join(conf_file.clone());
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
-    //println!("{:#?}", file_contents);
+    //println!("file_contents {:?}", file_contents);
     let config: Option<Data> = match file_contents {
-        None => None,
         Some(x) => toml::from_str(&x.to_owned()).ok(),
+        None => None,
     };
-    //println!("{:#?}", config);
+    //println!("config {:#?}", config);
+
     let term_tuple = size().unwrap();
     let opt = Cli::from_args();
     let color_option = opt.color;
-
+    //let sigfig = opt.sigfig;
+    let debug_mode = opt.debug_mode;
     let is_title_defined = opt.title.chars().count() > 0;
     let is_footer_defined = opt.title.chars().count() > 0;
     let is_row_display_defined = !(opt.row_display == 25);
@@ -205,27 +205,30 @@ fn main() {
     let dracula_na_color: [u8; 3] = [255, 121, 198];
 
     // user args
-    let lower_column_width = match &config {
-        Some(x) => &x.lower_column_width,
-        None => &opt.lower_column_width,
+    let lower_column_width_defined = !(opt.lower_column_width == 2);
+    let upper_column_width_defined = !(opt.lower_column_width == 20);
+    let lower_column_width = match (&config, lower_column_width_defined) {
+        (Some(x), false) => &x.lower_column_width,
+        (Some(_x), true) => &opt.lower_column_width,
+        (None, false) => &opt.lower_column_width,
+        (None, true) => &opt.lower_column_width,
     };
     let lower_column_width = if lower_column_width.to_owned() < 2 {
         panic!("lower-column-width must be larger than 2")
     } else {
         lower_column_width
     };
-    let upper_column_width = match &config {
-        Some(x) => &x.upper_column_width,
-        None => &opt.upper_column_width,
+    let upper_column_width = match (&config, upper_column_width_defined) {
+        (Some(x), false) => &x.upper_column_width,
+        (Some(_x), true) => &opt.upper_column_width,
+        (None, false) => &opt.upper_column_width,
+        (None, true) => &opt.upper_column_width,
     };
     let upper_column_width = if upper_column_width <= lower_column_width {
         panic!("upper-column-width must be larger than lower-column-width")
     } else {
         upper_column_width
     };
-    //let sigfig = opt.sigfig;
-    let debug_mode = opt.debug_mode;
-
     // logic for picking colors given config and user arguments
     let (meta_color, header_color, std_color, na_color) = match color_option {
         1 => (
