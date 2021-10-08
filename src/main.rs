@@ -12,20 +12,57 @@ use serde::Serialize;
 use std::convert::TryInto;
 use toml;
 
-#[derive(Debug, StructOpt)]
+#[derive(StructOpt)]
 #[structopt(
     name = "tv",
     about = "Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨\n
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
-    cat diamonds.csv | head -n 35 | tv"
+    cat diamonds.csv | head -n 35 | tv
+    
+    Configuration:
+    An example config is printed for the user to copy/paste in the config directory.
+    The config (tv.toml) location is dependent on OS:
+        * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
+        * macOS: $HOME/Library/Application Support/tv.toml
+        * Windows: {FOLDERID_RoamingAppData}\\tv.toml
+
+        ## ==Tidy-Viewer Default Config==
+        ## Remove the first column of comments for valid toml file
+        ## The delimiter separating the columns. [default: ,]
+        #delimiter = \",\"
+        ## Add a title to your tv. Example \'Test Data\' [default: NA (\"\")]
+        #title = \"\"
+        ## Add a footer to your tv. Example \'footer info\' [default: NA (\"\")]
+        #footer = \"\"
+        ## The upper (maxiumum) width of columns. [default: 20]
+        #upper_column_width = 20
+        ## The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
+        #lower_column_width = 2
+        ## head number of rows to output <row-display>     Show how many rows to display. [default: 25]
+        #number = 25
+        ## meta_color = [R,G,B] color for row index and \"tv dim: rowsxcols\"
+        #meta_color = [42, 157, 143]
+        ## header_color = [R,G,B] color for column headers
+        #header_color = [244, 162, 97]
+        ## std_color = [R,G,B] color for standard cell data values 
+        #std_color = [233, 196, 106]
+        ## na_color = [R,G,B] color for NA values
+        #na_color = [231, 111, 81]
+
+"
 )]
 struct Cli {
     #[structopt(
         short = "c",
         long = "color",
-        default_value = "1",
-        help = "There are 4 colors (1)nord, (2)one_dark, (3)gruvbox, and (4)dracula. An input of (0)bw will remove color properties. Note that colors will make it difficult to pipe output to other utilities"
+        default_value = "0",
+        help = "There are 5 preconfigured color palettes:
+                (1)nord
+                (2)one_dark
+                (3)gruvbox
+                (4)dracula
+                (5)uncolor (Coming Soon)\nAn input of (5)uncolor will remove color properties. Note that colors will make it difficult to pipe output to other utilities.The default value of (0) is reserved to make config/option coloring logic easier."
     )]
     color: usize,
     #[structopt(
@@ -71,15 +108,6 @@ struct Cli {
         help = "The delimiter separating the columns."
     )]
     delimiter: u8,
-    #[structopt(
-        long = "--print-config",
-        help = "Print current config (tv.toml). \nIf no config exists then an example config is printed for the user to copy/paste in the config directory.\nThe config (tv.toml) location is dependent on OS:\n
-        Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
-        Windows: {FOLDERID_RoamingAppData}\\tv.toml
-        macOS: $HOME/Library/Application Support/tv.toml
-        "
-    )]
-    print_config: bool,
     //#[structopt(
     //    short = "sig",
     //    long = "sigfig",
@@ -121,60 +149,38 @@ fn main() {
     let conf_file = PathBuf::from("tv.toml");
     let conf_dir_file: PathBuf = config_dir.join(conf_file.clone());
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
-    let does_config_exist = !file_contents.is_none();
     //println!("{:#?}", file_contents);
     let config: Option<Data> = match file_contents {
         None => None,
         Some(x) => toml::from_str(&x.to_owned()).ok(),
     };
     //println!("{:#?}", config);
-
-    let exmple_config = Data {
-        name: "==Tidy-Viewer Default Config==".to_string(),
-        delimiter: ",".to_string(),
-        title: "".to_string(),
-        footer: "".to_string(),
-        upper_column_width: 20,
-        lower_column_width: 2,
-        number: 25,
-        meta_color: vec![143, 188, 187]
-            .into_iter()
-            .map(|v| toml::Value::Integer(v))
-            .collect::<Vec<_>>(),
-        header_color: vec![94, 129, 172]
-            .into_iter()
-            .map(|v| toml::Value::Integer(v))
-            .collect::<Vec<_>>(),
-        std_color: vec![216, 222, 233]
-            .into_iter()
-            .map(|v| toml::Value::Integer(v))
-            .collect::<Vec<_>>(),
-        na_color: vec![191, 97, 106]
-            .into_iter()
-            .map(|v| toml::Value::Integer(v))
-            .collect::<Vec<_>>(),
-    };
-
     let term_tuple = size().unwrap();
-    //println!("rows {} cols {}", term_tuple.1, term_tuple.0);
     let opt = Cli::from_args();
-    if opt.print_config & does_config_exist {
-        println!("{}", toml::to_string(&config).unwrap())
-    } else if opt.print_config & !does_config_exist {
-        println!("{}", toml::to_string(&exmple_config).unwrap())
-    }
     let color_option = opt.color;
-    let title_option = match &config {
-        Some(x) => &x.title,
-        None => &opt.title,
+
+    let is_title_defined = opt.title.chars().count() > 0;
+    let is_footer_defined = opt.title.chars().count() > 0;
+    let is_row_display_defined = !(opt.row_display == 25);
+
+    let title_option = match (&config, is_title_defined) {
+        (Some(x), false) => &x.title,
+        (Some(_x), true) => &opt.title,
+        (None, false) => &opt.title,
+        (None, true) => &opt.title,
     };
-    let footer_option = match &config {
-        Some(x) => &x.footer,
-        None => &opt.footer,
+    let footer_option = match (&config, is_footer_defined) {
+        (Some(x), false) => &x.footer,
+        (Some(_x), true) => &opt.footer,
+        (None, false) => &opt.footer,
+        (None, true) => &opt.footer,
     };
-    let row_display_option = match &config {
-        Some(x) => &x.number,
-        None => &opt.row_display,
+
+    let row_display_option = match (&config, is_row_display_defined) {
+        (Some(x), false) => &x.number,
+        (Some(_x), true) => &opt.row_display,
+        (None, false) => &opt.row_display,
+        (None, true) => &opt.row_display,
     };
 
     // nord
@@ -220,6 +226,7 @@ fn main() {
     //let sigfig = opt.sigfig;
     let debug_mode = opt.debug_mode;
 
+    // logic for picking colors given config and user arguments
     let (meta_color, header_color, std_color, na_color) = match color_option {
         1 => (
             nord_meta_color,
@@ -252,7 +259,6 @@ fn main() {
             nord_na_color,
         ),
     };
-
     fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
         let i32_array: [u8; 3] = a
             .clone()
@@ -268,22 +274,30 @@ fn main() {
             .expect("Not 3 elements");
         i32_array
     }
-
-    let meta_color = match &config {
-        Some(x) => get_color_from_config(&x.clone().meta_color),
-        None => meta_color,
+    let is_color_defined = opt.color > 0;
+    let meta_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().meta_color),
+        (Some(_x), true) => meta_color,
+        (None, false) => nord_meta_color,
+        (None, true) => meta_color,
     };
-    let header_color = match &config {
-        Some(x) => get_color_from_config(&x.clone().header_color),
-        None => header_color,
+    let header_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().header_color),
+        (Some(_x), true) => header_color,
+        (None, false) => nord_header_color,
+        (None, true) => header_color,
     };
-    let std_color = match &config {
-        Some(x) => get_color_from_config(&x.clone().std_color),
-        None => std_color,
+    let std_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().std_color),
+        (Some(_x), true) => std_color,
+        (None, false) => nord_std_color,
+        (None, true) => std_color,
     };
-    let na_color = match &config {
-        Some(x) => get_color_from_config(&x.clone().na_color),
-        None => na_color,
+    let na_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().na_color),
+        (Some(_x), true) => na_color,
+        (None, false) => nord_na_color,
+        (None, true) => na_color,
     };
 
     //   colname reader
