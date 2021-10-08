@@ -1,4 +1,4 @@
-use core::str;
+use core::{convert::AsRef, str};
 
 // The general logic and return values in this file were learned from the GNU R package pillar in the sigfig.R file.
 // A special thanks to the great code quality from Hadley Wickham, Jim Hester, and krlmlr
@@ -81,8 +81,12 @@ impl DecimalSplits {
             self.sig_fig(),
         )
     }
-    pub fn rhs_string_len(&self, string_final_string: String) -> usize {
+    pub fn rhs_string_len<S>(&self, string_final_string: S) -> usize
+    where
+        S: AsRef<str>,
+    {
         string_final_string
+            .as_ref()
             .split('.')
             .nth(1)
             .map(|decimals| decimals.len())
