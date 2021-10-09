@@ -208,10 +208,10 @@ fn main() {
     let lower_column_width_defined = !(opt.lower_column_width == 2);
     let upper_column_width_defined = !(opt.lower_column_width == 20);
     let lower_column_width = match (&config, lower_column_width_defined) {
-        (Some(x), false) => &x.lower_column_width,
-        (Some(_x), true) => &opt.lower_column_width,
-        (None, false) => &opt.lower_column_width,
-        (None, true) => &opt.lower_column_width,
+        (Some(x), false) => x.lower_column_width,
+        (Some(_x), true) => opt.lower_column_width,
+        (None, false) => opt.lower_column_width,
+        (None, true) => opt.lower_column_width,
     };
     let lower_column_width = if lower_column_width.to_owned() < 2 {
         panic!("lower-column-width must be larger than 2")
@@ -219,10 +219,10 @@ fn main() {
         lower_column_width
     };
     let upper_column_width = match (&config, upper_column_width_defined) {
-        (Some(x), false) => &x.upper_column_width,
-        (Some(_x), true) => &opt.upper_column_width,
-        (None, false) => &opt.upper_column_width,
-        (None, true) => &opt.upper_column_width,
+        (Some(x), false) => x.upper_column_width,
+        (Some(_x), true) => opt.upper_column_width,
+        (None, false) => opt.upper_column_width,
+        (None, true) => opt.upper_column_width,
     };
     let upper_column_width = if upper_column_width <= lower_column_width {
         panic!("upper-column-width must be larger than lower-column-width")
@@ -366,41 +366,11 @@ fn main() {
     }
 
     // vector of formatted values
-    let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); rows as usize]; cols as usize];
+    let vf: Vec<Vec<String>> = v
+        .iter()
+        .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width))
+        .collect();
 
-    // get max width in columns
-    let mut col_largest_width = Vec::new();
-    for column in &v {
-        let size: usize = datatype::header_len_str(&column).into_iter().max().unwrap();
-        col_largest_width.push(size);
-    }
-    if debug_mode {
-        println!("{:?}", "col_largest_width");
-        println!("{:?}", col_largest_width);
-    }
-
-    // column width must be between the specified sizes
-    col_largest_width.iter_mut().for_each(|width| {
-        *width = (*width).clamp(lower_column_width.to_owned(), upper_column_width.to_owned())
-    });
-
-    if debug_mode {
-        println!("{:?}", "col_largest_width post-proc");
-        println!("{:?}", col_largest_width);
-    }
-
-    // format datatypes spaces
-    // let mut vec_format_datatypes: Vec<_> = vec!["#"; cols as usize];
-    //for i in 0..cols {
-    //    let add_space = col_largest_width[i] - vec_datatypes[i].len();
-    //    let borrowed_string = " ".repeat(add_space);
-    //    let string = vec_datatypes[i].to_string();
-    //}
-
-    // make vector of formatted values
-    for i in 0..cols {
-        vf[i] = datatype::trunc_strings(&v[i], col_largest_width[i]);
-    }
     if debug_mode {
         println!("{:?}", "Transposed Vector of Elements");
         println!("{:?}", v);
@@ -656,7 +626,11 @@ mod tests {
         let col_largest_width_post_proc: Vec<usize> = vec![16, 13, 4, 10];
         let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 13 as usize]; 4 as usize];
         for i in 0..col_largest_width_post_proc.len() {
-            vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
+            vf[i] = datatype::format_strings(
+                &v[i],
+                col_largest_width_post_proc[i],
+                col_largest_width_post_proc[i],
+            );
         }
 
         assert_eq!(
@@ -680,16 +654,16 @@ mod tests {
                 ],
                 [
                     "value         ",
-                    "0.00000001    ",
-                    "0.0000001     ",
-                    "0.000001      ",
-                    "0.00001       ",
-                    "0.0001        ",
-                    "0.001         ",
-                    "0.01          ",
-                    "0.1           ",
-                    "1             ",
-                    "10            ",
+                    "  0.00000001  ",
+                    "  0.0000001   ",
+                    "  0.000001    ",
+                    "  0.00001     ",
+                    "  0.0001      ",
+                    "  0.001       ",
+                    "  0.01        ",
+                    "  0.1         ",
+                    "  1           ",
+                    " 10           ",
                     "100           ",
                     "NA            ",
                     "2/ 2.5 Gallon "
@@ -729,7 +703,11 @@ mod tests {
         let col_largest_width_post_proc: Vec<usize> = vec![4, 4, 4, 4];
         let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 3 as usize]; 4 as usize];
         for i in 0..col_largest_width_post_proc.len() {
-            vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
+            vf[i] = datatype::format_strings(
+                &v[i],
+                col_largest_width_post_proc[i],
+                col_largest_width_post_proc[i],
+            );
         }
 
         assert_eq!(
@@ -757,7 +735,11 @@ mod tests {
         let col_largest_width_post_proc: Vec<usize> = vec![7, 10, 20, 7, 7, 7, 7];
         let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 2 as usize]; 7 as usize];
         for i in 0..col_largest_width_post_proc.len() {
-            vf[i] = datatype::trunc_strings(&v[i], col_largest_width_post_proc[i]);
+            vf[i] = datatype::format_strings(
+                &v[i],
+                col_largest_width_post_proc[i],
+                col_largest_width_post_proc[i],
+            );
         }
 
         assert_eq!(
