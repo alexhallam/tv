@@ -1,3 +1,11 @@
+0.0.21 (2021-10-09)
+==================
+
+* **Feature 1** Add configuration via `tv.toml`
+* **Feature 2** Decimal alignment. Correct formatting with a single pass. General code clean up. Thanks @jacobmischka!
+
+We also saw @namitaarya fix a help file typo.
+
 0.0.20 (2021-10-02)
 ==================
 
