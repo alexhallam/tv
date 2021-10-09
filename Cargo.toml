@@ -8,7 +8,7 @@ license = "Unlicense/MIT"
 name = "tidy-viewer"
 readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
-version = "0.0.20"
+version = "0.0.21"
 
 [package.metadata.deb]
 assets = [
