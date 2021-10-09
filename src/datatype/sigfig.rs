@@ -1,4 +1,4 @@
-use core::str;
+use core::{convert::AsRef, str};
 
 // The general logic and return values in this file were learned from the GNU R package pillar in the sigfig.R file.
 // A special thanks to the great code quality from Hadley Wickham, Jim Hester, and krlmlr
@@ -81,13 +81,6 @@ impl DecimalSplits {
             self.sig_fig(),
         )
     }
-    pub fn rhs_string_len(&self, string_final_string: String) -> usize {
-        string_final_string
-            .split('.')
-            .nth(1)
-            .map(|decimals| decimals.len())
-            .unwrap_or(0)
-    }
     pub fn sigfig_index_lhs_or_rhs(&self) -> Option<bool> {
         sigfig_index_lhs_or_rhs(&self.final_string(), self.sig_fig())
     }
@@ -97,6 +90,18 @@ impl DecimalSplits {
     pub fn sigfig_index_to(&self) -> Option<usize> {
         sigfig_index_to(&self.final_string(), self.sig_fig())
     }
+}
+
+pub fn rhs_string_len<S>(string_final_string: S) -> usize
+where
+    S: AsRef<str>,
+{
+    string_final_string
+        .as_ref()
+        .split('.')
+        .nth(1)
+        .map(|decimals| decimals.len())
+        .unwrap_or_default()
 }
 
 #[derive(Debug)]
@@ -378,7 +383,7 @@ fn test_f12345() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
-            rhs_string_len: x.rhs_string_len(x.final_string()),
+            rhs_string_len: rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -448,7 +453,7 @@ fn test_f100() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
-            rhs_string_len: x.rhs_string_len(x.final_string()),
+            rhs_string_len: rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -519,7 +524,7 @@ fn test_fn100() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
-            rhs_string_len: x.rhs_string_len(x.final_string()),
+            rhs_string_len: rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -589,7 +594,7 @@ fn test_fn12345() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
-            rhs_string_len: x.rhs_string_len(x.final_string()),
+            rhs_string_len: rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -661,7 +666,7 @@ fn test_long_double() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
-            rhs_string_len: x.rhs_string_len(x.final_string()),
+            rhs_string_len: rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),
@@ -704,7 +709,7 @@ fn test_bug75() {
             rhs: x.rhs(),
             dec: x.dec(),
             final_string: x.final_string(),
-            rhs_string_len: x.rhs_string_len(x.final_string()),
+            rhs_string_len: rhs_string_len(x.final_string()),
             sigfig_index_lhs_or_rhs: x.sigfig_index_lhs_or_rhs(),
             sigfig_index_from: x.sigfig_index_from(),
             sigfig_index_to: x.sigfig_index_to(),

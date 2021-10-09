@@ -19,7 +19,7 @@ use toml;
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
     cat diamonds.csv | head -n 35 | tv
-    
+
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
     The config (tv.toml) location is dependent on OS:
@@ -45,7 +45,7 @@ use toml;
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
         #header_color = [232, 168, 124]
-        ## std_color = [R,G,B] color for standard cell data values 
+        ## std_color = [R,G,B] color for standard cell data values
         #std_color = [133, 205, 202]
         ## na_color = [R,G,B] color for NA values
         #na_color = [226, 125, 95]
@@ -262,21 +262,6 @@ fn main() {
             nord_na_color,
         ),
     };
-    fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
-        let i32_array: [u8; 3] = a
-            .clone()
-            .iter()
-            .map(|v| {
-                v.as_integer()
-                    .expect("Not an integer")
-                    .try_into()
-                    .expect("Does not fit in a `i32`")
-            })
-            .collect::<Vec<_>>()
-            .try_into()
-            .expect("Not 3 elements");
-        i32_array
-    }
     let is_color_defined = opt.color > 0;
     let meta_color = match (&config, is_color_defined) {
         (Some(x), false) => get_color_from_config(&x.clone().meta_color),
@@ -383,23 +368,6 @@ fn main() {
     for r in 0..rows {
         let row = vf.iter().map(|col| col[r].to_string()).collect();
         vp.push(row);
-    }
-
-    // how wide will the print be?
-    fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u16)) -> usize {
-        let mut last = 0;
-        let mut j = format!("{: <6}", "");
-        for col in 0..cols {
-            let text = vp[0].get(col).unwrap().to_string();
-            j.push_str(&text);
-            let total_width = j.chars().count();
-            let term_width = term_tuple.0 as usize;
-            if total_width > term_width {
-                break;
-            }
-            last = col + 1;
-        }
-        last
     }
 
     let num_cols_to_print = get_num_cols_to_print(cols, vp.clone(), term_tuple);
@@ -524,6 +492,39 @@ fn main() {
 
     println!();
 } // end main
+
+fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
+    let i32_array: [u8; 3] = a
+        .clone()
+        .iter()
+        .map(|v| {
+            v.as_integer()
+                .expect("Not an integer")
+                .try_into()
+                .expect("Does not fit in a `i32`")
+        })
+        .collect::<Vec<_>>()
+        .try_into()
+        .expect("Not 3 elements");
+    i32_array
+}
+
+// how wide will the print be?
+fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u16)) -> usize {
+    let mut last = 0;
+    let mut j = format!("{: <6}", "");
+    for col in 0..cols {
+        let text = vp[0].get(col).unwrap().to_string();
+        j.push_str(&text);
+        let total_width = j.chars().count();
+        let term_width = term_tuple.0 as usize;
+        if total_width > term_width {
+            break;
+        }
+        last = col + 1;
+    }
+    last
+}
 
 fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
     let source: Box<dyn Read> = if let Some(path) = opt.file.clone() {
