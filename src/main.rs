@@ -162,6 +162,7 @@ fn main() {
     let is_title_defined = opt.title.chars().count() > 0;
     let is_footer_defined = opt.title.chars().count() > 0;
     let is_row_display_defined = !(opt.row_display == 25);
+    let is_tty = atty::is(atty::Stream::Stdout);
 
     let title_option = match (&config, is_title_defined) {
         (Some(x), false) => &x.title,
@@ -376,23 +377,31 @@ fn main() {
     let meta_text = "tv dim:";
     let div = "x";
     print!("{: <6}", "");
-    println!(
-        "{} {} {} {}",
-        meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-        (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]),
-        div.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-        (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),
-    );
+    if is_tty {
+        println!(
+            "{} {} {} {}",
+            meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+            (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]),
+            div.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+            (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),
+        );
+    } else {
+        println!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols);
+    }
     // title
     if !datatype::is_na(&title_option.clone()) {
         print!("{: <6}", "");
-        println!(
-            "{}",
-            title_option
-                .truecolor(meta_color[0], meta_color[1], meta_color[2])
-                .underline()
-                .bold()
-        );
+        if is_tty {
+            println!(
+                "{}",
+                title_option
+                    .truecolor(meta_color[0], meta_color[1], meta_color[2])
+                    .underline()
+                    .bold()
+            );
+        } else {
+            println!("{}", title_option);
+        }
     }
 
     // header
@@ -400,11 +409,15 @@ fn main() {
     //for col in 0..cols {
     for col in 0..num_cols_to_print {
         let text = vp[0].get(col).unwrap().to_string();
-        print!(
-            "{}",
-            text.truecolor(header_color[0], header_color[1], header_color[2])
-                .bold()
-        );
+        if is_tty {
+            print!(
+                "{}",
+                text.truecolor(header_color[0], header_color[1], header_color[2])
+                    .bold()
+            );
+        } else {
+            print!("{}", text);
+        }
     }
     //println!();
     // datatypes
@@ -422,20 +435,28 @@ fn main() {
         .take(rows)
         .skip(1)
         .for_each(|(i, row)| {
-            print!(
-                "{: <6}",
-                i.truecolor(meta_color[0], meta_color[1], meta_color[2])
-            );
+            if is_tty {
+                print!(
+                    "{: <6}",
+                    i.truecolor(meta_color[0], meta_color[1], meta_color[2])
+                );
+            } else {
+                print!("{: <6}", i);
+            }
             //for col in 0..cols {
             row.iter().take(num_cols_to_print).for_each(|col| {
-                print!(
-                    "{}",
-                    if datatype::is_na_string_padded(col) {
-                        col.truecolor(na_color[0], na_color[1], na_color[2])
-                    } else {
-                        col.truecolor(std_color[0], std_color[1], std_color[2])
-                    }
-                );
+                if is_tty {
+                    print!(
+                        "{}",
+                        if datatype::is_na_string_padded(col) {
+                            col.truecolor(na_color[0], na_color[1], na_color[2])
+                        } else {
+                            col.truecolor(std_color[0], std_color[1], std_color[2])
+                        }
+                    );
+                } else {
+                    print!("{}", col);
+                }
             });
             println!();
         });
@@ -444,10 +465,14 @@ fn main() {
 
     if rows_remaining > 0 {
         print!("{: <6}", "");
-        print!(
-            "{}",
-            row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
-        );
+        if is_tty {
+            print!(
+                "{}",
+                row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
+            );
+        } else {
+            print!("{}", row_remaining_text);
+        }
         //println!("num_cols_to_print {:?} cols {:?}", num_cols_to_print, cols);
         let extra_cols_to_mention = num_cols_to_print;
         let remainder_cols = cols - extra_cols_to_mention;
@@ -456,26 +481,41 @@ fn main() {
             let meta_text_var = "more variables";
             let meta_text_comma = ",";
             let meta_text_colon = ":";
-            print!(
-                " {} {} {}{}",
-                meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-                remainder_cols.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-                meta_text_var.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-                meta_text_colon.truecolor(meta_color[0], meta_color[1], meta_color[2])
-            );
+            if is_tty {
+                print!(
+                    " {} {} {}{}",
+                    meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                    remainder_cols.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                    meta_text_var.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+                    meta_text_colon.truecolor(meta_color[0], meta_color[1], meta_color[2])
+                );
+            } else {
+                print!(
+                    " {} {} {}{}",
+                    meta_text_and, remainder_cols, meta_text_var, meta_text_colon
+                );
+            }
             for col in extra_cols_to_mention..cols {
                 let text = rdr[0].get(col).unwrap();
-                print!(
-                    " {}",
-                    text.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                );
+                if is_tty {
+                    print!(
+                        " {}",
+                        text.truecolor(meta_color[0], meta_color[1], meta_color[2])
+                    );
+                } else {
+                    print!(" {}", text);
+                }
 
                 // The last column mentioned in foot should not be followed by a comma
                 if col + 1 < cols {
-                    print!(
-                        "{}",
-                        meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                    )
+                    if is_tty {
+                        print!(
+                            "{}",
+                            meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
+                        )
+                    } else {
+                        print!("{}", meta_text_comma)
+                    }
                 }
             }
         }
@@ -484,10 +524,14 @@ fn main() {
     // footer
     if !datatype::is_na(&footer_option.clone()) {
         println!("{: <6}", "");
-        println!(
-            "{}",
-            footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
-        );
+        if is_tty {
+            println!(
+                "{}",
+                footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
+            );
+        } else {
+            println!("{}", footer_option);
+        }
     }
 
     println!();

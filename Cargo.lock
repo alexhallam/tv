@@ -564,6 +564,7 @@ dependencies = [
 name = "tidy-viewer"
 version = "0.0.21"
 dependencies = [
+ "atty",
  "console",
  "crossterm",
  "csv",
