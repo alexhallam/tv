@@ -492,10 +492,7 @@ fn main() {
             } else {
                 print!(
                     " {} {} {}{}",
-                    meta_text_and,
-                    remainder_cols,
-                    meta_text_var,
-                    meta_text_colon
+                    meta_text_and, remainder_cols, meta_text_var, meta_text_colon
                 );
             }
             for col in extra_cols_to_mention..cols {
