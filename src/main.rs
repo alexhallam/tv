@@ -572,7 +572,10 @@ fn main() {
             } else {
                 let _ = match stdout!(
                     " {} {} {}{}",
-                    meta_text_and, remainder_cols, meta_text_var, meta_text_colon
+                    meta_text_and,
+                    remainder_cols,
+                    meta_text_var,
+                    meta_text_colon
                 ) {
                     Ok(_) => Ok(()),
                     Err(e) => match e.kind() {
