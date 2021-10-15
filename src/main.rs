@@ -378,7 +378,7 @@ fn main() {
     // color
     let meta_text = "tv dim:";
     let div = "x";
-    print_header();
+    print_column_separator();
     if is_tty {
         let _ = match stdout!(
             "{} {} {} {}",
@@ -404,7 +404,7 @@ fn main() {
     }
     // title
     if !datatype::is_na(&title_option.clone()) {
-        print_header();
+        print_column_separator();
         if is_tty {
             let _ = match stdoutln!(
                 "{}",
@@ -431,7 +431,7 @@ fn main() {
     }
 
     // header
-    print_header();
+    print_column_separator();
     //for col in 0..cols {
     for col in 0..num_cols_to_print {
         let text = vp[0].get(col).unwrap().to_string();
@@ -520,19 +520,13 @@ fn main() {
                     };
                 }
             });
-            let _ = match stdoutln!() {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
+            print_new_line();
         });
 
     // additional row info
 
     if rows_remaining > 0 {
-        print_header();
+        print_column_separator();
         if is_tty {
             let _ = match stdout!(
                 "{}",
@@ -639,7 +633,7 @@ fn main() {
 
     // footer
     if !datatype::is_na(&footer_option.clone()) {
-        print_header();
+        print_column_separator();
         if is_tty {
             let _ = match stdoutln!(
                 "{}",
@@ -662,17 +656,21 @@ fn main() {
         }
     }
 
-    let _ = match stdoutln!() {
+    print_new_line();
+} // end main
+
+fn print_column_separator() {
+    let _ = match stdout!("{: <6}", "") {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
             std::io::ErrorKind::BrokenPipe => Ok(()),
             _ => Err(e),
         },
     };
-} // end main
+}
 
-fn print_header() {
-    let _ = match stdout!("{: <6}", "") {
+fn print_new_line() {
+    let _ = match stdoutln!() {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
             std::io::ErrorKind::BrokenPipe => Ok(()),
