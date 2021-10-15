@@ -5,6 +5,8 @@ use std::io::{self, BufReader, Read};
 use std::path::PathBuf;
 use structopt::StructOpt;
 mod datatype;
+use calm_io::stdout;
+use calm_io::stdoutln;
 use crossterm::terminal::size;
 use directories::BaseDirs;
 use serde::Deserialize;
@@ -376,47 +378,83 @@ fn main() {
     // color
     let meta_text = "tv dim:";
     let div = "x";
-    print!("{: <6}", "");
+    print_header();
     if is_tty {
-        println!(
+        let _ = match stdout!(
             "{} {} {} {}",
             meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
             (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]),
             div.truecolor(meta_color[0], meta_color[1], meta_color[2]),
             (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),
-        );
+        ) {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::BrokenPipe => Ok(()),
+                _ => Err(e),
+            },
+        };
     } else {
-        println!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols);
+        let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::BrokenPipe => Ok(()),
+                _ => Err(e),
+            },
+        };
     }
     // title
     if !datatype::is_na(&title_option.clone()) {
-        print!("{: <6}", "");
+        print_header();
         if is_tty {
-            println!(
+            let _ = match stdoutln!(
                 "{}",
                 title_option
                     .truecolor(meta_color[0], meta_color[1], meta_color[2])
                     .underline()
                     .bold()
-            );
+            ) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         } else {
-            println!("{}", title_option);
+            let _ = match stdoutln!("{}", title_option) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         }
     }
 
     // header
-    print!("{: <6}", "");
+    print_header();
     //for col in 0..cols {
     for col in 0..num_cols_to_print {
         let text = vp[0].get(col).unwrap().to_string();
         if is_tty {
-            print!(
+            let _ = match stdout!(
                 "{}",
                 text.truecolor(header_color[0], header_color[1], header_color[2])
                     .bold()
-            );
+            ) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         } else {
-            print!("{}", text);
+            let _ = match stdout!("{}", text) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         }
     }
     //println!();
@@ -436,42 +474,84 @@ fn main() {
         .skip(1)
         .for_each(|(i, row)| {
             if is_tty {
-                print!(
+                let _ = match stdout!(
                     "{: <6}",
                     i.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                );
+                ) {
+                    Ok(_) => Ok(()),
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::BrokenPipe => Ok(()),
+                        _ => Err(e),
+                    },
+                };
             } else {
-                print!("{: <6}", i);
+                let _ = match print!("{: <6}", i) {
+                    Ok(_) => Ok(()),
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::BrokenPipe => Ok(()),
+                        _ => Err(e),
+                    },
+                };
             }
             //for col in 0..cols {
             row.iter().take(num_cols_to_print).for_each(|col| {
                 if is_tty {
-                    print!(
+                    let _ = match stdout!(
                         "{}",
                         if datatype::is_na_string_padded(col) {
                             col.truecolor(na_color[0], na_color[1], na_color[2])
                         } else {
                             col.truecolor(std_color[0], std_color[1], std_color[2])
                         }
-                    );
+                    ) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
                 } else {
-                    print!("{}", col);
+                    let _ = match stdout!("{}", col) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
                 }
             });
-            println!();
+            let _ = match stdoutln!() {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         });
 
     // additional row info
 
     if rows_remaining > 0 {
-        print!("{: <6}", "");
+        print_header();
         if is_tty {
-            print!(
+            let _ = match stdout!(
                 "{}",
                 row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
-            );
+            ) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         } else {
-            print!("{}", row_remaining_text);
+            let _ = match stdout!("{}", row_remaining_text) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         }
         //println!("num_cols_to_print {:?} cols {:?}", num_cols_to_print, cols);
         let extra_cols_to_mention = num_cols_to_print;
@@ -482,39 +562,75 @@ fn main() {
             let meta_text_comma = ",";
             let meta_text_colon = ":";
             if is_tty {
-                print!(
+                let _ = match stdout!(
                     " {} {} {}{}",
                     meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
                     remainder_cols.truecolor(meta_color[0], meta_color[1], meta_color[2]),
                     meta_text_var.truecolor(meta_color[0], meta_color[1], meta_color[2]),
                     meta_text_colon.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                );
+                ) {
+                    Ok(_) => Ok(()),
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::BrokenPipe => Ok(()),
+                        _ => Err(e),
+                    },
+                };
             } else {
-                print!(
+                let _ = match stdout!(
                     " {} {} {}{}",
                     meta_text_and, remainder_cols, meta_text_var, meta_text_colon
-                );
+                ) {
+                    Ok(_) => Ok(()),
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::BrokenPipe => Ok(()),
+                        _ => Err(e),
+                    },
+                };
             }
             for col in extra_cols_to_mention..cols {
                 let text = rdr[0].get(col).unwrap();
                 if is_tty {
-                    print!(
+                    let _ = match stdout!(
                         " {}",
                         text.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                    );
+                    ) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
                 } else {
-                    print!(" {}", text);
+                    let _ = match stdout!(" {}", text) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
                 }
 
                 // The last column mentioned in foot should not be followed by a comma
                 if col + 1 < cols {
                     if is_tty {
-                        print!(
+                        let _ = match stdout!(
                             "{}",
                             meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                        )
+                        ) {
+                            Ok(_) => Ok(()),
+                            Err(e) => match e.kind() {
+                                std::io::ErrorKind::BrokenPipe => Ok(()),
+                                _ => Err(e),
+                            },
+                        };
                     } else {
-                        print!("{}", meta_text_comma)
+                        let _ = match stdout!("{}", meta_text_comma) {
+                            Ok(_) => Ok(()),
+                            Err(e) => match e.kind() {
+                                std::io::ErrorKind::BrokenPipe => Ok(()),
+                                _ => Err(e),
+                            },
+                        };
                     }
                 }
             }
@@ -523,19 +639,47 @@ fn main() {
 
     // footer
     if !datatype::is_na(&footer_option.clone()) {
-        println!("{: <6}", "");
+        print_header();
         if is_tty {
-            println!(
+            let _ = match stdoutln!(
                 "{}",
                 footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
-            );
+            ) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         } else {
-            println!("{}", footer_option);
+            let _ = match stdoutln!("{}", footer_option) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         }
     }
 
-    println!();
+    let _ = match stdoutln!() {
+        Ok(_) => Ok(()),
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::BrokenPipe => Ok(()),
+            _ => Err(e),
+        },
+    };
 } // end main
+
+fn print_header() {
+    let _ = match stdout!("{: <6}", "") {
+        Ok(_) => Ok(()),
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::BrokenPipe => Ok(()),
+            _ => Err(e),
+        },
+    };
+}
 
 fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
     let i32_array: [u8; 3] = a

@@ -27,6 +27,7 @@ section = "utility"
 
 [dependencies]
 atty = "0.2.14"
+calm_io = "0.1.1"
 console = "0.14.1"
 crossterm = "0.20.0"
 csv = "1.1.6"
