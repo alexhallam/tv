@@ -378,7 +378,13 @@ fn main() {
     // color
     let meta_text = "tv dim:";
     let div = "x";
-    print_column_separator();
+    let _ = match stdout!("{: <6}", "") {
+        Ok(_) => Ok(()),
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::BrokenPipe => Ok(()),
+            _ => Err(e),
+        },
+    };
     if is_tty {
         let _ = match stdout!(
             "{} {} {} {}",
@@ -404,7 +410,13 @@ fn main() {
     }
     // title
     if !datatype::is_na(&title_option.clone()) {
-        print_column_separator();
+        let _ = match stdout!("{: <6}", "") {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::BrokenPipe => Ok(()),
+                _ => Err(e),
+            },
+        };
         if is_tty {
             let _ = match stdoutln!(
                 "{}",
@@ -431,7 +443,13 @@ fn main() {
     }
 
     // header
-    print_column_separator();
+    let _ = match stdout!("{: <6}", "") {
+        Ok(_) => Ok(()),
+        Err(e) => match e.kind() {
+            std::io::ErrorKind::BrokenPipe => Ok(()),
+            _ => Err(e),
+        },
+    };
     //for col in 0..cols {
     for col in 0..num_cols_to_print {
         let text = vp[0].get(col).unwrap().to_string();
@@ -485,7 +503,7 @@ fn main() {
                     },
                 };
             } else {
-                let _ = match print!("{: <6}", i) {
+                let _ = match stdout!("{: <6}", i) {
                     Ok(_) => Ok(()),
                     Err(e) => match e.kind() {
                         std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -520,13 +538,25 @@ fn main() {
                     };
                 }
             });
-            print_new_line();
+            let _ = match stdoutln!() {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
         });
 
     // additional row info
 
     if rows_remaining > 0 {
-        print_column_separator();
+        let _ = match stdout!("{: <6}", "") {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::BrokenPipe => Ok(()),
+                _ => Err(e),
+            },
+        };
         if is_tty {
             let _ = match stdout!(
                 "{}",
@@ -636,7 +666,13 @@ fn main() {
 
     // footer
     if !datatype::is_na(&footer_option.clone()) {
-        print_column_separator();
+        let _ = match stdout!("{: <6}", "") {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::BrokenPipe => Ok(()),
+                _ => Err(e),
+            },
+        };
         if is_tty {
             let _ = match stdoutln!(
                 "{}",
@@ -659,20 +695,6 @@ fn main() {
         }
     }
 
-    print_new_line();
-} // end main
-
-fn print_column_separator() {
-    let _ = match stdout!("{: <6}", "") {
-        Ok(_) => Ok(()),
-        Err(e) => match e.kind() {
-            std::io::ErrorKind::BrokenPipe => Ok(()),
-            _ => Err(e),
-        },
-    };
-}
-
-fn print_new_line() {
     let _ = match stdoutln!() {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
@@ -680,7 +702,7 @@ fn print_new_line() {
             _ => Err(e),
         },
     };
-}
+} // end main
 
 fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
     let i32_array: [u8; 3] = a
