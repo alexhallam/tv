@@ -386,7 +386,7 @@ fn main() {
         },
     };
     if is_tty {
-        let _ = match stdout!(
+        let _ = match stdoutln!(
             "{} {} {} {}",
             meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
             (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]),
