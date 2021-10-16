@@ -191,7 +191,6 @@ fn main() {
     let nord_header_color: [u8; 3] = [94, 129, 172];
     let nord_std_color: [u8; 3] = [216, 222, 233];
     let nord_na_color: [u8; 3] = [191, 97, 106];
-    let nord_neg_num_color: [u8; 3] = [208, 135, 112];
     // one dark
     let one_dark_meta_color: [u8; 3] = [152, 195, 121];
     let one_dark_header_color: [u8; 3] = [97, 175, 239];
