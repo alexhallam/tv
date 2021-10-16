@@ -38,6 +38,17 @@ pub fn is_integer(text: &str) -> bool {
     R.is_match(text)
 }
 
+pub fn is_number(text: &str) -> bool {
+    is_integer(text) || is_double(text)
+}
+
+pub fn is_negative_number(text: &str) -> bool {
+    lazy_static! {
+        static ref R: Regex = Regex::new(r"^-[0-9]*.?[0-9]*\s*$").unwrap();
+    }
+    R.is_match(text)
+}
+
 pub fn is_double(text: &str) -> bool {
     f64::from_str(text).is_ok()
 }
