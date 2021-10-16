@@ -33,7 +33,7 @@ pub fn is_logical(text: &str) -> bool {
 pub fn is_integer(text: &str) -> bool {
     //let integer = "5";
     lazy_static! {
-        static ref R: Regex = Regex::new(r"^([+-]?[1-9][0-9]*|0)$").unwrap();
+        static ref R: Regex = Regex::new(r"^([+-]?[1-9][0-9]*|0)\s*$").unwrap();
     }
     R.is_match(text)
 }
