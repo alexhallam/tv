@@ -102,11 +102,10 @@ struct Cli {
     #[structopt(
         short = "s",
         long = "delimiter",
-        default_value = ",",
         parse(try_from_str = datatype::parse_delimiter),
         help = "The delimiter separating the columns."
     )]
-    delimiter: u8,
+    delimiter: Option<u8>,
     //#[structopt(
     //    short = "sig",
     //    long = "sigfig",
@@ -571,16 +570,31 @@ fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u1
 }
 
 fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
-    let source: Box<dyn Read> = if let Some(path) = opt.file.clone() {
+    let mut delimiter = b',';
+
+    let source: Box<dyn Read> = if let Some(path) = &opt.file {
         let file = File::open(path)?;
+
+        // Update the default delimiter by checking the file extension.
+        delimiter = match path.extension() {
+            Some(ext) if ext == "tsv" => b'\t',
+            Some(ext) if ext == "psv" => b'|',
+            _ => delimiter,
+        };
+
         Box::new(BufReader::new(file))
     } else {
         Box::new(io::stdin())
     };
 
+    // Cli options take precedence.
+    if let Some(del) = opt.delimiter {
+        delimiter = del;
+    }
+
     let reader = ReaderBuilder::new()
         .has_headers(false)
-        .delimiter(opt.delimiter)
+        .delimiter(delimiter)
         .from_reader(source);
 
     Ok(reader)
