@@ -823,42 +823,47 @@ mod tests {
 
     #[test]
     fn test_is_number() {
-        let integer = "12345";
-        let integer_front_whitespace = "   12345";
-        let integer_back_whitespace = "12345   ";
-        let integer_front_and_back_whitespace = "   12345   ";
-        let negative_integer = "-12345";
-        let negative_integer_front_whitespace = "   -12345";
-        let negative_integer_back_whitespace = "-12345   ";
-        let negative_integer_front_and_back_whitespace = "   -12345   ";
-        assert_eq!(datatype::is_number(integer), true);
-        assert_eq!(datatype::is_number(integer_front_whitespace), true);
-        assert_eq!(datatype::is_number(integer_back_whitespace), true);
-        assert_eq!(datatype::is_number(integer_front_and_back_whitespace), true);
-        assert_eq!(datatype::is_number(negative_integer), true);
-        assert_eq!(datatype::is_number(negative_integer_front_whitespace), true);
-        assert_eq!(datatype::is_number(negative_integer_back_whitespace), true);
-        assert_eq!(datatype::is_number(negative_integer_front_and_back_whitespace), true);
+        // Integers
+        assert_eq!(datatype::is_number("12345"), true);
+        assert_eq!(datatype::is_number("   12345"), true);
+        assert_eq!(datatype::is_number("12345   "), true);
+        assert_eq!(datatype::is_number("   12345   "), true);
+        assert_eq!(datatype::is_number("-12345"), true);
+        assert_eq!(datatype::is_number("   -12345"), true);
+        assert_eq!(datatype::is_number("-12345   "), true);
+        assert_eq!(datatype::is_number("   -12345   "), true);
 
-        let double = "123.45";
-        let double_front_whitespace = "   123.45";
-        let double_back_whitespace = "123.45   ";
-        let double_front_back_whitespace = "   123.45   ";
-        let negative_double = "-123.45";
-        let negative_double_front_whitespace = "   -123.45";
-        let negative_double_back_whitespace = "-123.45   ";
-        let negative_double_front_and_back_whitespace = "   -123.45   ";
-        assert_eq!(datatype::is_number(double), true);
-        assert_eq!(datatype::is_number(double_front_whitespace), true);
-        assert_eq!(datatype::is_number(double_back_whitespace), true);
-        assert_eq!(datatype::is_number(double_front_back_whitespace), true);
-        assert_eq!(datatype::is_number(negative_double), true);
-        assert_eq!(datatype::is_number(negative_double_front_whitespace), true);
-        assert_eq!(datatype::is_number(negative_double_back_whitespace), true);
-        assert_eq!(datatype::is_number(negative_double_front_and_back_whitespace), true);
+        // Doubles
+        assert_eq!(datatype::is_number("123.45"), true);
+        assert_eq!(datatype::is_number("   123.45"), true);
+        assert_eq!(datatype::is_number("123.45   "), true);
+        assert_eq!(datatype::is_number("   123.45   "), true);
+        assert_eq!(datatype::is_number("0."), true);
+        assert_eq!(datatype::is_number(".0"), true);
+        assert_eq!(datatype::is_number("-123.45"), true);
+        assert_eq!(datatype::is_number("   -123.45"), true);
+        assert_eq!(datatype::is_number("-123.45   "), true);
+        assert_eq!(datatype::is_number("   -123.45   "), true);
 
+        // Misc
         assert_eq!(datatype::is_number("123text"), false);
         assert_eq!(datatype::is_number("text123"), false);
         assert_eq!(datatype::is_number("123.123.123"), false);
+    }
+
+    #[test]
+    fn test_is_negative_number() {
+        assert_eq!(datatype::is_negative_number("-12345"), true);
+        assert_eq!(datatype::is_negative_number("   -12345"), true);
+        assert_eq!(datatype::is_negative_number("-12345   "), true);
+        assert_eq!(datatype::is_negative_number("   -12345   "), true);
+        assert_eq!(datatype::is_negative_number("-12.345"), true);
+        assert_eq!(datatype::is_negative_number("   -12.345"), true);
+        assert_eq!(datatype::is_negative_number("-12.345   "), true);
+        assert_eq!(datatype::is_negative_number("   -12.345   "), true);
+        assert_eq!(datatype::is_negative_number("0.0"), false);
+        assert_eq!(datatype::is_negative_number("0."), false);
+        assert_eq!(datatype::is_negative_number("text"), false);
+        assert_eq!(datatype::is_negative_number("-123.123.123"), false);
     }
 }
