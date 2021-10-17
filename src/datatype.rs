@@ -226,12 +226,48 @@ pub fn get_col_data_type(col: &[&str]) -> ValueType {
 
 pub fn parse_delimiter(src: &str) -> Result<u8, String> {
     let bytes = src.as_bytes();
-    match bytes.len() {
-        1 => Ok(bytes[0]),
+    match *bytes {
+        [del] => Ok(del),
+        [b'\\', b't'] => Ok(b'\t'),
         _ => Err(format!(
-            "expected one byte as a delimiter, got {} bytes (\"{}\")",
+            "expected one byte as delimiter, got {} bytes (\"{}\")",
             bytes.len(),
             src
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::datatype::parse_delimiter;
+
+    #[test]
+    fn one_byte_delimiter() {
+        assert_eq!(parse_delimiter(","), Ok(b','));
+        assert_eq!(parse_delimiter(";"), Ok(b';'));
+        assert_eq!(parse_delimiter("|"), Ok(b'|'));
+        assert_eq!(parse_delimiter(" "), Ok(b' '));
+        assert_eq!(parse_delimiter("\t"), Ok(b'\t'));
+    }
+
+    #[test]
+    fn tab_delimiter() {
+        assert_eq!(parse_delimiter("\\t"), Ok(b'\t'));
+    }
+
+    #[test]
+    fn delimiter_wrong_length() {
+        assert_eq!(
+            parse_delimiter(""),
+            Err("expected one byte as delimiter, got 0 bytes (\"\")".to_string())
+        );
+        assert_eq!(
+            parse_delimiter("too long"),
+            Err("expected one byte as delimiter, got 8 bytes (\"too long\")".to_string())
+        );
+        assert_eq!(
+            parse_delimiter("\\n"),
+            Err("expected one byte as delimiter, got 2 bytes (\"\\n\")".to_string())
+        );
     }
 }
