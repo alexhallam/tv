@@ -138,6 +138,14 @@ tv titanic.csv
 
 > The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
 
+Choosing the sigfigs amounts to how much of the value of a number is desired. The table below shows an example calculation with variable sigfigs.
+
+| sigfigs | value  | sigfiged_value | %value_of_the_number_explained_by_sigfiged_vale |
+|---------|--------|----------------|:-----------------------------------------------:|
+| 1       | 0.1119 | 0.1            |                       >89%                      |
+| 2       | 0.1119 | 0.11           |                       >98%                      |
+| 3       | 0.1119 | 0.111          |                       >99%                      |
+
 `tv` uses the same significant figure (sigfig) rules that the R package `pillar` uses.
 
 The purpose of the sigfig rules in `tv` is to guide the eye to the most important information in a number. This section defines terms and the decision tree used in the calculation of the final value displayed.
