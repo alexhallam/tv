@@ -33,13 +33,24 @@ pub fn is_logical(text: &str) -> bool {
 pub fn is_integer(text: &str) -> bool {
     //let integer = "5";
     lazy_static! {
-        static ref R: Regex = Regex::new(r"^([+-]?[1-9][0-9]*|0)$").unwrap();
+        static ref R: Regex = Regex::new(r"^\s*([+-]?[1-9][0-9]*|0)\s*$").unwrap();
+    }
+    R.is_match(text)
+}
+
+pub fn is_number(text: &str) -> bool {
+    is_integer(text) || is_double(text)
+}
+
+pub fn is_negative_number(text: &str) -> bool {
+    lazy_static! {
+        static ref R: Regex = Regex::new(r"^\s*-[0-9]*.?[0-9]*\s*$").unwrap();
     }
     R.is_match(text)
 }
 
 pub fn is_double(text: &str) -> bool {
-    f64::from_str(text).is_ok()
+    f64::from_str(text.trim()).is_ok()
 }
 
 pub fn is_time(text: &str) -> bool {

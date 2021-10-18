@@ -189,21 +189,25 @@ fn main() {
     let nord_header_color: [u8; 3] = [94, 129, 172];
     let nord_std_color: [u8; 3] = [216, 222, 233];
     let nord_na_color: [u8; 3] = [191, 97, 106];
+    let nord_neg_num_color: [u8; 3] = [208, 135, 112];
     // one dark
     let one_dark_meta_color: [u8; 3] = [152, 195, 121];
     let one_dark_header_color: [u8; 3] = [97, 175, 239];
     let one_dark_std_color: [u8; 3] = [171, 178, 191];
     let one_dark_na_color: [u8; 3] = [224, 108, 117];
+    let one_dark_neg_num_color: [u8; 3] = [229, 192, 123];
     //// gruv
     let gruvbox_meta_color: [u8; 3] = [184, 187, 38];
     let gruvbox_header_color: [u8; 3] = [215, 153, 33];
     let gruvbox_std_color: [u8; 3] = [235, 219, 178];
     let gruvbox_na_color: [u8; 3] = [204, 36, 29];
+    let gruvbox_neg_num_color: [u8; 3] = [251, 73, 52];
     //// dracula
     let dracula_meta_color: [u8; 3] = [98, 114, 164];
     let dracula_header_color: [u8; 3] = [80, 250, 123];
     let dracula_std_color: [u8; 3] = [248, 248, 242];
     let dracula_na_color: [u8; 3] = [255, 121, 198];
+    let dracula_neg_num_color: [u8; 3] = [188, 63, 60];
 
     // user args
     let lower_column_width_defined = !(opt.lower_column_width == 2);
@@ -231,36 +235,41 @@ fn main() {
         upper_column_width
     };
     // logic for picking colors given config and user arguments
-    let (meta_color, header_color, std_color, na_color) = match color_option {
+    let (meta_color, header_color, std_color, na_color, neg_num_color) = match color_option {
         1 => (
             nord_meta_color,
             nord_header_color,
             nord_std_color,
             nord_na_color,
+            nord_neg_num_color,
         ),
         2 => (
             one_dark_meta_color,
             one_dark_header_color,
             one_dark_std_color,
             one_dark_na_color,
+            one_dark_neg_num_color,
         ),
         3 => (
             gruvbox_meta_color,
             gruvbox_header_color,
             gruvbox_std_color,
             gruvbox_na_color,
+            gruvbox_neg_num_color,
         ),
         4 => (
             dracula_meta_color,
             dracula_header_color,
             dracula_std_color,
             dracula_na_color,
+            dracula_neg_num_color,
         ),
         _ => (
             nord_meta_color,
             nord_header_color,
             nord_std_color,
             nord_na_color,
+            nord_neg_num_color,
         ),
     };
     let is_color_defined = opt.color > 0;
@@ -451,7 +460,11 @@ fn main() {
                         if datatype::is_na_string_padded(col) {
                             col.truecolor(na_color[0], na_color[1], na_color[2])
                         } else {
-                            col.truecolor(std_color[0], std_color[1], std_color[2])
+                            if datatype::is_number(col) && datatype::is_negative_number(col) {
+                                col.truecolor(neg_num_color[0], neg_num_color[1], neg_num_color[2])
+                            } else {
+                                col.truecolor(std_color[0], std_color[1], std_color[2])
+                            }
                         }
                     );
                 } else {
@@ -806,5 +819,51 @@ mod tests {
         let cli = Cli::from_args();
         let reader = build_reader(&cli);
         assert!(reader.is_ok());
+    }
+
+    #[test]
+    fn test_is_number() {
+        // Integers
+        assert_eq!(datatype::is_number("12345"), true);
+        assert_eq!(datatype::is_number("   12345"), true);
+        assert_eq!(datatype::is_number("12345   "), true);
+        assert_eq!(datatype::is_number("   12345   "), true);
+        assert_eq!(datatype::is_number("-12345"), true);
+        assert_eq!(datatype::is_number("   -12345"), true);
+        assert_eq!(datatype::is_number("-12345   "), true);
+        assert_eq!(datatype::is_number("   -12345   "), true);
+
+        // Doubles
+        assert_eq!(datatype::is_number("123.45"), true);
+        assert_eq!(datatype::is_number("   123.45"), true);
+        assert_eq!(datatype::is_number("123.45   "), true);
+        assert_eq!(datatype::is_number("   123.45   "), true);
+        assert_eq!(datatype::is_number("0."), true);
+        assert_eq!(datatype::is_number(".0"), true);
+        assert_eq!(datatype::is_number("-123.45"), true);
+        assert_eq!(datatype::is_number("   -123.45"), true);
+        assert_eq!(datatype::is_number("-123.45   "), true);
+        assert_eq!(datatype::is_number("   -123.45   "), true);
+
+        // Misc
+        assert_eq!(datatype::is_number("123text"), false);
+        assert_eq!(datatype::is_number("text123"), false);
+        assert_eq!(datatype::is_number("123.123.123"), false);
+    }
+
+    #[test]
+    fn test_is_negative_number() {
+        assert_eq!(datatype::is_negative_number("-12345"), true);
+        assert_eq!(datatype::is_negative_number("   -12345"), true);
+        assert_eq!(datatype::is_negative_number("-12345   "), true);
+        assert_eq!(datatype::is_negative_number("   -12345   "), true);
+        assert_eq!(datatype::is_negative_number("-12.345"), true);
+        assert_eq!(datatype::is_negative_number("   -12.345"), true);
+        assert_eq!(datatype::is_negative_number("-12.345   "), true);
+        assert_eq!(datatype::is_negative_number("   -12.345   "), true);
+        assert_eq!(datatype::is_negative_number("0.0"), false);
+        assert_eq!(datatype::is_negative_number("0."), false);
+        assert_eq!(datatype::is_negative_number("text"), false);
+        assert_eq!(datatype::is_negative_number("-123.123.123"), false);
     }
 }
