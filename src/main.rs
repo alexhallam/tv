@@ -49,6 +49,8 @@ use toml;
         #std_color = [133, 205, 202]
         ## na_color = [R,G,B] color for NA values
         #na_color = [226, 125, 95]
+        ## neg_num_color = [R,G,B] color for negative values
+        #neg_num_color = [226, 125, 95]
 "
 )]
 struct Cli {
@@ -138,6 +140,7 @@ fn main() {
         header_color: toml::value::Array,
         std_color: toml::value::Array,
         na_color: toml::value::Array,
+        neg_num_color: toml::value::Array,
     }
 
     let base_dir = BaseDirs::new();
@@ -295,6 +298,12 @@ fn main() {
         (Some(_x), true) => na_color,
         (None, false) => nord_na_color,
         (None, true) => na_color,
+    };
+    let neg_num_color = match (&config, is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone().neg_num_color),
+        (Some(_x), true) => neg_num_color,
+        (None, false) => nord_neg_num_color,
+        (None, true) => neg_num_color,
     };
 
     //   colname reader
