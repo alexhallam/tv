@@ -1,3 +1,17 @@
+0.0.22 (2021-10-18)
+==================
+
+Thanks to @Lireer and @rlewicki for the fantastic contributions in this release 🎉
+
+* **Feature 1** Color negative numbers [PR #98](https://github.com/alexhallam/tv/pull/98)
+* **Feature 2** Parse `\t` as tab delimiter [PR #99](https://github.com/alexhallam/tv/pull/99)
+* **Feature 3** Check file extensions to choose a delimiter [PR #100](https://github.com/alexhallam/tv/pull/100)
+* **Feature 4** Use atty to omit text coloring and decorations  [PR #95](https://github.com/alexhallam/tv/pull/95). 
+
+Along with these new features came additional tests. 
+
+Since [PR #98](https://github.com/alexhallam/tv/pull/98) was a aesthetic change it was also added as an additional parameter to be tweaked with a config file.
+
 0.0.21 (2021-10-09)
 ==================
 

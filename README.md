@@ -138,6 +138,14 @@ tv titanic.csv
 
 > The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
 
+Choosing the sigfigs amounts to how much of the value of a number is desired. The table below shows an example calculation with variable sigfigs.
+
+| sigfigs | value  | sigfiged_value | %value_of_the_number_explained_by_sigfiged_vale |
+|---------|--------|----------------|:-----------------------------------------------:|
+| 1       | 0.1119 | 0.1            |                       >89%                      |
+| 2       | 0.1119 | 0.11           |                       >98%                      |
+| 3       | 0.1119 | 0.111          |                       >99%                      |
+
 `tv` uses the same significant figure (sigfig) rules that the R package `pillar` uses.
 
 The purpose of the sigfig rules in `tv` is to guide the eye to the most important information in a number. This section defines terms and the decision tree used in the calculation of the final value displayed.
@@ -287,13 +295,13 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 0.0.20
+tv 0.0.22
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
-    tv diamonds.csv
-    
+    cat diamonds.csv | head -n 35 | tv
+
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
     The config (tv.toml) location is dependent on OS:
@@ -319,13 +327,15 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
         #header_color = [232, 168, 124]
-        ## std_color = [R,G,B] color for standard cell data values 
+        ## std_color = [R,G,B] color for standard cell data values
         #std_color = [133, 205, 202]
         ## na_color = [R,G,B] color for NA values
         #na_color = [226, 125, 95]
+        ## neg_num_color = [R,G,B] color for negative values
+        #neg_num_color = [226, 125, 95]
 
 USAGE:
-    tidy-viewer [FLAGS] [OPTIONS] [FILE]
+    tv [FLAGS] [OPTIONS] [FILE]
 
 FLAGS:
     -d, --debug-mode    Print object details to make it easier for the maintainer to find and resolve bugs.
@@ -343,7 +353,7 @@ OPTIONS:
             An input of (5)uncolor will remove color properties. Note that colors will make it difficult to pipe output
             to other utilities.The default value of (0) is reserved to make config/option coloring logic easier.
             [default: 0]
-    -s, --delimiter <delimiter>                      The delimiter separating the columns. [default: ,]
+    -s, --delimiter <delimiter>                      The delimiter separating the columns.
     -f, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
     -l, --lower-column-width <lower-column-width>
             The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
@@ -354,7 +364,6 @@ OPTIONS:
 
 ARGS:
     <FILE>    File to process
-
 ```
 # Inspiration
 
