@@ -93,7 +93,7 @@ pub fn is_na(text: &str) -> bool {
 pub fn is_na_string_padded(text: &str) -> bool {
     lazy_static! {
         static ref R: Regex = Regex::new(
-            r"^$|^(?:N(?:(?:(?:one|AN|a[Nn]|/A)|[Aa])|ull)|n(?:ull|an?|/a?)|(?:missing))\s*$"
+            r"^$|(^|\s)(?:N(?:(?:(?:AN|a[Nn]|/A)|[Aa])|ull)|n(?:ull|an?|/a?)|(?:missing))\s*$"
         )
         .unwrap();
     }
@@ -166,6 +166,15 @@ pub fn format_strings(
                 if whole < max_whole {
                     let mut s = String::new();
                     s.push_str(&" ".repeat(max_whole - whole));
+                    s.push_str(&string);
+                    string = s;
+                }
+
+                string.push_str(&" ".repeat(max_fract - fract));
+            } else if max_fract > 0 && is_na(&string) {
+                if 2 < max_whole {
+                    let mut s = String::new();
+                    s.push_str(&" ".repeat(max_whole - 2));
                     s.push_str(&string);
                     string = s;
                 }
