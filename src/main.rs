@@ -711,6 +711,7 @@ mod tests {
                 &v[i],
                 col_largest_width_post_proc[i],
                 col_largest_width_post_proc[i],
+                3
             );
         }
 
@@ -788,6 +789,7 @@ mod tests {
                 &v[i],
                 col_largest_width_post_proc[i],
                 col_largest_width_post_proc[i],
+                3
             );
         }
 
@@ -820,6 +822,7 @@ mod tests {
                 &v[i],
                 col_largest_width_post_proc[i],
                 col_largest_width_post_proc[i],
+                3
             );
         }
 
