@@ -126,13 +126,14 @@ pub fn format_strings(
     vec_col: &[&str],
     lower_column_width: usize,
     upper_column_width: usize,
+    sigfig: i64,
 ) -> Vec<String> {
     let ellipsis = '\u{2026}';
 
     let strings_and_fracts: Vec<(String, usize, usize)> = vec_col
         .iter()
         .map(|&string| format_if_na(string))
-        .map(|string| format_if_num(&string))
+        .map(|string| format_if_num(&string, sigfig))
         .map(|string| {
             // the string, and the length of its fractional digits if any
             let (lhs, rhs) = if is_double(&string) {
@@ -213,9 +214,9 @@ pub fn format_if_na(text: &str) -> String {
     string.to_string()
 }
 
-pub fn format_if_num(text: &str) -> String {
+pub fn format_if_num(text: &str, sigfig: i64) -> String {
     if let Ok(val) = text.parse::<f64>() {
-        sigfig::DecimalSplits { val, sigfig: 3 }.final_string()
+        sigfig::DecimalSplits { val, sigfig }.final_string()
     } else {
         text.to_string()
     }

@@ -108,13 +108,13 @@ struct Cli {
         help = "The delimiter separating the columns."
     )]
     delimiter: Option<u8>,
-    //#[structopt(
-    //    short = "sig",
-    //    long = "sigfig",
-    //    default_value = "3",
-    //    help = "Significant Digits. Default 3. (Comming Soon!)"
-    //)]
-    //sigfig: usize,
+    #[structopt(
+        short = "g",
+        long = "sigfig",
+        default_value = "5",
+        help = "Significant Digits. Default 3."
+    )]
+    sigfig: i64,
     #[structopt(
         short = "d",
         long = "debug-mode",
@@ -159,7 +159,7 @@ fn main() {
     let term_tuple = size().unwrap();
     let opt = Cli::from_args();
     let color_option = opt.color;
-    //let sigfig = opt.sigfig;
+    let sigfig = opt.sigfig;
     let debug_mode = opt.debug_mode;
     let is_title_defined = opt.title.chars().count() > 0;
     let is_footer_defined = opt.title.chars().count() > 0;
@@ -371,7 +371,7 @@ fn main() {
     // vector of formatted values
     let vf: Vec<Vec<String>> = v
         .iter()
-        .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width))
+        .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width, sigfig))
         .collect();
 
     if debug_mode {
