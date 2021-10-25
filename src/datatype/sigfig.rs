@@ -203,7 +203,7 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         let split = total_clone.split('.');
         let vec: Vec<&str> = split.collect();
         let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
-        // The plus one at the end stands for the '.' character as lhs doesn't include it
+                                            // The plus one at the end stands for the '.' character as lhs doesn't include it
         let len_to_take_rhs =
             std::cmp::min((sigfig as usize) - len_to_take_lhs + 1, vec[1].len()) + 1;
         let len_to_take = len_to_take_lhs + len_to_take_rhs;
