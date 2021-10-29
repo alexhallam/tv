@@ -74,14 +74,14 @@ We currently cut releases for the following architectures. Download from the [re
 * **Windows**
 * **Build from source (Most general)**
 
-The instuctions for all of the above are very similar with the following general steps.
+The instructions for all of the above are very similar with the following general steps.
 
 1. Download your desired release from the [release page](https://github.com/alexhallam/tv/releases)
 2. `tar -xvzf <RELEASE_FILE_NAME>`
 3. `cd` into uncompressed folder
 4. Find binary `tidy-viewer`
 
-After the above steps I would highly reccomend you make an alias for `tidy-viewer` as shown for other builds.
+After the above steps I would highly recommend you make an alias for `tidy-viewer` as shown for other builds.
 
 ### 8. Snap
 
@@ -264,7 +264,7 @@ else:
 
 # Tools similar to tv
 
-`column` Comes standard with linux. To get similar functionality run `column file.csv -ts,`
+`column` Comes standard with Linux. To get similar functionality run `column file.csv -ts,`
 
 Though `column` is similar I do think there are some reasons `tv` is a better tool.
 
@@ -295,7 +295,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 0.0.22
+tv 1.4.2
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
