@@ -691,7 +691,7 @@ fn main() {
                         };
                     }
                 }
-            }
+            } // end extra cols mentioned in footer
         }
     }
 
