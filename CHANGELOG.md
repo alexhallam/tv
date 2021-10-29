@@ -1,3 +1,12 @@
+0.1.0 (2021-10-28)
+==================
+
+Thanks to @rlewicki for the fantastic contributions in this release 🎉
+
+* **Feature 1** Added the option to modify the `sigfig` from the command line with the `g` option. [PR #107](https://github.com/alexhallam/tv/pull/107)
+* **Bug 1** Added NA alignment. If an NA is in a double or int column then the NA string is right aligned. If it is in a char or any other type it is left aligned. NA stings in double columns do not pass the decimal.[Bug #105](https://github.com/alexhallam/tv/issues/105)
+
+
 0.0.22 (2021-10-18)
 ==================
 
