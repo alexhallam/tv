@@ -1,9 +1,15 @@
-0.1.0 (2021-10-28)
+1.4.2 (2021-10-28) 🥳 
 ==================
 
-Thanks to @rlewicki for the fantastic contributions in this release 🎉
+### Version 1 🎉🥳🎉
 
-* **Feature 1** Added the option to modify the `sigfig` from the command line with the `g` option. [PR #107](https://github.com/alexhallam/tv/pull/107)
+We made it!! Version #1!!
+
+Technically it is version 1.4.2. The [42](https://hitchhikers.fandom.com/wiki/42) is a homage to Geek culture.
+
+What makes this release version 1? My view is that version 1 should encapsulate the original vision of the software. The features of the current package is what I imagined when I started drawing up the project. Of course, as I have continued to work on the package I have found many additional enhancements. Also, if it were not for users of the software I would not have had additional feedback which has improved on this package tremendously. I will continue to work on enhancements. There are currently a list of issues I plan to address. I will also address bugs as they are reported. A special thanks goes to all of the contributors. Not only has `tv` been improved by smart contributors, but my own learning experience has been enhanced. Thank you!
+
+* **Feature 1** Added the option to modify the `sigfig` from the command line with the `g` option. [PR #107](https://github.com/alexhallam/tv/pull/107). Thanks to @rlewicki for this fantastic contribution🎉
 * **Bug 1** Added NA alignment. If an NA is in a double or int column then the NA string is right aligned. If it is in a char or any other type it is left aligned. NA stings in double columns do not pass the decimal.[Bug #105](https://github.com/alexhallam/tv/issues/105)
 
 
