@@ -36,7 +36,7 @@ use core::str;
 //                     │                         │                 │                    │            (point)                          + sigfig - log10(lhs) from rhs
 //                     │                         │                                                   + sigfig - log10(lhs) from rhs
 //                     │                         │              concatonate:    concatonate:         (-12.345 -> -12.3)               (12.345 ->  12.3)
-//                     │                         │              (-)             (lhs)
+//                     │                         │              (-)             (lhs)                (-1.1 -> -1.10)                  (1.1 -> 1.10)
 //                     │                         │              (lhs)
 //                     │                         │                              (1234.0 -> 1234)
 //                                                         (-1234.0 -> -1234)
@@ -118,10 +118,22 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         if tmp_string.len() > 13 {
             // 13 is arbitraty. There may be a more general solution here!
             // Problem: debug val: 0.0001 => final_string: "0.00009999999999999999"
-            let w = (x.abs().log10().floor()).abs() as usize;
-            let fstring = format!("{:.w$}", r, w = w);
-            fstring
+            let j = (x.abs().log10().floor()).abs() as usize;
+            if j >= sigfig as usize {
+                // long tail sigfigs
+                // 0.0001
+                // 0.001
+                let w = (x.abs().log10().floor()).abs() as usize;
+                let fstring = format!("{:.w$}", r, w = w);
+                fstring
+            } else {
+                // standard lhs only sigs
+                //-0.9527948462413667 -> -0.953
+                let fstring = format!("{:.w$}", r, w = (sigfig as usize));
+                fstring
+            }
         } else {
+            //println!("{:?}", tmp_string);
             tmp_string
         }
     } else if lhs.log10() + 1.0 >= sigfig as f64 {
@@ -193,20 +205,22 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         //(lhs)
         //(point)
         //+ sigfig - log10(lhs) from rhs
-        //(12.345 -> 12.3)
-        //(1.2345 -> 1.23)
+        //(-12.345 -> -12.3)
+        //(-1.2345 -> -1.23)
         // need a rhs arguments here
         //let total = lhs + rhs;
         //let total_string = total.to_string();
+        let w: usize = (sigfig as usize) - 1;
+        let x = format!("{:.w$}", x, w = w);
         let total_string = x.to_string();
         let total_clone = total_string.clone();
         let split = total_clone.split('.');
         let vec: Vec<&str> = split.collect();
         let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
                                             // The plus one at the end stands for the '.' character as lhs doesn't include it
-        let len_to_take_rhs =
-            std::cmp::min((sigfig as usize) - len_to_take_lhs + 1, vec[1].len()) + 1;
-        let len_to_take = len_to_take_lhs + len_to_take_rhs;
+        let len_to_take_rhs = std::cmp::min((sigfig as usize) - len_to_take_lhs, vec[1].len()) + 1;
+        let len_to_take = len_to_take_lhs + len_to_take_rhs + 1;
+        //println!("x: {:?}", x);
         total_string[..len_to_take].to_string()
     } else {
         //concatonate:
@@ -218,6 +232,8 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         // need a rhs arguments here
         //let total = lhs + rhs;
         //let total_string = total.to_string();
+        let w: usize = (sigfig as usize) - 1;
+        let x = format!("{:.w$}", x, w = w);
         let total_string = x.to_string();
         let total_clone = total_string.clone();
         let split = total_clone.split('.');
@@ -225,6 +241,7 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         let len_to_take_lhs = vec[0].len(); // point -> +1 to sigfig
         let len_to_take_rhs = ((sigfig + 1) as usize) - len_to_take_lhs;
         let len_to_take = len_to_take_lhs + len_to_take_rhs;
+
         if len_to_take >= total_string.len() {
             total_string
         } else {
@@ -266,35 +283,6 @@ fn test_f12345() {
         //assert_eq!(x.dec(), test_dec[i]);
         assert_eq!(x.final_string(), test_final_string[i]);
     }
-
-    //    $sigfig
-    //    [1] 3
-    //    $num
-    //    [1] TRUE TRUE TRUE TRUE TRUE TRUE
-    //    $neg
-    //    [1] FALSE FALSE FALSE FALSE FALSE FALSE
-    //    $lhs
-    //    [1] "12345" "1234"  "123"   "12"    "1"     "0"
-    //    $lhs_zero
-    //    [1] FALSE FALSE FALSE FALSE FALSE  TRUE
-    //    $rhs
-    //    [1] 0.000 0.000 0.000 0.300 0.230 0.123
-    //    $rhs_digits
-    //    [1]  0 -1  0  1  2  3
-    //    $dec
-    //    [1] FALSE  TRUE  TRUE  TRUE  TRUE  TRUE
-    //    $exp
-    //    [1] NA NA NA NA NA NA
-    //    $si
-    //    [1] FALSE
-    //    attr(,"width")
-    //    [1] 9
-    //    12345
-    //     1234.
-    //      123.
-    //       12.3
-    //        1.23
-    //        0.123
 }
 
 #[test]
@@ -324,35 +312,6 @@ fn test_f100() {
         assert_eq!(x.final_string(), test_final_string[i]);
         println!("complete!");
     }
-
-    //$sigfig
-    //[1] 3
-    //$num
-    //[1] TRUE TRUE TRUE TRUE TRUE TRUE
-    //$neg
-    //[1] FALSE FALSE FALSE FALSE FALSE FALSE
-    //$lhs
-    //[1] "100" "10"  "1"   "0"   "0"   "0"
-    //$lhs_zero
-    //[1] FALSE FALSE FALSE  TRUE  TRUE  TRUE
-    //$rhs
-    //[1] 0.000 0.000 0.000 0.100 0.010 0.001
-    //$rhs_digits
-    //[1] 0 0 0 1 2 3
-    //$dec
-    //[1] FALSE FALSE FALSE  TRUE  TRUE  TRUE
-    //$exp
-    //[1] NA NA NA NA NA NA
-    //$si
-    //[1] FALSE
-    //attr(,"width")
-    //[1] 7
-    //100
-    // 10
-    //  1
-    //  0.1
-    //  0.01
-    //  0.001
 }
 
 #[test]
@@ -382,28 +341,6 @@ fn test_fn100() {
         assert_eq!(x.final_string(), test_final_string[i]);
         println!("complete!");
     }
-    //$sigfig
-    //[1] 3
-    //$num
-    //[1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE
-    //$neg
-    //[1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE
-    //$lhs
-    //[1] "100" "10"  "1"   "0"   "0"   "0"   "0"
-    //$lhs_zero
-    //[1] FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE
-    //$rhs
-    //[1] 0e+00 0e+00 0e+00 1e-01 1e-02 1e-03 1e-04
-    //$rhs_digits
-    //[1] 0 0 0 1 2 3 4
-    //$dec
-    //[1] FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE
-    //$exp
-    //[1] NA NA NA NA NA NA NA
-    //$si
-    //[1] FALSE
-    //attr(,"width")
-    //[1] 9
 }
 
 #[test]
@@ -438,35 +375,6 @@ fn test_fn12345() {
         //assert_eq!(x.dec(), test_dec[i]);
         assert_eq!(x.final_string(), test_final_string[i]);
     }
-
-    //    $sigfig
-    //    [1] 3
-    //    $num
-    //    [1] TRUE TRUE TRUE TRUE TRUE TRUE
-    //    $neg
-    //    [1] FALSE FALSE FALSE FALSE FALSE FALSE
-    //    $lhs
-    //    [1] "12345" "1234"  "123"   "12"    "1"     "0"
-    //    $lhs_zero
-    //    [1] FALSE FALSE FALSE FALSE FALSE  TRUE
-    //    $rhs
-    //    [1] 0.000 0.000 0.000 0.300 0.230 0.123
-    //    $rhs_digits
-    //    [1]  0 -1  0  1  2  3
-    //    $dec
-    //    [1] FALSE  TRUE  TRUE  TRUE  TRUE  TRUE
-    //    $exp
-    //    [1] NA NA NA NA NA NA
-    //    $si
-    //    [1] FALSE
-    //    attr(,"width")
-    //    [1] 9
-    //    12345
-    //     1234.
-    //      123.
-    //       12.3
-    //        1.23
-    //        0.123
 }
 
 #[test]
@@ -500,17 +408,34 @@ fn test_long_double() {
 }
 
 #[test]
-fn test_bug75() {
+fn test_norms() {
     // the `rhs` break on this test. This is intentional
     // This problem led to the creation of `rhs_string_len` which counts
     // length after the final string has been generated.
-    let long_double = vec![-1.1];
-    let test_sigfig = vec![3];
-    let test_neg = vec![true];
-    let test_lhs = vec![1.0];
-    let _test_rhs = vec![0.1];
-    //let test_dec = vec![true];
-    let test_final_string = vec!["-1.1"];
+    let long_double = vec![
+        -0.7949012411113556,
+        1.1597467493978901,
+        -0.9527948462413667,
+        -1.2055600489348273,
+        -0.9964310089596907,
+        0.3968466566707523,
+        -0.7763342862202715,
+        0.6893169466075251,
+        //-0.8700625714479723,
+    ];
+    let test_sigfig = vec![
+        3, 3, 3, 3, 3, 3, 3, 3,
+        //3
+    ];
+    let test_lhs = vec![
+        0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+        //0.0
+    ];
+    //let test_dec = vec![true, true, true, true];
+    let test_final_string = vec![
+        "-0.795", "1.16", "-0.953", "-1.21", "-0.996", "0.397", "-0.776", "0.689",
+        //"-0.870",
+    ];
 
     for i in 0..long_double.len() {
         let value = long_double[i];
@@ -518,13 +443,45 @@ fn test_bug75() {
             val: value,
             sigfig: 3,
         };
-        //println!("{:#?}", x);
+        //println!("{:#?}", list);
         assert_eq!(x.val, long_double[i]);
         assert_eq!(x.sigfig, test_sigfig[i]);
-        assert_eq!(x.neg(), test_neg[i]);
+        //assert_eq!(x.neg(), test_neg[i]);
         assert_eq!(x.lhs(), test_lhs[i]);
         //assert_eq!(list.rhs, test_rhs[i]);
         //assert_eq!(x.dec(), test_dec[i]);
         assert_eq!(x.final_string(), test_final_string[i]);
     }
 }
+
+// I am starting to doubt the utility of this test. I will keep it here while I think on it more.
+//#[test]
+//fn test_bug75() {
+//    // the `rhs` break on this test. This is intentional
+//    // This problem led to the creation of `rhs_string_len` which counts
+//    // length after the final string has been generated.
+//    let long_double = vec![-1.1];
+//    let test_sigfig = vec![3];
+//    let test_neg = vec![true];
+//    let test_lhs = vec![1.0];
+//    let _test_rhs = vec![0.1];
+//    //let test_dec = vec![true];
+//    let test_final_string = vec!["-1.1"];
+//
+//    for i in 0..long_double.len() {
+//        let value = long_double[i];
+//        let x = DecimalSplits {
+//            val: value,
+//            sigfig: 3,
+//        };
+//        //println!("{:#?}", x);
+//        assert_eq!(x.val, long_double[i]);
+//        assert_eq!(x.sigfig, test_sigfig[i]);
+//        assert_eq!(x.neg(), test_neg[i]);
+//        assert_eq!(x.lhs(), test_lhs[i]);
+//        //assert_eq!(list.rhs, test_rhs[i]);
+//        //assert_eq!(x.dec(), test_dec[i]);
+//        assert_eq!(x.final_string(), test_final_string[i]);
+//    }
+//}
+//

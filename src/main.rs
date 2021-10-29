@@ -113,8 +113,8 @@ struct Cli {
     #[structopt(
         short = "g",
         long = "sigfig",
-        default_value = "5",
-        help = "Significant Digits. Default 3."
+        default_value = "3",
+        help = "Significant Digits. Default 3. Max is 7"
     )]
     sigfig: i64,
     #[structopt(
@@ -161,7 +161,11 @@ fn main() {
     let term_tuple = size().unwrap();
     let opt = Cli::from_args();
     let color_option = opt.color;
-    let sigfig = opt.sigfig;
+    let sigfig = if opt.sigfig >= 3 && opt.sigfig <= 7 {
+        opt.sigfig
+    } else {
+        panic!("sigfig range must be between 3 and 7")
+    };
     let debug_mode = opt.debug_mode;
     let is_title_defined = opt.title.chars().count() > 0;
     let is_footer_defined = opt.title.chars().count() > 0;
@@ -687,7 +691,7 @@ fn main() {
                         };
                     }
                 }
-            }
+            } // end extra cols mentioned in footer
         }
     }
 
