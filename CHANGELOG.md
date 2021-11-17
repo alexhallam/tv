@@ -1,3 +1,11 @@
+1.4.3 (2021-11-17)
+==================
+
+* **Feature 1**  Added forced color flag for color pager support [Issue #112](https://github.com/alexhallam/tv/issues/112)
+
+I was not aware of this until @ismaelgv opened the issue. `less -R` and `bat -p` can do color comprehension. In previous versions of `tv` we just stripped the color if the output was piped to programs like less. Now the user can override this behaviour with a `-a` flag.
+
+
 1.4.2 (2021-10-28)
 ==================
 

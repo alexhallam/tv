@@ -295,7 +295,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.4.2
+tv 1.4.3
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
@@ -335,12 +335,14 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #neg_num_color = [226, 125, 95]
 
 USAGE:
-    tv [FLAGS] [OPTIONS] [FILE]
+    tidy-viewer [FLAGS] [OPTIONS] [FILE]
 
 FLAGS:
-    -d, --debug-mode    Print object details to make it easier for the maintainer to find and resolve bugs.
-    -h, --help          Prints help information
-    -V, --version       Prints version information
+    -d, --debug-mode      Print object details to make it easier for the maintainer to find and resolve bugs.
+    -a, --color-always    Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a starwars.csv | bat
+                          -p`. The `less` cli has the `-R` flag to parse colored output.
+    -h, --help            Prints help information
+    -V, --version         Prints version information
 
 OPTIONS:
     -c, --color <color>
@@ -359,6 +361,7 @@ OPTIONS:
             The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
 
     -n, --number of rows to output <row-display>     Show how many rows to display. [default: 25]
+    -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]
     -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
     -u, --upper-column-width <upper-column-width>    The upper (maxiumum) width of columns. [default: 20]
 
