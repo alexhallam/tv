@@ -30,7 +30,7 @@
 4. Dimensions printed first (no more guessing how many rows and columns are in the data)
 5. Column overflow logic (no more misalignment do to terminal dimensions)
 6. Long string/Unicode truncation (no more long strings pushing other data around)
-7. Customize able with a dotfile config (bring your own theme)
+7. Customizable with a dotfile config (bring your own theme)
 
 # Installation
 
