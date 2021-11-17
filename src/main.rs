@@ -126,7 +126,7 @@ struct Cli {
     #[structopt(
         short = "a",
         long = "color-always",
-        help = "Always force color output. Example `tv -a starwars.csv | less -R`. The `less` cli has the `-R` flag to parse colored output."
+        help = "Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a starwars.csv | bat -p`. The `less` cli has the `-R` flag to parse colored output."
     )]
     force_color: bool,
 
