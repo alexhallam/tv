@@ -13,7 +13,7 @@
 ![example](img/starwars.png)
 
 # Contents
-* [Featuers](#features)
+* [Features](#features)
 * [Installation](#installation)
 * [Examples](#examples)
 * [Significant Figure Definitions & Rules](#significant-figure-definitions-and-rules)
