@@ -13,6 +13,7 @@
 ![example](img/starwars.png)
 
 # Contents
+* [Featuers](#features)
 * [Installation](#installation)
 * [Examples](#examples)
 * [Significant Figure Definitions & Rules](#significant-figure-definitions-and-rules)
@@ -20,6 +21,16 @@
 * [Configuration Dotfile](#configuration-dotfile) (Coming Soon!)
 * [Help](#help)
 * [Inspiration](#inspiration)
+
+# Features
+
+1. Nice colors out of the box
+2. Significant digit printing (no more decimal dust taking valuable terminal space)
+3. NA comprehension and coloring (no more misaligned data cells due to missing data)
+4. Dimensions printed first (no more guessing how many rows and columns are in the data)
+5. Column overflow logic (no more misalignment do to terminal dimensions)
+6. Long string/Unicode truncation (no more long strings pushing other data around)
+7. Customize able with a dotfile config (bring your own theme)
 
 # Installation
 
