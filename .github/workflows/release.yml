@@ -84,7 +84,7 @@ jobs:
           rust: nightly
           target: arm-unknown-linux-gnueabihf
         - build: macos
-          os: macos-latest
+          os: macOS-11
           rust: nightly
           target: x86_64-apple-darwin
         - build: win-msvc
@@ -112,7 +112,7 @@ jobs:
         ci/ubuntu-install-packages
 
     - name: Install packages (macOS)
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macOS-11'
       run: |
         ci/macos-install-packages
 

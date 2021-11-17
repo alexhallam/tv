@@ -42,7 +42,7 @@ jobs:
         include:
         - build: pinned
           os: ubuntu-18.04
-          rust: 1.52.1
+          rust: 1.56.1
         - build: stable
           os: ubuntu-18.04
           rust: stable
@@ -74,7 +74,7 @@ jobs:
           #   /target/arm-unknown-linux-gnueabihf/debug/rg
           target: arm-unknown-linux-gnueabihf
         - build: macos
-          os: macos-latest
+          os: macOS-11
           rust: nightly
         - build: win-msvc
           os: windows-2019
@@ -92,7 +92,7 @@ jobs:
         ci/ubuntu-install-packages
 
     - name: Install packages (macOS)
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macOS-11'
       run: |
         ci/macos-install-packages
 
@@ -115,6 +115,9 @@ jobs:
       run: |
         echo "cargo command is: ${{ env.CARGO }}"
         echo "target flag is: ${{ env.TARGET_FLAGS }}"
+
+    - name: Update rustup for edition 2021
+      run: rustup update stable
 
     - name: Build tidy-viewer and all crates
       run: ${{ env.CARGO }} build --verbose --workspace ${{ env.TARGET_FLAGS }}

@@ -123,6 +123,12 @@ struct Cli {
         help = "Print object details to make it easier for the maintainer to find and resolve bugs."
     )]
     debug_mode: bool,
+    #[structopt(
+        short = "a",
+        long = "color-always",
+        help = "Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a starwars.csv | bat -p`. The `less` cli has the `-R` flag to parse colored output."
+    )]
+    force_color: bool,
 
     #[structopt(name = "FILE", parse(from_os_str), help = "File to process")]
     file: Option<PathBuf>,
@@ -171,6 +177,7 @@ fn main() {
     let is_footer_defined = opt.title.chars().count() > 0;
     let is_row_display_defined = !(opt.row_display == 25);
     let is_tty = atty::is(atty::Stream::Stdout);
+    let is_force_color = opt.force_color;
 
     let title_option = match (&config, is_title_defined) {
         (Some(x), false) => &x.title,
@@ -406,7 +413,7 @@ fn main() {
             _ => Err(e),
         },
     };
-    if is_tty {
+    if is_tty || is_force_color {
         let _ = match stdoutln!(
             "{} {} {} {}",
             meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
@@ -438,7 +445,7 @@ fn main() {
                 _ => Err(e),
             },
         };
-        if is_tty {
+        if is_tty || is_force_color {
             let _ = match stdoutln!(
                 "{}",
                 title_option
@@ -474,7 +481,7 @@ fn main() {
     //for col in 0..cols {
     for col in 0..num_cols_to_print {
         let text = vp[0].get(col).unwrap().to_string();
-        if is_tty {
+        if is_tty || is_force_color {
             let _ = match stdout!(
                 "{}",
                 text.truecolor(header_color[0], header_color[1], header_color[2])
@@ -518,7 +525,7 @@ fn main() {
         .take(rows)
         .skip(1)
         .for_each(|(i, row)| {
-            if is_tty {
+            if is_tty || is_force_color {
                 let _ = match stdout!(
                     "{: <6}",
                     i.truecolor(meta_color[0], meta_color[1], meta_color[2])
@@ -538,9 +545,8 @@ fn main() {
                     },
                 };
             }
-            //for col in 0..cols {
             row.iter().take(num_cols_to_print).for_each(|col| {
-                if is_tty {
+                if is_tty || is_force_color {
                     let _ = match stdout!(
                         "{}",
                         if datatype::is_na_string_padded(col) {
@@ -579,7 +585,6 @@ fn main() {
         });
 
     // additional row info
-
     if rows_remaining > 0 {
         let _ = match stdout!("{: <6}", "") {
             Ok(_) => Ok(()),
@@ -588,7 +593,7 @@ fn main() {
                 _ => Err(e),
             },
         };
-        if is_tty {
+        if is_tty || is_force_color {
             let _ = match stdout!(
                 "{}",
                 row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
@@ -608,7 +613,6 @@ fn main() {
                 },
             };
         }
-        //println!("num_cols_to_print {:?} cols {:?}", num_cols_to_print, cols);
         let extra_cols_to_mention = num_cols_to_print;
         let remainder_cols = cols - extra_cols_to_mention;
         if extra_cols_to_mention < cols {
@@ -616,7 +620,7 @@ fn main() {
             let meta_text_var = "more variables";
             let meta_text_comma = ",";
             let meta_text_colon = ":";
-            if is_tty {
+            if is_tty || is_force_color {
                 let _ = match stdout!(
                     " {} {} {}{}",
                     meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
@@ -647,7 +651,7 @@ fn main() {
             }
             for col in extra_cols_to_mention..cols {
                 let text = rdr[0].get(col).unwrap();
-                if is_tty {
+                if is_tty || is_force_color {
                     let _ = match stdout!(
                         " {}",
                         text.truecolor(meta_color[0], meta_color[1], meta_color[2])
@@ -670,7 +674,7 @@ fn main() {
 
                 // The last column mentioned in foot should not be followed by a comma
                 if col + 1 < cols {
-                    if is_tty {
+                    if is_tty || is_force_color {
                         let _ = match stdout!(
                             "{}",
                             meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
@@ -704,7 +708,7 @@ fn main() {
                 _ => Err(e),
             },
         };
-        if is_tty {
+        if is_tty || is_force_color {
             let _ = match stdoutln!(
                 "{}",
                 footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
