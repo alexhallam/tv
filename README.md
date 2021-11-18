@@ -138,7 +138,11 @@ cat pigeon-racing.csv | tv
 ### Titanic
 ```sh
 wget https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv
-tv titanic.csv
+# send to pager with color
+# less 
+tv titanic.csv -a -n 1000 | less -R
+# bat
+tv titanic.csv -a -n 1000 | bat -p
 ```
 
 # Significant Figure Definitions And Rules
