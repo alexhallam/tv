@@ -43,6 +43,8 @@ use toml;
         #lower_column_width = 2
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
+        ## extend rows beyond term width (do not trucate) [default: false]
+        # extend_rows = true
         ## meta_color = [R,G,B] color for row index and \"tv dim: rowsxcols\"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
@@ -118,6 +120,12 @@ struct Cli {
     )]
     sigfig: i64,
     #[structopt(
+        short = "e",
+        long = "extend-rows",
+        help = "Extended row beyond term width (do not truncate). Useful with `less -S`."
+    )]
+    extend: bool,
+    #[structopt(
         short = "d",
         long = "debug-mode",
         help = "Print object details to make it easier for the maintainer to find and resolve bugs."
@@ -144,6 +152,7 @@ fn main() {
         upper_column_width: usize,
         lower_column_width: usize,
         number: usize,
+        extend_rows: bool,
         meta_color: toml::value::Array,
         header_color: toml::value::Array,
         std_color: toml::value::Array,
@@ -157,12 +166,12 @@ fn main() {
     let conf_file = PathBuf::from("tv.toml");
     let conf_dir_file: PathBuf = config_dir.join(conf_file.clone());
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
-    //println!("file_contents {:?}", file_contents);
+    // println!("file_contents {:?}", file_contents);
     let config: Option<Data> = match file_contents {
         Some(x) => toml::from_str(&x.to_owned()).ok(),
         None => None,
     };
-    //println!("config {:#?}", config);
+    // println!("config {:#?}", config);
 
     let term_tuple = size().unwrap();
     let opt = Cli::from_args();
@@ -178,6 +187,7 @@ fn main() {
     let is_row_display_defined = !(opt.row_display == 25);
     let is_tty = atty::is(atty::Stream::Stdout);
     let is_force_color = opt.force_color;
+    let extend_option = opt.extend || config.as_ref().map(|d| d.extend_rows).unwrap_or(false);
 
     let title_option = match (&config, is_title_defined) {
         (Some(x), false) => &x.title,
@@ -401,7 +411,11 @@ fn main() {
         vp.push(row);
     }
 
-    let num_cols_to_print = get_num_cols_to_print(cols, vp.clone(), term_tuple);
+    let num_cols_to_print = if extend_option {
+        cols
+    } else {
+        get_num_cols_to_print(cols, vp.clone(), term_tuple)
+    };
 
     // color
     let meta_text = "tv dim:";

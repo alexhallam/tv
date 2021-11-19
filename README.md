@@ -310,7 +310,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.4.3
+tv 1.4.4
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
@@ -338,6 +338,8 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #lower_column_width = 2
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
+        ## extend rows beyond term width (do not trucate) [default: false]
+        # extend_rows = true
         ## meta_color = [R,G,B] color for row index and "tv dim: rowsxcols"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
@@ -354,6 +356,7 @@ USAGE:
 
 FLAGS:
     -d, --debug-mode      Print object details to make it easier for the maintainer to find and resolve bugs.
+    -e, --extend-rows     Extended row beyond term width (do not truncate). Useful with `less -S`.
     -a, --color-always    Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a starwars.csv | bat
                           -p`. The `less` cli has the `-R` flag to parse colored output.
     -h, --help            Prints help information
