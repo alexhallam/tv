@@ -28,7 +28,7 @@
 2. Significant digit printing (no more decimal dust taking valuable terminal space)
 3. NA comprehension and coloring (no more misaligned data cells due to missing data)
 4. Dimensions printed first (no more guessing how many rows and columns are in the data)
-5. Column overflow logic (no more misalignment do to terminal dimensions)
+5. Column overflow logic (no more misalignment due to terminal dimensions)
 6. Long string/Unicode truncation (no more long strings pushing other data around)
 7. Customizable with a dotfile config (bring your own theme)
 
