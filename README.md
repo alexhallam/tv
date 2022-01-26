@@ -104,7 +104,6 @@ tidy-viewer --help
 ### 9. Homebrew
 
 ```
-brew tap alexhallam/tidy-viewer
 brew install tidy-viewer
 ```
 
