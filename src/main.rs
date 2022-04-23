@@ -31,6 +31,7 @@ use toml;
 
         ## ==Tidy-Viewer Config Example==
         ## Remove the first column of comments for valid toml file
+        ## All fields must be defined. Partial files will not be read.
         ## The delimiter separating the columns. [default: ,]
         #delimiter = \",\"
         ## Add a title to your tv. Example \'Test Data\' [default: NA (\"\")]
