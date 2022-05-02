@@ -1,9 +1,11 @@
-1.4.4 (2021-11-18)
+1.4.4 (2021-5-02)
 ==================
 
-* **Feature 1**  Added -e flag to extend rows (don't truncate).
+* **Feature 1**  Added `-e` flag to extend rows (don't truncate).
 
 This new version gives a flag option to extend rows rather than truncate. This is especially useful for wide csv files that would overflow the terminal width. When using the extend mode, pipe output to `less -S` to enables scrolling right and left with arrow keys.
+
+I also did some clean up work. I removed a binary I was not using.
 
 1.4.3 (2021-11-17)
 ==================
