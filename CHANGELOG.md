@@ -1,4 +1,4 @@
-1.4.4.2 (2021-5-1)
+1.4.5 (2021-5-1)
 ==================
 
 * **Bug 1**  Though `-e` was added as an option I found that it was not overriding the `-n` argument. The fix was made with a simple if/else statement. 
