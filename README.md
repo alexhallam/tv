@@ -139,7 +139,7 @@ cat pigeon-racing.csv | tv
 wget https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv
 # send to pager with color
 # less 
-tv titanic.csv -a -n 1000 | less -R
+tv titanic.csv -ea | less -R
 # bat
 tv titanic.csv -a -n 1000 | bat -p
 ```
