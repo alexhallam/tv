@@ -1,3 +1,11 @@
+1.4.5 (2021-5-1)
+==================
+
+* **Bug 1**  Though `-e` was added as an option I found that it was not overriding the `-n` argument. The fix was made with a simple if/else statement. 
+
+It may seem odd to bump the version with such a small bug, but I did not want to have something in the help file that was not functional in
+the CLI. 
+
 1.4.4 (2021-5-02)
 ==================
 
