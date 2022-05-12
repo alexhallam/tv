@@ -1,14 +1,14 @@
 [package]
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
 categories = ["command-line-utilities"]
-description = "Head, but for csvs and with color"
+description = "Head, but for CSV files and with color"
 edition = "2021"
-keywords = ["csv", "pretty-print", "data-viewer", "tv", "tabular-data-viewer"]
+keywords = ["csv", "pretty-print", "data-viewer", "tv", "tabular-data-viewer", "csv-viewer", "csv-pretty-print", "csv-cat", "csv-column"]
 license = "Unlicense/MIT"
 name = "tidy-viewer"
 readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
-version = "1.4.4"
+version = "1.4.5"
 
 [package.metadata.deb]
 assets = [

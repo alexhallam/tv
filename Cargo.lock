@@ -563,7 +563,7 @@ dependencies = [
 
 [[package]]
 name = "tidy-viewer"
-version = "1.4.4"
+version = "1.4.5"
 dependencies = [
  "atty",
  "calm_io",

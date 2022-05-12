@@ -360,8 +360,13 @@ fn main() {
     }
 
     let cols: usize = rdr[0].len();
-    let rows: usize = rdr.len().min(row_display_option + 1);
     let rows_in_file: usize = rdr.len();
+    let rows: usize = if extend_option {
+        rdr.len().min(rows_in_file + 1)
+    } else {
+        rdr.len().min(row_display_option + 1)
+    };
+
     let rows_remaining: usize = rows_in_file - rows;
     let ellipsis = '\u{2026}'.to_string();
     let row_remaining_text: String = format!("{} with {} more rows", ellipsis, rows_remaining);
