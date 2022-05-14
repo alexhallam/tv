@@ -262,7 +262,7 @@ else:
 
 # Tools to pair with tv
 
-`tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
+`tv` is a good complement to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
 [xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. [Rust | CLI]
 
