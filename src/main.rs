@@ -38,7 +38,7 @@ use toml;
         #title = \"\"
         ## Add a footer to your tv. Example \'footer info\' [default: NA (\"\")]
         #footer = \"\"
-        ## The upper (maxiumum) width of columns. [default: 20]
+        ## The upper (maximum) width of columns. [default: 20]
         #upper_column_width = 20
         ## The minimum width of columns. Must be 2 or larger. [default: 2]
         #lower_column_width = 2
