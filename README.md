@@ -331,7 +331,7 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #title = ""
         ## Add a footer to your tv. Example 'footer info' [default: NA ("")]
         #footer = ""
-        ## The upper (maxiumum) width of columns. [default: 20]
+        ## The upper (maximum) width of columns. [default: 20]
         #upper_column_width = 20
         ## The minimum width of columns. Must be 2 or larger. [default: 2]
         #lower_column_width = 2
@@ -380,7 +380,7 @@ OPTIONS:
     -n, --number of rows to output <row-display>     Show how many rows to display. [default: 25]
     -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]
     -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
-    -u, --upper-column-width <upper-column-width>    The upper (maxiumum) width of columns. [default: 20]
+    -u, --upper-column-width <upper-column-width>    The upper (maximum) width of columns. [default: 20]
 
 ARGS:
     <FILE>    File to process
