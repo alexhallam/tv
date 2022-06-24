@@ -34,49 +34,13 @@
 
 # Installation
 
-The following install options are available
+The following install options are available via package managers:
 
-1. Cargo Install from crates.io
-2. Debian `.deb` install
-3. AUR
-4. MacOS
-5. ARM
-6. Windows
-7. Build from source
-8. Snap
-9. Homebrew
-
-### 1. Cargo Install
-
-The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
-
-```sh
-cargo install tidy-viewer
-sudo cp /home/$USER/.cargo/bin/tidy-viewer /usr/local/bin/.
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 2. Debian
-
-The below instructions work with the most recent release `<VERSION>` found here [release page](https://github.com/alexhallam/tv/releases).
-
-```sh
-wget https://github.com/alexhallam/tv/releases/download/<VERSION>/tidy-viewer_<VERSION>_amd64.deb
-sudo dpkg -i tidy-viewer_<VERSION>_amd64.deb
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 3. AUR
-
-Kindly maintained by @yigitsever
-
-```sh
-paru -S tidy-viewer
-```
-
-### 4-7. Other releases
+* [Cargo](#cargo)
+* [Debian](#debian)
+* [AUR](#aur)
+* [Snap](#snap)
+* [Homebrew](#homebrew)
 
 We currently cut releases for the following architectures. Download from the [release page](https://github.com/alexhallam/tv/releases).
 
@@ -94,14 +58,43 @@ The instructions for all of the above are very similar with the following genera
 
 After the above steps I would highly recommend you make an alias for `tidy-viewer` as shown for other builds.
 
-### 8. Snap
+### Cargo
+
+The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to `.bashrc`.
+
+```sh
+cargo install tidy-viewer
+sudo cp /home/$USER/.cargo/bin/tidy-viewer /usr/local/bin/.
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Debian
+
+The below instructions work with the most recent release `<VERSION>` found here [release page](https://github.com/alexhallam/tv/releases).
+
+```sh
+wget https://github.com/alexhallam/tv/releases/download/<VERSION>/tidy-viewer_<VERSION>_amd64.deb
+sudo dpkg -i tidy-viewer_<VERSION>_amd64.deb
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### AUR
+
+Kindly maintained by @yigitsever
+
+```sh
+paru -S tidy-viewer
+```
+
+### Snap
 
 ```
 sudo snap install --edge tidy-viewer
-tidy-viewer --help
 ```
 
-### 9. Homebrew
+### Homebrew
 
 ```
 brew install tidy-viewer
