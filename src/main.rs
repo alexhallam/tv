@@ -63,12 +63,12 @@ struct Cli {
         short = "c",
         long = "color",
         default_value = "0",
-        help = "There are 5 preconfigured color palettes:
+        help = "There are 5 preconfigured color palettes (Defaults to nord):
                 (1)nord
                 (2)one_dark
                 (3)gruvbox
                 (4)dracula
-                (5)uncolor (Coming Soon)\nAn input of (5)uncolor will remove color properties. Note that colors will make it difficult to pipe output to other utilities.The default value of (0) is reserved to make config/option coloring logic easier."
+                (5)solarized light"
     )]
     color: usize,
     #[structopt(
@@ -234,6 +234,12 @@ fn main() {
     let dracula_std_color: [u8; 3] = [248, 248, 242];
     let dracula_na_color: [u8; 3] = [255, 121, 198];
     let dracula_neg_num_color: [u8; 3] = [188, 63, 60];
+    //// solarized light
+    let solarized_meta_color: [u8; 3] = [108, 113, 193];
+    let solarized_header_color: [u8; 3] = [88, 110, 117];
+    let solarized_std_color: [u8; 3] = [131, 148, 150];
+    let solarized_na_color: [u8; 3] = [220, 50, 47];
+    let solarized_neg_num_color: [u8; 3] = [42, 161, 152];
 
     // user args
     let lower_column_width_defined = !(opt.lower_column_width == 2);
@@ -289,6 +295,13 @@ fn main() {
             dracula_std_color,
             dracula_na_color,
             dracula_neg_num_color,
+        ),
+        5 => (
+            solarized_meta_color,
+            solarized_header_color,
+            solarized_std_color,
+            solarized_na_color,
+            solarized_neg_num_color,
         ),
         _ => (
             nord_meta_color,
