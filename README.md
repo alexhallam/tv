@@ -137,42 +137,6 @@ tv titanic.csv -ea | less -R
 tv titanic.csv -a -n 1000 | bat -p
 ```
 
-## Use With SQLite
-
-[Sqlite](https://www.sqlite.org/index.html) is a fantistic program! If it is not the most deployed software it is probably close to it. For more info on SQLite see their [Executive Summary](https://www.sqlite.org/about.html)
-
-For this example you will need to download and uncompress taxi data
-
-```
-wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
-7z x taxi.csv.7z
-cd testdata
-ls -l --block-size=M # the data is farily large at 192MB
-```
-
-### SQLite One-liner
-```sh
-sqlite3 :memory: -csv -header -cmd '.import taxi.csv taxi' 'SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi GROUP BY passenger_count' | tv
-```
-
-## Use With DuckDB
-
-[DuckDB](https://duckdb.org/why_duckdb) has a lot in common with SQLite. As personal anecdotes I do like that fewer CLI flags are needed to run on csvs. I also like the speed. Though it is not as universal as SQLite I think that it is a good fit for command line data manipulation.
-
-For this example you will need to download and uncompress taxi data
-
-```
-wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
-7z x taxi.csv.7z
-cd testdata
-ls -l --block-size=M # the data is farily large at 192MB
-```
-
-### DuckDB One-liner
-```sh
-duckdb --csv -c "SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi.csv GROUP BY passenger_count ORDER BY passenger_count" | tv
-```
-
 # Significant Figure Definitions And Rules
 
 ![example](img/sigs.png)
@@ -416,6 +380,47 @@ OPTIONS:
 ARGS:
     <FILE>    File to process
 ```
+
+# Use With Database Engines
+
+Here I show how to use `tv` with a couple of database engines (SQLite, DuckDB).
+
+## Use With SQLite
+
+[Sqlite](https://www.sqlite.org/index.html) is a fantistic program! If it is not the most deployed software it is probably close to it. For more info on SQLite see their [Executive Summary](https://www.sqlite.org/about.html)
+
+For this example you will need to download and uncompress taxi data
+
+```
+wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
+7z x taxi.csv.7z
+cd testdata
+ls -l --block-size=M # the data is farily large at 192MB
+```
+
+### SQLite One-liner
+```sh
+sqlite3 :memory: -csv -header -cmd '.import taxi.csv taxi' 'SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi GROUP BY passenger_count' | tv
+```
+
+## Use With DuckDB
+
+[DuckDB](https://duckdb.org/why_duckdb) has a lot in common with SQLite. As personal anecdotes I do like that fewer CLI flags are needed to run on csvs. I also like the speed. Though it is not as universal as SQLite I think that it is a good fit for command line data manipulation.
+
+For this example you will need to download and uncompress taxi data
+
+```
+wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
+7z x taxi.csv.7z
+cd testdata
+ls -l --block-size=M # the data is farily large at 192MB
+```
+
+### DuckDB One-liner
+```sh
+duckdb --csv -c "SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi.csv GROUP BY passenger_count ORDER BY passenger_count" | tv
+```
+
 # Inspiration
 
 [pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting. Fantastic original work by [Kirill Müller](https://github.com/krlmlr) and [Hadley Wickham](http://hadley.nz/). `tv` makes an attempt to port their ideas to the terminal.
