@@ -137,6 +137,42 @@ tv titanic.csv -ea | less -R
 tv titanic.csv -a -n 1000 | bat -p
 ```
 
+## Use With SQLite
+
+[Sqlite](https://www.sqlite.org/index.html) is a fantistic program! If it is not the most deployed software it is probably close to it. For more info on SQLite see their [Executive Summary](https://www.sqlite.org/about.html)
+
+For this example you will need to download and uncompress taxi data
+
+```
+wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
+7z x taxi.csv.7z
+cd testdata
+ls -l --block-size=M # the data is farily large at 192MB
+```
+
+### SQLite One-liner
+```sh
+sqlite3 :memory: -csv -header -cmd '.import taxi.csv taxi' 'SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi GROUP BY passenger_count' | tv
+```
+
+## Use With DuckDB
+
+[DuckDB](https://duckdb.org/why_duckdb) has a lot in common with SQLite. As personal anecdotes I do like that fewer CLI flags are needed to run on csvs. I also like the speed. Though it is not as universal as SQLite I think that it is a good fit for command line data manipulation.
+
+For this example you will need to download and uncompress taxi data
+
+```
+wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
+7z x taxi.csv.7z
+cd testdata
+ls -l --block-size=M # the data is farily large at 192MB
+```
+
+### DuckDB One-liner
+```sh
+duckdb --csv -c "SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi.csv GROUP BY passenger_count ORDER BY passenger_count" | tv
+```
+
 # Significant Figure Definitions And Rules
 
 ![example](img/sigs.png)
@@ -259,6 +295,10 @@ else:
 
 [xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. [Rust | CLI]
 
+[SQLite](https://www.sqlite.org/index.html) - Database engine with CLU, shell, and library interfaces . [C | CLI/shell/lib]
+
+[DuckDB](https://duckdb.org/) - Database engine with CLU, shell, and library interfaces . [C++ | CLI/shell/lib]
+
 [csvtk](https://bioinf.shenwei.me/csvtk/) - Command line csv data manipulation. [Go | CLI]
 
 [tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. [D | CLI]
@@ -302,7 +342,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.4.4
+tv 1.4.5
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
@@ -318,6 +358,7 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
 
         ## ==Tidy-Viewer Config Example==
         ## Remove the first column of comments for valid toml file
+        ## All fields must be defined. Partial files will not be read.
         ## The delimiter separating the columns. [default: ,]
         #delimiter = ","
         ## Add a title to your tv. Example 'Test Data' [default: NA ("")]
@@ -356,15 +397,12 @@ FLAGS:
 
 OPTIONS:
     -c, --color <color>
-            There are 5 preconfigured color palettes:
+            There are 5 preconfigured color palettes (Defaults to nord):
                             (1)nord
                             (2)one_dark
                             (3)gruvbox
                             (4)dracula
-                            (5)uncolor (Coming Soon)
-            An input of (5)uncolor will remove color properties. Note that colors will make it difficult to pipe output
-            to other utilities.The default value of (0) is reserved to make config/option coloring logic easier.
-            [default: 0]
+                            (5)solarized light
     -s, --delimiter <delimiter>                      The delimiter separating the columns.
     -f, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
     -l, --lower-column-width <lower-column-width>
@@ -373,7 +411,7 @@ OPTIONS:
     -n, --number of rows to output <row-display>     Show how many rows to display. [default: 25]
     -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]
     -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
-    -u, --upper-column-width <upper-column-width>    The upper (maximum) width of columns. [default: 20]
+    -u, --upper-column-width <upper-column-width>    The upper (maxiumum) width of columns. [default: 20]
 
 ARGS:
     <FILE>    File to process
