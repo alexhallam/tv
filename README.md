@@ -34,49 +34,13 @@
 
 # Installation
 
-The following install options are available
+The following install options are available via package managers:
 
-1. Cargo Install from crates.io
-2. Debian `.deb` install
-3. AUR
-4. MacOS
-5. ARM
-6. Windows
-7. Build from source
-8. Snap
-9. Homebrew
-
-### 1. Cargo Install
-
-The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to bashrc.
-
-```sh
-cargo install tidy-viewer
-sudo cp /home/$USER/.cargo/bin/tidy-viewer /usr/local/bin/.
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 2. Debian
-
-The below instructions work with the most recent release `<VERSION>` found here [release page](https://github.com/alexhallam/tv/releases).
-
-```sh
-wget https://github.com/alexhallam/tv/releases/download/<VERSION>/tidy-viewer_<VERSION>_amd64.deb
-sudo dpkg -i tidy-viewer_<VERSION>_amd64.deb
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 3. AUR
-
-Kindly maintained by @yigitsever
-
-```sh
-paru -S tidy-viewer
-```
-
-### 4-7. Other releases
+* [Cargo](#cargo)
+* [Debian](#debian)
+* [AUR](#aur)
+* [Snap](#snap)
+* [Homebrew](#homebrew)
 
 We currently cut releases for the following architectures. Download from the [release page](https://github.com/alexhallam/tv/releases).
 
@@ -94,14 +58,43 @@ The instructions for all of the above are very similar with the following genera
 
 After the above steps I would highly recommend you make an alias for `tidy-viewer` as shown for other builds.
 
-### 8. Snap
+### Cargo
+
+The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to `.bashrc`.
+
+```sh
+cargo install tidy-viewer
+sudo cp /home/$USER/.cargo/bin/tidy-viewer /usr/local/bin/.
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Debian
+
+The below instructions work with the most recent release `<VERSION>` found here [release page](https://github.com/alexhallam/tv/releases).
+
+```sh
+wget https://github.com/alexhallam/tv/releases/download/<VERSION>/tidy-viewer_<VERSION>_amd64.deb
+sudo dpkg -i tidy-viewer_<VERSION>_amd64.deb
+echo "alias tv='tidy-viewer'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### AUR
+
+Kindly maintained by @yigitsever
+
+```sh
+paru -S tidy-viewer
+```
+
+### Snap
 
 ```
 sudo snap install --edge tidy-viewer
-tidy-viewer --help
 ```
 
-### 9. Homebrew
+### Homebrew
 
 ```
 brew install tidy-viewer
@@ -139,7 +132,7 @@ cat pigeon-racing.csv | tv
 wget https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv
 # send to pager with color
 # less 
-tv titanic.csv -a -n 1000 | less -R
+tv titanic.csv -ea | less -R
 # bat
 tv titanic.csv -a -n 1000 | bat -p
 ```
@@ -262,7 +255,7 @@ else:
 
 # Tools to pair with tv
 
-`tv` is a good compliment to command line data manipulation tools. I have listed some tools that I like to use with tv.
+`tv` is a good complement to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
 [xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. [Rust | CLI]
 
@@ -331,7 +324,7 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #title = ""
         ## Add a footer to your tv. Example 'footer info' [default: NA ("")]
         #footer = ""
-        ## The upper (maxiumum) width of columns. [default: 20]
+        ## The upper (maximum) width of columns. [default: 20]
         #upper_column_width = 20
         ## The minimum width of columns. Must be 2 or larger. [default: 2]
         #lower_column_width = 2
@@ -380,7 +373,7 @@ OPTIONS:
     -n, --number of rows to output <row-display>     Show how many rows to display. [default: 25]
     -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]
     -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
-    -u, --upper-column-width <upper-column-width>    The upper (maxiumum) width of columns. [default: 20]
+    -u, --upper-column-width <upper-column-width>    The upper (maximum) width of columns. [default: 20]
 
 ARGS:
     <FILE>    File to process
