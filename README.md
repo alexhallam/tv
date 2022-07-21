@@ -257,6 +257,8 @@ else:
 
 `tv` is a good complement to command line data manipulation tools. I have listed some tools that I like to use with tv.
 
+[qsv](https://github.com/jqnatividad/qsv) - Fork of `xsv`. Has more commands/subcommands and allows users to evaluate lua/python on data. [Rust | CLI]
+
 [xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. [Rust | CLI]
 
 [SQLite](https://www.sqlite.org/index.html) - Database engine with CLU, shell, and library interfaces . [C | CLI/shell/lib]
