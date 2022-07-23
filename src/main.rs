@@ -606,30 +606,59 @@ fn main() {
             _ => Err(e),
         },
     };
+    // main body rows after the column names
     vp.iter()
         .enumerate()
         .take(rows)
         .skip(1)
         .for_each(|(i, row)| {
             if is_tty || is_force_color {
-                let _ = match stdout!(
-                    "{: <6}",
-                    i.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                ) {
-                    Ok(_) => Ok(()),
-                    Err(e) => match e.kind() {
-                        std::io::ErrorKind::BrokenPipe => Ok(()),
-                        _ => Err(e),
-                    },
-                };
+                if is_no_row_numbering {
+                    let _ = match stdout!(
+                        "{: <6}",
+                        "".truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
+                    ) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
+                }else{
+                    let _ = match stdout!(
+                        "{: <6}",
+                        i.truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
+                    ) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
+                }
             } else {
-                let _ = match stdout!("{: <6}", i) {
-                    Ok(_) => Ok(()),
-                    Err(e) => match e.kind() {
-                        std::io::ErrorKind::BrokenPipe => Ok(()),
-                        _ => Err(e),
-                    },
-                };
+                if is_no_row_numbering {
+                    let _ = match stdout!("{: <6}", 
+                    ""                                                           // this prints the row number
+                ) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
+                }else{
+                    let _ = match stdout!("{: <6}", 
+                    ""                                                           // this prints the row number
+                ) {
+                        Ok(_) => Ok(()),
+                        Err(e) => match e.kind() {
+                            std::io::ErrorKind::BrokenPipe => Ok(()),
+                            _ => Err(e),
+                        },
+                    };
+                }
+
             }
             row.iter().take(num_cols_to_print).for_each(|col| {
                 if is_tty || is_force_color {
