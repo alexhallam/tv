@@ -200,7 +200,7 @@ pub fn format_strings(
         .map(|(string, len)| {
             if len > max_width {
                 let (rv, _) = string.unicode_truncate(max_width - 1);
-                let spacer: &str = &" ";
+                let spacer: &str = " ";
                 let string_and_ellipses = [rv.to_string(), ellipsis.to_string()].join("");
                 [string_and_ellipses, spacer.to_string()].join("")
             } else {
