@@ -3,17 +3,35 @@ authors = ["alexhallam <alexhallam6.28@gmail.com>"]
 categories = ["command-line-utilities"]
 description = "Head, but for CSV files and with color"
 edition = "2021"
-keywords = ["csv", "pretty-print", "data-viewer", "tv", "tabular-data-viewer", "csv-viewer", "csv-pretty-print", "csv-cat", "csv-column"]
+keywords = [
+  "csv",
+  "pretty-print",
+  "data-viewer",
+  "tv",
+  "tabular-data-viewer",
+  "csv-viewer",
+  "csv-pretty-print",
+  "csv-cat",
+  "csv-column",
+]
 license = "Unlicense/MIT"
 name = "tidy-viewer"
 readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
-version = "1.4.5"
+version = "1.4.6"
 
 [package.metadata.deb]
 assets = [
-  ["target/release/tidy-viewer", "usr/bin/", "755"],
-  ["README.md", "usr/share/doc/cargo-deb/README", "644"],
+  [
+    "target/release/tidy-viewer",
+    "usr/bin/",
+    "755",
+  ],
+  [
+    "README.md",
+    "usr/share/doc/cargo-deb/README",
+    "644",
+  ],
 ]
 depends = "$auto"
 extended-description = """\
@@ -36,7 +54,7 @@ itertools = "0.10.0"
 lazy_static = "1.4.0"
 owo-colors = "3.0.1"
 regex = "1.5.4"
-serde = {version = "1.0", features = ["derive"]}
+serde = { version = "1.0", features = ["derive"] }
 structopt = "0.3.21"
 toml = "0.5"
 unicode-truncate = "0.2.0"
