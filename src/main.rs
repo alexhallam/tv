@@ -21,6 +21,7 @@ use toml;
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
     cat diamonds.csv | head -n 35 | tv
+    tv diamonds.csv
 
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
@@ -44,8 +45,8 @@ use toml;
         #lower_column_width = 2
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
-        ## extend width beyond term width (do not truncate) [default: false]
-        # extend_width = true
+        ## extend width and length in terms of the number of rows and columns displayed beyond term width [default: false]
+        # extend_width_and_length = true
         ## meta_color = [R,G,B] color for row index and \"tv dim: rows x cols\"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
