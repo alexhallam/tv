@@ -465,7 +465,7 @@ fn main() {
     // color
     let meta_text: &str = "tv dim:";
     let div: &str = "x";
-    let _ = match stdout!("{: >6} ", "") {
+    let _ = match stdout!("{: >6}  ", "") {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
             std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -522,7 +522,7 @@ fn main() {
 
     // title
     if !datatype::is_na(&title_option.clone()) {
-        let _ = match stdout!("{: >6} ", "") {
+        let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
                 std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -555,7 +555,7 @@ fn main() {
     }
 
     // header
-    let _ = match stdout!("{: >6} ", "") {
+    let _ = match stdout!("{: >6}  ", "") {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
             std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -589,7 +589,7 @@ fn main() {
     }
     //println!();
     // datatypes
-    //print!("{: >6} ", "");
+    //print!("{: >6}  ", "");
     //for col in 0..cols{
     //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
     //    let mut owned_string: String = vec_datatypes[col].to_string();
@@ -613,7 +613,7 @@ fn main() {
             if is_tty || is_force_color {
                 if is_no_row_numbering {
                     let _ = match stdout!(
-                        "{: >6} ",
+                        "{: >6}  ",
                         "".truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
                     ) {
                         Ok(_) => Ok(()),
@@ -624,7 +624,7 @@ fn main() {
                     };
                 } else {
                     let _ = match stdout!(
-                        "{: >6} ",
+                        "{: >6}  ",
                         i.truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
                     ) {
                         Ok(_) => Ok(()),
@@ -635,7 +635,7 @@ fn main() {
                     };
                 }
             } else if is_no_row_numbering {
-                let _ = match stdout!("{: >6} ", 
+                let _ = match stdout!("{: >6}  ", 
                 ""                                                           // this prints the row number
             ) {
                     Ok(_) => Ok(()),
@@ -645,7 +645,7 @@ fn main() {
                     },
                 };
             } else {
-                let _ = match stdout!("{: >6} ", 
+                let _ = match stdout!("{: >6}  ", 
                 ""                                                           // this prints the row number
             ) {
                     Ok(_) => Ok(()),
@@ -694,7 +694,7 @@ fn main() {
 
     // additional row info
     if rows_remaining > 0 {
-        let _ = match stdout!("{: >6} ", "") {
+        let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
                 std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -809,7 +809,7 @@ fn main() {
 
     // footer
     if !datatype::is_na(&footer_option.clone()) {
-        let _ = match stdout!("{: >6} ", "") {
+        let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
                 std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -866,7 +866,7 @@ fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
 // how wide will the print be?
 fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u16)) -> usize {
     let mut last = 0;
-    let mut j = format!("{: >6} ", "");
+    let mut j = format!("{: >6}  ", "");
     for col in 0..cols {
         let text = vp[0].get(col).unwrap().to_string();
         j.push_str(&text);

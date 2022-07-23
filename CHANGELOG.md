@@ -3,9 +3,15 @@
 
 This update was mainly focused on feature enhancements. I also did some `clippy` formatting.
 
+* **Bug** [#141](https://github.com/alexhallam/tv/issues/141) Right alignment of row numbers might make it easier for users to quickly scan the output.
+
+I did not realize that I had the alignment wrong. I was doing left alignment, but it was brought to my attention that `tibble` uses right alignment.
+This is now corrected. Thanks for the sharp eye @briandconnelly.
+
 * **Bug** [#140](https://github.com/alexhallam/tv/issues/140)  `-n` option doesn't work when combined with `--extend-rows`
 
-This was a bug I was not aware of that I wanted to knock out.
+This was a bug I was not aware of that I wanted to knock out. Thanks @atsalolikhin-spokeo for using this package and reporting the issue. Your
+report made the cli a little better.
   
 * **Enhancement, Good first issue** [#139](https://github.com/alexhallam/tv/issues/139)  Is it possible to turn off row numbering?
 
@@ -14,9 +20,6 @@ As requested I implemented `-R`, `--no-row-numbering` for this functionality
 * **Enhancement, Good first issue** [#138](https://github.com/alexhallam/tv/issues/138)  Is it possible to turn off dimensions printing?
 
 As requested I implemented `-D`, `--no-dimensions` for this functionality
-
-  
-
 
 1.4.5 (2021-5-1)
 ==================
