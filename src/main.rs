@@ -13,7 +13,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::convert::TryInto;
 
-
 #[derive(StructOpt)]
 #[structopt(
     name = "tv",
@@ -398,9 +397,9 @@ fn main() {
     let rows_in_file: usize = rdr.len();
     let rows: usize = if extend_width_length_option {
         // if extend_width_length_option print rows in file unless -n is set (issue #140)
-        if is_row_display_defined{
+        if is_row_display_defined {
             rdr.len().min(row_display_option + 1)
-        }else{
+        } else {
             rdr.len().min(rows_in_file + 1)
         }
     } else {
@@ -623,7 +622,7 @@ fn main() {
                             _ => Err(e),
                         },
                     };
-                }else{
+                } else {
                     let _ = match stdout!(
                         "{: <6}",
                         i.truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
@@ -645,7 +644,7 @@ fn main() {
                         _ => Err(e),
                     },
                 };
-            }else{
+            } else {
                 let _ = match stdout!("{: <6}", 
                 ""                                                           // this prints the row number
             ) {
