@@ -117,7 +117,7 @@ cat diamonds.csv | tv
 ```sh
 wget https://raw.githubusercontent.com/tidyverse/dplyr/master/data-raw/starwars.csv
 
-# Pass as agrument
+# Pass as argument
 tv starwars.csv
 ```
 
@@ -148,10 +148,10 @@ tv titanic.csv -a -n 1000 | bat -p
 Choosing the sigfigs amounts to how much of the value of a number is desired. The table below shows an example calculation with variable sigfigs.
 
 | sigfigs | value  | sigfiged_value | %value_of_the_number_explained_by_sigfiged_vale |
-|---------|--------|----------------|:-----------------------------------------------:|
-| 1       | 0.1119 | 0.1            |                       >89%                      |
-| 2       | 0.1119 | 0.11           |                       >98%                      |
-| 3       | 0.1119 | 0.111          |                       >99%                      |
+| ------- | ------ | -------------- | :---------------------------------------------: |
+| 1       | 0.1119 | 0.1            |                      >89%                       |
+| 2       | 0.1119 | 0.11           |                      >98%                       |
+| 3       | 0.1119 | 0.111          |                      >99%                       |
 
 `tv` uses the same significant figure (sigfig) rules that the R package `pillar` uses.
 
@@ -226,7 +226,7 @@ There are only 4 outputs possible. The significant figures to display are set by
 
 
 ```text
-# Psuedo Code: Sigfig logic assuming sigfig = 3
+# Pseudo Code: Sigfig logic assuming sigfig = 3
 if lhs == 0:
     n = ((floor(log10(abs(x))) + 1 - sigfig)
     r =(10^n) * round(x / (10^n))
@@ -308,12 +308,13 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.4.5
+tv 1.4.6
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
     cat diamonds.csv | head -n 35 | tv
+    tv diamonds.csv
 
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
@@ -337,9 +338,10 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #lower_column_width = 2
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
-        ## extend rows beyond term width (do not trucate) [default: false]
-        # extend_rows = true
-        ## meta_color = [R,G,B] color for row index and "tv dim: rowsxcols"
+        ## extend width and length in terms of the number of rows and columns displayed beyond term width [default:
+false]
+        # extend_width_and_length = true
+        ## meta_color = [R,G,B] color for row index and "tv dim: rows x cols"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
         #header_color = [232, 168, 124]
@@ -354,12 +356,14 @@ USAGE:
     tidy-viewer [FLAGS] [OPTIONS] [FILE]
 
 FLAGS:
-    -d, --debug-mode      Print object details to make it easier for the maintainer to find and resolve bugs.
-    -e, --extend-rows     Extended row beyond term width (do not truncate). Useful with `less -S`.
-    -a, --color-always    Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a starwars.csv | bat
-                          -p`. The `less` cli has the `-R` flag to parse colored output.
-    -h, --help            Prints help information
-    -V, --version         Prints version information
+    -d, --debug-mode                 Print object details to make it easier for the maintainer to find and resolve bugs.
+    -e, --extend-width-and-length    Extended width beyond term width (do not truncate). Useful with `less -S`.
+    -a, --color-always               Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a
+                                     starwars.csv | bat -p`. The `less` cli has the `-R` flag to parse colored output.
+    -h, --help                       Prints help information
+    -D, --no-dimensions              Turns off dimensions of the data
+    -R, --no-row-numbering           Turns off row numbering
+    -V, --version                    Prints version information
 
 OPTIONS:
     -c, --color <color>
@@ -368,7 +372,7 @@ OPTIONS:
                             (2)one_dark
                             (3)gruvbox
                             (4)dracula
-                            (5)solarized light
+                            (5)solarized light [default: 0]
     -s, --delimiter <delimiter>                      The delimiter separating the columns.
     -f, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
     -l, --lower-column-width <lower-column-width>
@@ -377,7 +381,7 @@ OPTIONS:
     -n, --number of rows to output <row-display>     Show how many rows to display. [default: 25]
     -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]
     -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
-    -u, --upper-column-width <upper-column-width>    The upper (maxiumum) width of columns. [default: 20]
+    -u, --upper-column-width <upper-column-width>    The upper (maximum) width of columns. [default: 20]
 
 ARGS:
     <FILE>    File to process
@@ -389,7 +393,7 @@ Here I show how to use `tv` with a couple of database engines (SQLite, DuckDB).
 
 ## Use With SQLite
 
-[Sqlite](https://www.sqlite.org/index.html) is a fantistic program! If it is not the most deployed software it is probably close to it. For more info on SQLite see their [Executive Summary](https://www.sqlite.org/about.html)
+[Sqlite](https://www.sqlite.org/index.html) is a fantastic program! If it is not the most deployed software it is probably close to it. For more info on SQLite see their [Executive Summary](https://www.sqlite.org/about.html)
 
 For this example you will need to download and uncompress taxi data
 
@@ -415,7 +419,7 @@ For this example you will need to download and uncompress taxi data
 wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
 7z x taxi.csv.7z
 cd testdata
-ls -l --block-size=M # the data is farily large at 192MB
+ls -l --block-size=M # the data is fairly large at 192MB
 ```
 
 ### DuckDB One-liner
