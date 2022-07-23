@@ -44,9 +44,9 @@ use toml;
         #lower_column_width = 2
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
-        ## extend rows beyond term width (do not trucate) [default: false]
-        # extend_rows = true
-        ## meta_color = [R,G,B] color for row index and \"tv dim: rowsxcols\"
+        ## extend width beyond term width (do not truncate) [default: false]
+        # extend_width = true
+        ## meta_color = [R,G,B] color for row index and \"tv dim: rows x cols\"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
         #header_color = [232, 168, 124]
@@ -103,7 +103,7 @@ struct Cli {
         short = "u",
         long = "upper-column-width",
         default_value = "20",
-        help = "The upper (maxiumum) width of columns."
+        help = "The upper (maximum) width of columns."
     )]
     upper_column_width: usize,
     #[structopt(
@@ -122,10 +122,10 @@ struct Cli {
     sigfig: i64,
     #[structopt(
         short = "e",
-        long = "extend-rows",
-        help = "Extended row beyond term width (do not truncate). Useful with `less -S`."
+        long = "extend-width-and-length",
+        help = "Extended width beyond term width (do not truncate). Useful with `less -S`."
     )]
-    extend: bool,
+    extend_width_length: bool,
     #[structopt(
         short = "d",
         long = "debug-mode",
@@ -167,7 +167,7 @@ fn main() {
         upper_column_width: usize,
         lower_column_width: usize,
         number: usize,
-        extend_rows: bool,
+        extend_width_length: bool,
         meta_color: toml::value::Array,
         header_color: toml::value::Array,
         std_color: toml::value::Array,
@@ -205,10 +205,10 @@ fn main() {
     let is_no_dimensions: bool = opt.no_dimensions;
     let is_no_row_numbering: bool = opt.no_row_numbering;
 
-    let extend_option: bool = opt.extend
+    let extend_width_length_option: bool = opt.extend_width_length
         || config
             .as_ref()
-            .map(|d: &Data| d.extend_rows)
+            .map(|d: &Data| d.extend_width_length)
             .unwrap_or(false);
 
     let title_option: &String = match (&config, is_title_defined) {
@@ -224,7 +224,7 @@ fn main() {
         (None, true) => &opt.footer,
     };
 
-    let row_display_option = match (&config, is_row_display_defined) {
+    let row_display_option: &usize = match (&config, is_row_display_defined) {
         (Some(x), false) => &x.number,
         (Some(_x), true) => &opt.row_display,
         (None, false) => &opt.row_display,
@@ -369,8 +369,8 @@ fn main() {
     let mut r = if let Ok(reader) = reader_result {
         reader
     } else {
-        // We can safetly use unwrap, becouse if file in case when file is None
-        // build_reader would return readeer created from stdin
+        // We can safely use unwrap, because if file in case when file is None
+        // build_reader would return reader created from stdin
         let path_buf = opt.file.unwrap();
         let path = path_buf.as_path();
         if let Some(path) = path.to_str() {
@@ -395,8 +395,13 @@ fn main() {
 
     let cols: usize = rdr[0].len();
     let rows_in_file: usize = rdr.len();
-    let rows: usize = if extend_option {
-        rdr.len().min(rows_in_file + 1)
+    let rows: usize = if extend_width_length_option {
+        // if extend_width_length_option print rows in file unless -n is set (issue #140)
+        if is_row_display_defined{
+            rdr.len().min(row_display_option + 1)
+        }else{
+            rdr.len().min(rows_in_file + 1)
+        }
     } else {
         rdr.len().min(row_display_option + 1)
     };
@@ -451,7 +456,7 @@ fn main() {
         vp.push(row);
     }
 
-    let num_cols_to_print = if extend_option {
+    let num_cols_to_print = if extend_width_length_option {
         cols
     } else {
         get_num_cols_to_print(cols, vp.clone(), term_tuple)
@@ -910,7 +915,7 @@ mod tests {
         assert_eq!(datatype::is_na(&"1".to_string()), false);
         assert_eq!(datatype::is_na(&"0".to_string()), false);
     }
-    // the following tests look messy, but the formatting is a neccesary condition.
+    // the following tests look messy, but the formatting is a necessary condition.
     #[test]
     fn a_csv() {
         let v: Vec<Vec<&str>> = vec![
