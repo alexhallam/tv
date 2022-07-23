@@ -212,7 +212,7 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         //let total_string = total.to_string();
         let w: usize = (sigfig as usize) - 1;
         let x = format!("{:.w$}", x, w = w);
-        let total_string = x.to_string();
+        let total_string = x;
         let total_clone = total_string.clone();
         let split = total_clone.split('.');
         let vec: Vec<&str> = split.collect();
@@ -234,7 +234,7 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         //let total_string = total.to_string();
         let w: usize = (sigfig as usize) - 1;
         let x = format!("{:.w$}", x, w = w);
-        let total_string = x.to_string();
+        let total_string = x;
         let total_clone = total_string.clone();
         let split = total_clone.split('.');
         let vec: Vec<&str> = split.collect();

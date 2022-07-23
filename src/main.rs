@@ -12,7 +12,7 @@ use directories::BaseDirs;
 use serde::Deserialize;
 use serde::Serialize;
 use std::convert::TryInto;
-use toml;
+
 
 #[derive(StructOpt)]
 #[structopt(
@@ -177,14 +177,14 @@ fn main() {
     }
 
     let base_dir: Option<BaseDirs> = BaseDirs::new();
-    let config_base_dir: BaseDirs = base_dir.clone().unwrap();
+    let config_base_dir: BaseDirs = base_dir.unwrap();
     let config_dir = config_base_dir.config_dir();
     let conf_file: PathBuf = PathBuf::from("tv.toml");
-    let conf_dir_file: PathBuf = config_dir.join(conf_file.clone());
+    let conf_dir_file: PathBuf = config_dir.join(conf_file);
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
     // println!("file_contents {:?}", file_contents);
     let config: Option<Data> = match file_contents {
-        Some(x) => toml::from_str(&x.to_owned()).ok(),
+        Some(x) => toml::from_str(&x).ok(),
         None => None,
     };
     // println!("config {:#?}", config);
@@ -200,7 +200,7 @@ fn main() {
     let debug_mode: bool = opt.debug_mode;
     let is_title_defined: bool = opt.title.chars().count() > 0;
     let is_footer_defined: bool = opt.title.chars().count() > 0;
-    let is_row_display_defined: bool = !(opt.row_display == 25);
+    let is_row_display_defined: bool = opt.row_display != 25;
     let is_tty: bool = atty::is(atty::Stream::Stdout);
     let is_force_color: bool = opt.force_color;
     let is_no_dimensions: bool = opt.no_dimensions;
@@ -264,15 +264,15 @@ fn main() {
     let solarized_neg_num_color: [u8; 3] = [42, 161, 152];
 
     // user args
-    let lower_column_width_defined: bool = !(opt.lower_column_width == 2);
-    let upper_column_width_defined: bool = !(opt.lower_column_width == 20);
+    let lower_column_width_defined: bool = opt.lower_column_width != 2;
+    let upper_column_width_defined: bool = opt.lower_column_width != 20;
     let lower_column_width: usize = match (&config, lower_column_width_defined) {
         (Some(x), false) => x.lower_column_width,
         (Some(_x), true) => opt.lower_column_width,
         (None, false) => opt.lower_column_width,
         (None, true) => opt.lower_column_width,
     };
-    let lower_column_width: usize = if lower_column_width.to_owned() < 2 {
+    let lower_column_width: usize = if lower_column_width < 2 {
         panic!("lower-column-width must be larger than 2")
     } else {
         lower_column_width
@@ -431,7 +431,7 @@ fn main() {
         // make datatypes vector
         let mut vec_datatypes = Vec::with_capacity(cols);
         for column in &v {
-            vec_datatypes.push(datatype::get_col_data_type(&column))
+            vec_datatypes.push(datatype::get_col_data_type(column))
         }
         println!("{:?}", "vec_datatypes");
         println!("{:?}", vec_datatypes);
@@ -497,30 +497,28 @@ fn main() {
                 },
             };
         }
+    } else if is_tty || is_force_color {
+        let _ = match stdoutln!(
+            "{} {} {} {}",
+            "", // tv dim:
+            "", // rows
+            "", // x
+            "", // cols
+        ) {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::BrokenPipe => Ok(()),
+                _ => Err(e),
+            },
+        };
     } else {
-        if is_tty || is_force_color {
-            let _ = match stdoutln!(
-                "{} {} {} {}",
-                "", // tv dim:
-                "", // rows
-                "", // x
-                "", // cols
-            ) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        } else {
-            let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        }
+        let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
+            Ok(_) => Ok(()),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::BrokenPipe => Ok(()),
+                _ => Err(e),
+            },
+        };
     }
 
     // title
@@ -637,29 +635,26 @@ fn main() {
                         },
                     };
                 }
-            } else {
-                if is_no_row_numbering {
-                    let _ = match stdout!("{: <6}", 
-                    ""                                                           // this prints the row number
-                ) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                }else{
-                    let _ = match stdout!("{: <6}", 
-                    ""                                                           // this prints the row number
-                ) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                }
-
+            } else if is_no_row_numbering {
+                let _ = match stdout!("{: <6}", 
+                ""                                                           // this prints the row number
+            ) {
+                    Ok(_) => Ok(()),
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::BrokenPipe => Ok(()),
+                        _ => Err(e),
+                    },
+                };
+            }else{
+                let _ = match stdout!("{: <6}", 
+                ""                                                           // this prints the row number
+            ) {
+                    Ok(_) => Ok(()),
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::BrokenPipe => Ok(()),
+                        _ => Err(e),
+                    },
+                };
             }
             row.iter().take(num_cols_to_print).for_each(|col| {
                 if is_tty || is_force_color {
@@ -667,12 +662,10 @@ fn main() {
                         "{}",
                         if datatype::is_na_string_padded(col) {
                             col.truecolor(na_color[0], na_color[1], na_color[2])
+                        } else if datatype::is_number(col) && datatype::is_negative_number(col) {
+                            col.truecolor(neg_num_color[0], neg_num_color[1], neg_num_color[2])
                         } else {
-                            if datatype::is_number(col) && datatype::is_negative_number(col) {
-                                col.truecolor(neg_num_color[0], neg_num_color[1], neg_num_color[2])
-                            } else {
-                                col.truecolor(std_color[0], std_color[1], std_color[2])
-                            }
+                            col.truecolor(std_color[0], std_color[1], std_color[2])
                         }
                     ) {
                         Ok(_) => Ok(()),
@@ -938,12 +931,12 @@ mod tests {
     }
     #[test]
     fn test_is_na() {
-        assert_eq!(datatype::is_na(&"".to_string()), true);
-        assert_eq!(datatype::is_na(&"NA".to_string()), true);
-        assert_eq!(datatype::is_na(&"missing".to_string()), true);
-        assert_eq!(datatype::is_na(&"na".to_string()), true);
-        assert_eq!(datatype::is_na(&"1".to_string()), false);
-        assert_eq!(datatype::is_na(&"0".to_string()), false);
+        assert_eq!(datatype::is_na(""), true);
+        assert_eq!(datatype::is_na("NA"), true);
+        assert_eq!(datatype::is_na("missing"), true);
+        assert_eq!(datatype::is_na("na"), true);
+        assert_eq!(datatype::is_na("1"), false);
+        assert_eq!(datatype::is_na("0"), false);
     }
     // the following tests look messy, but the formatting is a necessary condition.
     #[test]
@@ -1002,7 +995,7 @@ mod tests {
             ],
         ];
         let col_largest_width_post_proc: Vec<usize> = vec![16, 13, 4, 10];
-        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 13 as usize]; 4 as usize];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 13_usize]; 4_usize];
         for i in 0..col_largest_width_post_proc.len() {
             vf[i] = datatype::format_strings(
                 &v[i],
@@ -1080,7 +1073,7 @@ mod tests {
             vec!["col3", "3.333333333333333", "1.11111111111111111"],
         ];
         let col_largest_width_post_proc: Vec<usize> = vec![4, 4, 4, 4];
-        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 3 as usize]; 4 as usize];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 3_usize]; 4_usize];
         for i in 0..col_largest_width_post_proc.len() {
             vf[i] = datatype::format_strings(
                 &v[i],
@@ -1113,7 +1106,7 @@ mod tests {
             vec!["gColumn", "77"],
         ];
         let col_largest_width_post_proc: Vec<usize> = vec![7, 10, 20, 7, 7, 7, 7];
-        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 2 as usize]; 7 as usize];
+        let mut vf: Vec<Vec<String>> = vec![vec!["#".to_string(); 2_usize]; 7_usize];
         for i in 0..col_largest_width_post_proc.len() {
             vf[i] = datatype::format_strings(
                 &v[i],
