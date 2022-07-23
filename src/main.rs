@@ -139,6 +139,20 @@ struct Cli {
     )]
     force_color: bool,
 
+    #[structopt(
+        short = "D",
+        long = "no-dimensions",
+        help = "Turns off dimensions of the data"
+    )]
+    no_dimensions: bool,
+
+    #[structopt(
+        short = "R",
+        long = "no-row-numbering",
+        help = "Turns off row numbering"
+    )]
+    no_row_numbering: bool,
+
     #[structopt(name = "FILE", parse(from_os_str), help = "File to process")]
     file: Option<PathBuf>,
 }
@@ -161,10 +175,10 @@ fn main() {
         neg_num_color: toml::value::Array,
     }
 
-    let base_dir = BaseDirs::new();
-    let config_base_dir = base_dir.clone().unwrap();
+    let base_dir: Option<BaseDirs> = BaseDirs::new();
+    let config_base_dir: BaseDirs = base_dir.clone().unwrap();
     let config_dir = config_base_dir.config_dir();
-    let conf_file = PathBuf::from("tv.toml");
+    let conf_file: PathBuf = PathBuf::from("tv.toml");
     let conf_dir_file: PathBuf = config_dir.join(conf_file.clone());
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
     // println!("file_contents {:?}", file_contents);
@@ -174,29 +188,36 @@ fn main() {
     };
     // println!("config {:#?}", config);
 
-    let term_tuple = size().unwrap();
+    let term_tuple: (u16, u16) = size().unwrap();
     let opt = Cli::from_args();
     let color_option = opt.color;
-    let sigfig = if opt.sigfig >= 3 && opt.sigfig <= 7 {
+    let sigfig: i64 = if opt.sigfig >= 3 && opt.sigfig <= 7 {
         opt.sigfig
     } else {
         panic!("sigfig range must be between 3 and 7")
     };
-    let debug_mode = opt.debug_mode;
-    let is_title_defined = opt.title.chars().count() > 0;
-    let is_footer_defined = opt.title.chars().count() > 0;
-    let is_row_display_defined = !(opt.row_display == 25);
-    let is_tty = atty::is(atty::Stream::Stdout);
-    let is_force_color = opt.force_color;
-    let extend_option = opt.extend || config.as_ref().map(|d| d.extend_rows).unwrap_or(false);
+    let debug_mode: bool = opt.debug_mode;
+    let is_title_defined: bool = opt.title.chars().count() > 0;
+    let is_footer_defined: bool = opt.title.chars().count() > 0;
+    let is_row_display_defined: bool = !(opt.row_display == 25);
+    let is_tty: bool = atty::is(atty::Stream::Stdout);
+    let is_force_color: bool = opt.force_color;
+    let is_no_dimensions: bool = opt.no_dimensions;
+    let is_no_row_numbering: bool = opt.no_row_numbering;
 
-    let title_option = match (&config, is_title_defined) {
+    let extend_option: bool = opt.extend
+        || config
+            .as_ref()
+            .map(|d: &Data| d.extend_rows)
+            .unwrap_or(false);
+
+    let title_option: &String = match (&config, is_title_defined) {
         (Some(x), false) => &x.title,
         (Some(_x), true) => &opt.title,
         (None, false) => &opt.title,
         (None, true) => &opt.title,
     };
-    let footer_option = match (&config, is_footer_defined) {
+    let footer_option: &String = match (&config, is_footer_defined) {
         (Some(x), false) => &x.footer,
         (Some(_x), true) => &opt.footer,
         (None, false) => &opt.footer,
@@ -242,20 +263,20 @@ fn main() {
     let solarized_neg_num_color: [u8; 3] = [42, 161, 152];
 
     // user args
-    let lower_column_width_defined = !(opt.lower_column_width == 2);
-    let upper_column_width_defined = !(opt.lower_column_width == 20);
-    let lower_column_width = match (&config, lower_column_width_defined) {
+    let lower_column_width_defined: bool = !(opt.lower_column_width == 2);
+    let upper_column_width_defined: bool = !(opt.lower_column_width == 20);
+    let lower_column_width: usize = match (&config, lower_column_width_defined) {
         (Some(x), false) => x.lower_column_width,
         (Some(_x), true) => opt.lower_column_width,
         (None, false) => opt.lower_column_width,
         (None, true) => opt.lower_column_width,
     };
-    let lower_column_width = if lower_column_width.to_owned() < 2 {
+    let lower_column_width: usize = if lower_column_width.to_owned() < 2 {
         panic!("lower-column-width must be larger than 2")
     } else {
         lower_column_width
     };
-    let upper_column_width = match (&config, upper_column_width_defined) {
+    let upper_column_width: usize = match (&config, upper_column_width_defined) {
         (Some(x), false) => x.upper_column_width,
         (Some(_x), true) => opt.upper_column_width,
         (None, false) => opt.upper_column_width,
@@ -424,7 +445,7 @@ fn main() {
     }
 
     println!();
-    let mut vp = Vec::new();
+    let mut vp: Vec<Vec<String>> = Vec::new();
     for r in 0..rows {
         let row = vf.iter().map(|col| col[r].to_string()).collect();
         vp.push(row);
@@ -437,8 +458,8 @@ fn main() {
     };
 
     // color
-    let meta_text = "tv dim:";
-    let div = "x";
+    let meta_text: &str = "tv dim:";
+    let div: &str = "x";
     let _ = match stdout!("{: <6}", "") {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
@@ -446,29 +467,56 @@ fn main() {
             _ => Err(e),
         },
     };
-    if is_tty || is_force_color {
-        let _ = match stdoutln!(
-            "{} {} {} {}",
-            meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-            (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]),
-            div.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-            (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),
-        ) {
-            Ok(_) => Ok(()),
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::BrokenPipe => Ok(()),
-                _ => Err(e),
-            },
-        };
+    if !is_no_dimensions {
+        if is_tty || is_force_color {
+            let _ = match stdoutln!(
+                "{} {} {} {}",
+                meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]), // tv dim:
+                (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]), // rows
+                div.truecolor(meta_color[0], meta_color[1], meta_color[2]),       // x
+                (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),    // cols
+            ) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
+        } else {
+            let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
+        }
     } else {
-        let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
-            Ok(_) => Ok(()),
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::BrokenPipe => Ok(()),
-                _ => Err(e),
-            },
-        };
+        if is_tty || is_force_color {
+            let _ = match stdoutln!(
+                "{} {} {} {}",
+                "", // tv dim:
+                "", // rows
+                "", // x
+                "", // cols
+            ) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
+        } else {
+            let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
+                Ok(_) => Ok(()),
+                Err(e) => match e.kind() {
+                    std::io::ErrorKind::BrokenPipe => Ok(()),
+                    _ => Err(e),
+                },
+            };
+        }
     }
+
     // title
     if !datatype::is_na(&title_option.clone()) {
         let _ = match stdout!("{: <6}", "") {
