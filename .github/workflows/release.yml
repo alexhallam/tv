@@ -164,7 +164,7 @@ jobs:
         cp {README.md,UNLICENSE} "$staging/"
         #cp CHANGELOG.md "$staging/doc/"
 
-        if [ "${{ matrix.target }}" = "windows-2019" ]; then
+        if [ "${{ matrix.target }}" == *"windows"* ]; then
           cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
           7z a "$staging.zip" "$staging"
           echo "ASSET=$staging.zip" >> $GITHUB_ENV
