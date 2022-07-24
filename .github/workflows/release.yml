@@ -17,8 +17,8 @@ name: release
 on:
   push:
     # Enable when testing release infrastructure on a branch.
-    # branches:
-    # - ag/work
+    branches:
+    - ag/work
     # Ignore README.md changes. No need to test code when only README changes
     paths-ignore:
       - 'README.md'
@@ -73,8 +73,7 @@ jobs:
       PCRE2_SYS_STATIC: 1
     strategy:
       matrix:
-        #build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
-        build: [linux, linux-arm, macos, win-msvc, win-gnu]
+        build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
         include:
         - build: linux
           os: ubuntu-18.04
@@ -96,10 +95,10 @@ jobs:
           os: ubuntu-18.04
           rust: nightly-x86_64-gnu
           target: x86_64-pc-windows-gnu
-        # - build: win32-msvc
-        #   os: ubuntu-18.04
-        #   rust: nightly
-        #   target: i686-pc-windows-msvc
+        - build: win32-msvc
+          os: ubuntu-18.04
+          rust: nightly
+          target: i686-pc-windows-msvc
 
     steps:
     - name: Checkout repository
