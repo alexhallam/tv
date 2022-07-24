@@ -18,7 +18,8 @@
 * [Examples](#examples)
 * [Significant Figure Definitions & Rules](#significant-figure-definitions-and-rules)
 * [Tools to pair with `tv`](#tools-to-pair-with-tv)
-* [Configuration Dotfile](#configuration-dotfile) (Coming Soon!)
+* [Configuration Dotfile](#configuration-dotfile)
+* [FAQ](#faq)
 * [Help](#help)
 * [Inspiration](#inspiration)
 
@@ -302,6 +303,22 @@ In cases where the terminal width can't fit all of the columns in a dataframe, c
 # Configuration Dotfile
 
 For information on dotfile configuration see `tv --help`. This allows users to set their own color palette, rows to print, max column width, etc.
+
+# FAQ
+
+* Does `tv` have a light theme?
+
+> Yes, solorized light is added out of the box. This was added in version `1.4.6`. You may also define your own themes in the config.
+
+* The `~/.config/tv.toml` file is having now effect on the output. What am I doing wrong?
+
+> Every key/value pair must exist or the toml will not be read. If even one key/value is missing then the config will not work.
+
+* It would be nice to be able to scroll vertically/horizontally through tall/wide csv file. Does `tv` allow for this functionality?
+
+> Yes, pipe the output to `less` or `bat`. `tv` allows for this with the `-e` flag. 
+> To extend to the full csv width and length and keep color try the following `tv diamonds.csv -ea | less -SR`
+> To extend to the full csv width and length and remove all color try the following `tv diamonds.csv -e | less -S`
 
 # Help
 
