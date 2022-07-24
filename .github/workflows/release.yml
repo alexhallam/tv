@@ -17,8 +17,8 @@ name: release
 on:
   push:
     # Enable when testing release infrastructure on a branch.
-    branches:
-    - ag/work
+    # branches:
+    # - ag/work
     # Ignore README.md changes. No need to test code when only README changes
     paths-ignore:
       - 'README.md'
@@ -88,7 +88,7 @@ jobs:
           rust: nightly
           target: x86_64-apple-darwin
         - build: win-msvc
-          os: ubuntu-18.04
+          os: windows-2019
           rust: nightly
           target: x86_64-pc-windows-msvc
         - build: win-gnu
@@ -96,7 +96,7 @@ jobs:
           rust: nightly-x86_64-gnu
           target: x86_64-pc-windows-gnu
         - build: win32-msvc
-          os: ubuntu-18.04
+          os: windows-2019
           rust: nightly
           target: i686-pc-windows-msvc
 
