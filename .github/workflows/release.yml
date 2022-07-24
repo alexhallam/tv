@@ -73,7 +73,8 @@ jobs:
       PCRE2_SYS_STATIC: 1
     strategy:
       matrix:
-        build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
+        #build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
+        build: [linux, linux-arm, macos, win-msvc, win-gnu]
         include:
         - build: linux
           os: ubuntu-18.04
@@ -95,10 +96,10 @@ jobs:
           os: ubuntu-18.04
           rust: nightly-x86_64-gnu
           target: x86_64-pc-windows-gnu
-        - build: win32-msvc
-          os: ubuntu-18.04
-          rust: nightly
-          target: i686-pc-windows-msvc
+        # - build: win32-msvc
+        #   os: ubuntu-18.04
+        #   rust: nightly
+        #   target: i686-pc-windows-msvc
 
     steps:
     - name: Checkout repository
