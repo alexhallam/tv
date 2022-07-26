@@ -159,7 +159,7 @@ jobs:
       shell: bash
       run: |
         outdir="$(ci/cargo-out-dir "${{ env.TARGET_DIR }}")"
-        staging="tidy-viewer-${{ needs.create-release.outputs.tidy-viewer_version }}-${{ matrix.target }}"
+        staging="tidy-viewer-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
         mkdir -p "$staging"/{complete,doc}
 
         cp {README.md,UNLICENSE} "$staging/"
