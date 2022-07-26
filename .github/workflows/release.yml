@@ -72,6 +72,7 @@ jobs:
       # Build static releases with PCRE2.
       PCRE2_SYS_STATIC: 1
     strategy:
+      fail-fast: false
       matrix:
         build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
         include:
@@ -96,7 +97,7 @@ jobs:
           rust: nightly-x86_64-gnu
           target: x86_64-pc-windows-gnu
         - build: win32-msvc
-          os: ubuntu-18.04
+          os: windows-2019
           rust: nightly
           target: i686-pc-windows-msvc
 
@@ -157,18 +158,20 @@ jobs:
     - name: Build archive
       shell: bash
       run: |
-        outdir="$(ci/cargo-out-dir "${{ env.TARGET_DIR }}")"
-        staging="tidy-viewer-${{ needs.create-release.outputs.tidy-viewer_version }}-${{ matrix.target }}"
+        #outdir="(ci/cargo-out-dir ${{ env.TARGET_DIR }})"
+        staging="tidy-viewer-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
         mkdir -p "$staging"/{complete,doc}
 
         cp {README.md,UNLICENSE} "$staging/"
         #cp CHANGELOG.md "$staging/doc/"
 
-        if [ "${{ matrix.os }}" = "windows-2019" ]; then
+        if [ "${{ matrix.target }}" = "i686-pc-windows-msvc" ] || [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ] || [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
+          echo "Target is Windows Based"
           cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
           7z a "$staging.zip" "$staging"
           echo "ASSET=$staging.zip" >> $GITHUB_ENV
         else
+          echo "Target is not Windows Based"
           cp "target/${{ matrix.target }}/release/tidy-viewer" "$staging/"
           tar czf "$staging.tar.gz" "$staging"
           echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
