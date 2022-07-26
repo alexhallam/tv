@@ -72,6 +72,7 @@ jobs:
       # Build static releases with PCRE2.
       PCRE2_SYS_STATIC: 1
     strategy:
+      fast-fail: false
       matrix:
         build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
         include:
@@ -159,7 +160,9 @@ jobs:
       run: |
         outdir="$(ci/cargo-out-dir "${{ env.TARGET_DIR }}")"
         staging="tidy-viewer-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
-        echo $staging
+        echo "=======staging=========="
+        echo "$staging"
+        echo "========================"
         mkdir -p "$staging"/{complete,doc}
 
         cp {README.md,UNLICENSE} "$staging/"
