@@ -160,7 +160,7 @@ jobs:
       run: |
         #outdir="(ci/cargo-out-dir ${{ env.TARGET_DIR }})"
         staging="tidy-viewer-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
-        mkdir -p "${{staging}}"/{complete,doc}
+        mkdir -p "$staging"/{complete,doc}
 
         cp {README.md,UNLICENSE} "$staging/"
         #cp CHANGELOG.md "$staging/doc/"
