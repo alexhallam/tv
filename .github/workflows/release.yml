@@ -72,7 +72,7 @@ jobs:
       # Build static releases with PCRE2.
       PCRE2_SYS_STATIC: 1
     strategy:
-      fast-fail: false
+      fail-fast: false
       matrix:
         build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
         include:
