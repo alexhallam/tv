@@ -165,7 +165,7 @@ jobs:
         cp {README.md,UNLICENSE} "$staging/"
         #cp CHANGELOG.md "$staging/doc/"
 
-        if [ "${{ matrix.target }}" = "i686-pc-windows-msvc" | "${{ matrix.target }}" = "x86_64-pc-windows-gnu" | "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
+        if [ "${{ matrix.target }}" = "i686-pc-windows-msvc" || "${{ matrix.target }}" = "x86_64-pc-windows-gnu" || "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
           echo "Target is Windows Based"
           cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
           7z a "$staging.zip" "$staging"
