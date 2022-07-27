@@ -414,7 +414,7 @@ Here I show how to use `tv` with a couple of database engines (SQLite, DuckDB).
 
 For this example you will need to download and uncompress taxi data
 
-```
+```bash
 wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
 7z x taxi.csv.7z
 cd testdata
@@ -422,7 +422,7 @@ ls -l --block-size=M # the data is farily large at 192MB
 ```
 
 ### SQLite One-liner
-```sh
+```bash
 sqlite3 :memory: -csv -header -cmd '.import taxi.csv taxi' 'SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi GROUP BY passenger_count' | tv
 ```
 
@@ -432,7 +432,7 @@ sqlite3 :memory: -csv -header -cmd '.import taxi.csv taxi' 'SELECT passenger_cou
 
 For this example you will need to download and uncompress taxi data
 
-```
+```bash
 wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
 7z x taxi.csv.7z
 cd testdata
@@ -440,7 +440,7 @@ ls -l --block-size=M # the data is fairly large at 192MB
 ```
 
 ### DuckDB One-liner
-```sh
+```bash
 duckdb --csv -c "SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi.csv GROUP BY passenger_count ORDER BY passenger_count" | tv
 ```
 
