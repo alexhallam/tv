@@ -310,7 +310,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 
 > Yes, solorized light is added out of the box. This was added in version `1.4.6`. You may also define your own themes in the config.
 
-* The `~/.config/tv.toml` file is having now effect on the output. What am I doing wrong?
+* The `~/.config/tv.toml` file is having no effect on the output. What am I doing wrong?
 
 > Every key/value pair must exist or the toml will not be read. If even one key/value is missing then the config will not work.
 
