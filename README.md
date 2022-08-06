@@ -426,6 +426,12 @@ ls -l --block-size=M # the data is farily large at 192MB
 sqlite3 :memory: -csv -header -cmd '.import taxi.csv taxi' 'SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi GROUP BY passenger_count' | tv
 ```
 
+The above one-liner queries a csv as an in-memory database. It is also possible to query an *existing* `sqlite` database and pipe the output as a csv for `tv` to pick up. A one-liner is shown below.
+
+```bash 
+sqlite3 -csv -header <file_name.sqlite> 'select * from <table>;' | tv
+```
+
 ## Use With DuckDB
 
 [DuckDB](https://duckdb.org/why_duckdb) has a lot in common with SQLite. As personal anecdotes I do like that fewer CLI flags are needed to run on csvs. I also like the speed. Though it is not as universal as SQLite I think that it is a good fit for command line data manipulation.
