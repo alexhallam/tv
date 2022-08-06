@@ -12,6 +12,11 @@ Also, I was looking through the changelog and saw that I never gave credit to @b
 my hand as I was starting this project 1 year ago. I had a vision for this CLI, but was struggling with
 some basics as I was learning Rust. Thank You!
 
+Note: Yes, I know there are a lot of versions skipped! I was struggling with getting some automated builds for
+one of the releases. One quark is that builds are triggered with git tags. I used up a lot of git tags to test
+things out. Which reminds me, thanks @certifiedloud for making the most recent builds possible. I could not 
+have done it without you.
+
 
 1.4.6 (2022-07-23)
 ==================
