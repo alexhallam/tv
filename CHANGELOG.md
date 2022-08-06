@@ -1,10 +1,16 @@
-1.4.30 (2022-08-23)
+1.4.30 (2022-08-23) 
 ==================
+
+`tv` is 1 year old 🎉🥳🎉.
 
 * **Bug** I noticed that `tv` would not print remaining columns if the number of rows was less than `n`.
 
 Changed `if rows_remaining > 0` to `if rows_remaining > 0 || (cols - num_cols_to_print) > 0` as the 
 condition needed to get the footer to kick in.
+
+Also, I was looking through the changelog and saw that I never gave credit to @burntsushi for holding
+my hand as I was starting this project 1 year ago. I had a vision for this CLI, but was struggling with
+some basics as I was learning Rust. Thank You!
 
 
 1.4.6 (2022-07-23)
