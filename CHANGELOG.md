@@ -1,4 +1,24 @@
-1.4.6 (2022-7-23)
+1.4.30 (2022-08-23) 
+==================
+
+`tv` is 1 year old 🎉🥳🎉.
+
+* **Bug** I noticed that `tv` would not print remaining columns if the number of rows was less than `n`.
+
+Changed `if rows_remaining > 0` to `if rows_remaining > 0 || (cols - num_cols_to_print) > 0` as the 
+condition needed to get the footer to kick in.
+
+Also, I was looking through the changelog and saw that I never gave credit to @burntsushi for holding
+my hand as I was starting this project 1 year ago. I had a vision for this CLI, but was struggling with
+some basics as I was learning Rust. Thank You!
+
+Note: Yes, I know there are a lot of versions skipped! I was struggling with getting some automated builds for
+one of the releases. One quark is that builds are triggered with git tags. I used up a lot of git tags to test
+things out. Which reminds me, thanks @certifiedloud for making the most recent builds possible. I could not 
+have done it without you.
+
+
+1.4.6 (2022-07-23)
 ==================
 
 This update was mainly focused on feature enhancements. I also did some `clippy` formatting.
@@ -21,7 +41,7 @@ As requested I implemented `-R`, `--no-row-numbering` for this functionality
 
 As requested I implemented `-D`, `--no-dimensions` for this functionality
 
-1.4.5 (2021-5-1)
+1.4.5 (2021-05-10)
 ==================
 
 * **Bug 1**  Though `-e` was added as an option I found that it was not overriding the `-n` argument. The fix was made with a simple if/else statement. 
@@ -29,7 +49,7 @@ As requested I implemented `-D`, `--no-dimensions` for this functionality
 It may seem odd to bump the version with such a small bug, but I did not want to have something in the help file that was not functional in
 the CLI. 
 
-1.4.4 (2021-5-02)
+1.4.4 (2021-05-02)
 ==================
 
 * **Feature 1**  Added `-e` flag to extend rows (don't truncate).

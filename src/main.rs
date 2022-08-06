@@ -693,7 +693,7 @@ fn main() {
         });
 
     // additional row info
-    if rows_remaining > 0 {
+    if rows_remaining > 0 || (cols - num_cols_to_print) > 0 {
         let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
