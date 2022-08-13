@@ -393,6 +393,9 @@ fn main() {
         println!("{:?}", rdr);
     }
 
+    if rdr.is_empty() {
+        panic!("🤖 Looks like the file exists, but is empty. No data to read. 🤖")
+    };
     let cols: usize = rdr[0].len();
     let rows_in_file: usize = rdr.len();
     let rows: usize = if extend_width_length_option {
