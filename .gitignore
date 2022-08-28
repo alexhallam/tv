@@ -1,3 +1,4 @@
 /target
 ./data/*.R
-/.vscode
+.vscode
+.vscode/settings.json
