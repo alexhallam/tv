@@ -270,7 +270,7 @@ else:
 
 [tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. [D | CLI]
 
-[q](https://github.com/zestyping/q) - Command line csv data manipulation query-like. [Python | CLI]
+[q](https://github.com/harelba/q) - Command line csv data manipulation query-like. [Python | CLI]
 
 [miller](https://github.com/johnkerl/miller) - Command line data manipulation, statistics, and more. [C | CLI]
 
