@@ -294,7 +294,7 @@ There are many ways that programs will designate missing values. Some use `none`
 
 ## 2. Column Overflow Logic
 
-In cases where the terminal width can't fit all of the columns in a dataframe, column will try to smush data on the rows below. This results in an unpleasant viewing experience. 
+In cases where the terminal width can't fit all of the columns in a dataframe, `column` will try to smush data on the rows below. This results in an unpleasant viewing experience. 
 
 `tv` can automatically tell when there will be too many columns to print. When this occurs it will only print the columns that fit in the terminal and mention the extras in the footer below the table.
 
