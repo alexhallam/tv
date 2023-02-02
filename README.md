@@ -325,7 +325,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.4.30
+tv 1.4.31
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
@@ -375,6 +375,8 @@ USAGE:
 FLAGS:
     -d, --debug-mode                 Print object details to make it easier for the maintainer to find and resolve bugs.
     -e, --extend-width-and-length    Extended width beyond term width (do not truncate). Useful with `less -S`.
+    -f, --force-all-rows             Print all rows in file. May be piped to 'less -S'. Example `tidy-viewer
+                                     data/diamonds.csv -f -a | less -R`
     -a, --color-always               Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a
                                      starwars.csv | bat -p`. The `less` cli has the `-R` flag to parse colored output.
     -h, --help                       Prints help information
@@ -391,7 +393,7 @@ OPTIONS:
                             (4)dracula
                             (5)solarized light [default: 0]
     -s, --delimiter <delimiter>                      The delimiter separating the columns.
-    -f, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
+    -F, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
     -l, --lower-column-width <lower-column-width>
             The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
 
@@ -443,6 +445,14 @@ wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2
 7z x taxi.csv.7z
 cd testdata
 ls -l --block-size=M # the data is fairly large at 192MB
+```
+
+## Fun With `tv`
+
+Using `duckdb` with `tv` and `less` to manipulate data with SQL grammar and view results in a scrolling window.
+
+```sh
+duckdb --csv -c "select norm1 from norms.csv" | ../target/release/tidy-viewer -f -a | less -R
 ```
 
 ### DuckDB One-liner

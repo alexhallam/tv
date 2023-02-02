@@ -72,6 +72,12 @@ struct Cli {
     )]
     color: usize,
     #[structopt(
+        short = "f",
+        long = "force-all-rows",
+        help = "Print all rows in file. May be piped to 'less -S'. Example `tidy-viewer data/diamonds.csv -f -a | less -R`"
+    )]
+    force_all_rows: bool,
+    #[structopt(
         short = "t",
         long = "title",
         default_value = "NA",
@@ -79,7 +85,7 @@ struct Cli {
     )]
     title: String,
     #[structopt(
-        short = "f",
+        short = "F",
         long = "footer",
         default_value = "NA",
         help = "Add a footer to your tv. Example 'footer info'"
@@ -204,6 +210,7 @@ fn main() {
     let is_force_color: bool = opt.force_color;
     let is_no_dimensions: bool = opt.no_dimensions;
     let is_no_row_numbering: bool = opt.no_row_numbering;
+    let is_force_all_rows: bool = opt.force_all_rows;
 
     let extend_width_length_option: bool = opt.extend_width_length
         || config
@@ -409,7 +416,17 @@ fn main() {
         rdr.len().min(row_display_option + 1)
     };
 
-    let rows_remaining: usize = rows_in_file - rows;
+    //let rows_remaining: usize = rows_in_file - rows;
+    let rows_remaining: usize = match is_force_all_rows {
+        true => 0,
+        false => rows_in_file - rows,
+    };
+
+    let rows = match is_force_all_rows {
+        true => rows_in_file,
+        false => rows,
+    };
+
     let ellipsis = '\u{2026}'.to_string();
     let row_remaining_text: String = format!("{} with {} more rows", ellipsis, rows_remaining);
 
@@ -1183,5 +1200,50 @@ mod tests {
         assert_eq!(datatype::is_negative_number("0."), false);
         assert_eq!(datatype::is_negative_number("text"), false);
         assert_eq!(datatype::is_negative_number("-123.123.123"), false);
+    }
+
+    #[test]
+    fn test_flag_f() {
+        // don't have a convenient way to push data through tv
+        // just want to make sure that all rows of data are printed
+        // as opposed to the default 25
+        let _v: Vec<Vec<&str>> = vec![
+            vec!["norm1"],
+            vec!["0.13985051995067665"],
+            vec!["1.421378935825573"],
+            vec!["0.1785258179751344"],
+            vec!["0.1799228728368547"],
+            vec!["-0.3601770130525013"],
+            vec!["1.8513345120712446"],
+            vec!["-1.0265053128729604"],
+            vec!["1.1303482682646326"],
+            vec!["0.3757364188183757"],
+            vec!["-0.18402628567217905"],
+            vec!["1.4289001286164538"],
+            vec!["1.2662178084324671"],
+            vec!["-1.5551459999848616"],
+            vec!["-0.08176843684626088"],
+            vec!["-1.253797781969998"],
+            vec!["0.13521771358169038"],
+            vec!["0.45934792507298405"],
+            vec!["1.4218768209890322"],
+            vec!["-1.8053819464500829"],
+            vec!["0.14685455231223585"],
+            vec!["-1.6059052140400474"],
+            vec!["-0.7531078472058763"],
+            vec!["1.5402633909248478"],
+            vec!["0.3425162134540953"],
+            vec!["-1.1338832231790217"],
+            vec!["0.7680488518188675"],
+            vec!["0.7707182008280404"],
+            vec!["0.21419017294796816"],
+            vec!["0.11186073081091127"],
+            vec!["0.7042713299033002"],
+            vec!["0.07309669153428934"],
+            vec!["-2.277812709325943"],
+            vec!["-0.7600438986427108"],
+            vec!["-0.14008262537120889"],
+            vec!["0.15503065800645952"],
+        ];
     }
 }
