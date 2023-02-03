@@ -1,3 +1,8 @@
+1.4.31 (2023-02-02) 
+==================
+
+* **Feature** Add a `f` flag for the ability to print all rows
+
 1.4.30 (2022-08-23) 
 ==================
 
