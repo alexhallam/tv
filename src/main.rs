@@ -93,7 +93,7 @@ struct Cli {
     footer: String,
     #[structopt(
         short = "n",
-        long = "number of rows to output",
+        long = "number-of-rows-to-output",
         default_value = "25",
         help = "Show how many rows to display."
     )]
