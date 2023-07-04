@@ -325,7 +325,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.5.1
+tv 1.5.2
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
