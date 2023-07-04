@@ -1,6 +1,6 @@
 
 
-1.5.0 (2023-07-04) 
+1.5.1 (2023-07-04) 
 ==================
 
 * **Feature** A new flag and associated output is available. The new flat is `--config-details` or `-C`. This will allow users to see the current configuration of `tv`. This is useful for debugging. Here is an example of the output:
