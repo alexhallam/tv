@@ -24,6 +24,7 @@ use std::convert::TryInto;
 
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
+    Check the parameters you have changed with `tv --config-details`.
     The config (tv.toml) location is dependent on OS:
         * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
         * macOS: $HOME/Library/Application Support/tv.toml

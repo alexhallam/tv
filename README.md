@@ -325,7 +325,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.4.31
+tv 1.5.0
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
@@ -335,6 +335,7 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
 
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
+    Check the parameters you have changed with `tv --config-details`.
     The config (tv.toml) location is dependent on OS:
         * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
         * macOS: $HOME/Library/Application Support/tv.toml
@@ -355,9 +356,8 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #lower_column_width = 2
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
-        ## extend width and length in terms of the number of rows and columns displayed beyond term width [default:
-false]
-        # extend_width_and_length = true
+        ## extend width and length in terms of the number of rows and columns displayed beyond term width [default: false]
+        # extend_width_length = true
         ## meta_color = [R,G,B] color for row index and "tv dim: rows x cols"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
@@ -373,6 +373,7 @@ USAGE:
     tidy-viewer [FLAGS] [OPTIONS] [FILE]
 
 FLAGS:
+    -C, --config-details             Show the current config details
     -d, --debug-mode                 Print object details to make it easier for the maintainer to find and resolve bugs.
     -e, --extend-width-and-length    Extended width beyond term width (do not truncate). Useful with `less -S`.
     -f, --force-all-rows             Print all rows in file. May be piped to 'less -S'. Example `tidy-viewer
@@ -397,7 +398,7 @@ OPTIONS:
     -l, --lower-column-width <lower-column-width>
             The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
 
-    -n, --number of rows to output <row-display>     Show how many rows to display. [default: 25]
+    -n, --number-of-rows-to-output <row-display>     Show how many rows to display. [default: 25]
     -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]
     -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
     -u, --upper-column-width <upper-column-width>    The upper (maximum) width of columns. [default: 20]
