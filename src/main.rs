@@ -24,6 +24,7 @@ use std::convert::TryInto;
 
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
+    Check the parameters you have changed with `tv --config-details`.
     The config (tv.toml) location is dependent on OS:
         * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
         * macOS: $HOME/Library/Application Support/tv.toml
@@ -45,7 +46,7 @@ use std::convert::TryInto;
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
         ## extend width and length in terms of the number of rows and columns displayed beyond term width [default: false]
-        # extend_width_and_length = true
+        # extend_width_length = true
         ## meta_color = [R,G,B] color for row index and \"tv dim: rows x cols\"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
@@ -93,7 +94,7 @@ struct Cli {
     footer: String,
     #[structopt(
         short = "n",
-        long = "number of rows to output",
+        long = "number-of-rows-to-output",
         default_value = "25",
         help = "Show how many rows to display."
     )]
@@ -159,6 +160,13 @@ struct Cli {
     )]
     no_row_numbering: bool,
 
+    #[structopt(
+        short = "C",
+        long = "config-details",
+        help = "Show the current config details"
+    )]
+    config_details: bool,
+
     #[structopt(name = "FILE", parse(from_os_str), help = "File to process")]
     file: Option<PathBuf>,
 }
@@ -166,19 +174,19 @@ struct Cli {
 fn main() {
     // toml struct
     #[derive(Deserialize, Serialize, Debug, Clone)]
-    struct Data {
-        delimiter: String,
-        title: String,
-        footer: String,
-        upper_column_width: usize,
-        lower_column_width: usize,
-        number: usize,
-        extend_width_length: bool,
-        meta_color: toml::value::Array,
-        header_color: toml::value::Array,
-        std_color: toml::value::Array,
-        na_color: toml::value::Array,
-        neg_num_color: toml::value::Array,
+    struct Config {
+        delimiter: Option<String>,
+        title: Option<String>,
+        footer: Option<String>,
+        upper_column_width: Option<usize>,
+        lower_column_width: Option<usize>,
+        number: Option<usize>,
+        extend_width_length: Option<bool>,
+        meta_color: Option<toml::value::Array>,
+        header_color: Option<toml::value::Array>,
+        std_color: Option<toml::value::Array>,
+        na_color: Option<toml::value::Array>,
+        neg_num_color: Option<toml::value::Array>,
     }
 
     let base_dir: Option<BaseDirs> = BaseDirs::new();
@@ -187,15 +195,222 @@ fn main() {
     let conf_file: PathBuf = PathBuf::from("tv.toml");
     let conf_dir_file: PathBuf = config_dir.join(conf_file);
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
-    // println!("file_contents {:?}", file_contents);
-    let config: Option<Data> = match file_contents {
-        Some(x) => toml::from_str(&x).ok(),
-        None => None,
+    let config: Config = match toml::from_str(file_contents.as_ref().unwrap_or(&String::new())) {
+        // return 'Ok' if the file was successfully parsed
+        // else return Config with all None values
+        Ok(x) => x,
+        Err(_) => Config {
+            delimiter: None,
+            title: None,
+            footer: None,
+            upper_column_width: None,
+            lower_column_width: None,
+            number: None,
+            extend_width_length: None,
+            meta_color: None,
+            header_color: None,
+            std_color: None,
+            na_color: None,
+            neg_num_color: None,
+        },
     };
-    // println!("config {:#?}", config);
+    // load cli args
+    let opt = Cli::from_args();
+
+    // print helpful config details
+    match opt.config_details {
+        true => {
+            println!("");
+            println!("{:}", "tv.toml".to_string().truecolor(94, 129, 172));
+            match config.clone().delimiter {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " delimiter = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),                // red
+                    " delimiter = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+            // match title
+            match config.clone().title {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " title = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),            // red
+                    " title = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match footer
+            match config.clone().footer {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " footer = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),             // red
+                    " footer = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match upper_column_width
+            match config.clone().upper_column_width {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " upper_column_width = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " upper_column_width = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match lower_column_width
+            match config.clone().lower_column_width {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " lower_column_width = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " lower_column_width = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match number
+            match config.clone().number {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " number = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),             // red
+                    " number = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match extend_width_length
+            match config.clone().extend_width_length {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " extend_width_length = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " extend_width_length = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+            // match meta_color
+            match config.clone().meta_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " meta_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " meta_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match header_color
+            match config.clone().header_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " header_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " header_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match std_color
+            match config.clone().std_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " std_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),                // red
+                    " std_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match na_color
+            match config.clone().na_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " na_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),               // red
+                    " na_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match neg_num_color
+            match config.clone().neg_num_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " neg_num_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " neg_num_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            std::process::exit(0);
+        }
+        false => {}
+    }
 
     let term_tuple: (u16, u16) = size().unwrap();
-    let opt = Cli::from_args();
     let color_option = opt.color;
     let sigfig: i64 = if opt.sigfig >= 3 && opt.sigfig <= 7 {
         opt.sigfig
@@ -211,28 +426,36 @@ fn main() {
     let is_no_dimensions: bool = opt.no_dimensions;
     let is_no_row_numbering: bool = opt.no_row_numbering;
     let is_force_all_rows: bool = opt.force_all_rows;
+    let is_extend_width_length: bool = opt.extend_width_length;
 
-    let extend_width_length_option: bool = opt.extend_width_length
-        || config
-            .as_ref()
-            .map(|d: &Data| d.extend_width_length)
-            .unwrap_or(false);
-
-    let title_option: &String = match (&config, is_title_defined) {
-        (Some(x), false) => &x.title,
+    // The options below all follow the same logic:
+    //   If the user provides a config file and no cli argument, use the config file
+    //   If the user provides a cli argument, override the config file
+    //   If the user provides no cli argument, use the config file
+    //   If the user provides no cli argument and no config file, use the default value
+    let extend_width_length_option: bool =
+        match (config.extend_width_length, is_extend_width_length) {
+            (Some(x), false) => x,
+            (Some(_x), true) => opt.extend_width_length,
+            (None, false) => opt.extend_width_length,
+            (None, true) => opt.extend_width_length,
+        };
+    let title_option: &String = match (&config.title, &is_title_defined) {
+        (Some(ref x), false) => &x,
         (Some(_x), true) => &opt.title,
         (None, false) => &opt.title,
         (None, true) => &opt.title,
     };
-    let footer_option: &String = match (&config, is_footer_defined) {
-        (Some(x), false) => &x.footer,
+
+    let footer_option: &String = match (&config.footer, &is_footer_defined) {
+        (Some(ref x), false) => &x,
         (Some(_x), true) => &opt.footer,
         (None, false) => &opt.footer,
         (None, true) => &opt.footer,
     };
 
-    let row_display_option: &usize = match (&config, is_row_display_defined) {
-        (Some(x), false) => &x.number,
+    let row_display_option: &usize = match (&config.number, &is_footer_defined) {
+        (Some(ref x), false) => x,
         (Some(_x), true) => &opt.row_display,
         (None, false) => &opt.row_display,
         (None, true) => &opt.row_display,
@@ -272,8 +495,9 @@ fn main() {
     // user args
     let lower_column_width_defined: bool = opt.lower_column_width != 2;
     let upper_column_width_defined: bool = opt.lower_column_width != 20;
-    let lower_column_width: usize = match (&config, lower_column_width_defined) {
-        (Some(x), false) => x.lower_column_width,
+    let lower_column_width: usize = match (&config.lower_column_width, &lower_column_width_defined)
+    {
+        (Some(ref x), false) => *x,
         (Some(_x), true) => opt.lower_column_width,
         (None, false) => opt.lower_column_width,
         (None, true) => opt.lower_column_width,
@@ -283,8 +507,10 @@ fn main() {
     } else {
         lower_column_width
     };
-    let upper_column_width: usize = match (&config, upper_column_width_defined) {
-        (Some(x), false) => x.upper_column_width,
+
+    let upper_column_width: usize = match (&config.upper_column_width, &upper_column_width_defined)
+    {
+        (Some(ref x), false) => *x,
         (Some(_x), true) => opt.upper_column_width,
         (None, false) => opt.upper_column_width,
         (None, true) => opt.upper_column_width,
@@ -340,36 +566,67 @@ fn main() {
         ),
     };
     let is_color_defined = opt.color > 0;
-    let meta_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().meta_color),
+
+    let meta_color = match (&config.meta_color, &is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => meta_color,
         (None, false) => nord_meta_color,
         (None, true) => meta_color,
     };
-    let header_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().header_color),
+    let header_color = match (&config.header_color, &is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => header_color,
         (None, false) => nord_header_color,
         (None, true) => header_color,
     };
-    let std_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().std_color),
+    let std_color = match (&config.std_color, &is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => std_color,
         (None, false) => nord_std_color,
         (None, true) => std_color,
     };
-    let na_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().na_color),
+    let na_color = match (&config.na_color, &is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => na_color,
         (None, false) => nord_na_color,
         (None, true) => na_color,
     };
-    let neg_num_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().neg_num_color),
+    let neg_num_color = match (&config.neg_num_color, &is_color_defined) {
+        (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => neg_num_color,
         (None, false) => nord_neg_num_color,
         (None, true) => neg_num_color,
     };
+    // let meta_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().meta_color),
+    //     (Some(_x), true) => meta_color,
+    //     (None, false) => nord_meta_color,
+    //     (None, true) => meta_color,
+    // };
+    // let header_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().header_color),
+    //     (Some(_x), true) => header_color,
+    //     (None, false) => nord_header_color,
+    //     (None, true) => header_color,
+    // };
+    // let std_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().std_color),
+    //     (Some(_x), true) => std_color,
+    //     (None, false) => nord_std_color,
+    //     (None, true) => std_color,
+    // };
+    // let na_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().na_color),
+    //     (Some(_x), true) => na_color,
+    //     (None, false) => nord_na_color,
+    //     (None, true) => na_color,
+    // };
+    // let neg_num_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().neg_num_color),
+    //     (Some(_x), true) => neg_num_color,
+    //     (None, false) => nord_neg_num_color,
+    //     (None, true) => neg_num_color,
+    // };
 
     //   colname reader
     let reader_result = build_reader(&opt);
@@ -655,7 +912,7 @@ fn main() {
                     };
                 }
             } else if is_no_row_numbering {
-                let _ = match stdout!("{: >6}  ", 
+                let _ = match stdout!("{: >6}  ",
                 ""                                                           // this prints the row number
             ) {
                     Ok(_) => Ok(()),
@@ -665,7 +922,7 @@ fn main() {
                     },
                 };
             } else {
-                let _ = match stdout!("{: >6}  ", 
+                let _ = match stdout!("{: >6}  ",
                 ""                                                           // this prints the row number
             ) {
                     Ok(_) => Ok(()),

@@ -1,7 +1,35 @@
-1.4.31 (2023-02-02) 
+
+
+1.5.0 (2023-07-04) 
 ==================
 
-* **Feature** Add a `f` flag for the ability to print all rows
+* **Feature** A new flag and associated output is available. The new flat is `--config-details` or `-C`. This will allow users to see the current configuration of `tv`. This is useful for debugging. Here is an example of the output:
+
+```sh
+> tidy-viewer -C
+
+tv.toml
+[+] delimiter = ","
+[+] title = ""
+[-] footer = None
+[+] upper_column_width = 20
+[+] lower_column_width = 2
+[+] number = 35
+[-] extend_width_length = None
+[+] meta_color = [Integer(255), Integer(0), Integer(0)]
+[+] header_color = [Integer(232), Integer(168), Integer(124)]
+[+] std_color = [Integer(133), Integer(205), Integer(202)]
+[+] na_color = [Integer(226), Integer(125), Integer(95)]
+[-] neg_num_color = None
+```
+
+- The `[+]` indicates that the values was found in the `tv.toml` file. 
+
+- The `[-]` indicates that the value was not found in the `tv.toml` file and the default value was used.
+
+* **Bug** [#165](https://github.com/alexhallam/tv/issues/165) The `tv.toml` has had a long history of being buggy. This is because users must provide entries for every key. I removed this constraint. Now, if a key is not provided, the default value is used. This should make the `tv.toml` more user friendly. Thanks @winter-again for the bug report.
+* **Bug** [#163](https://github.com/alexhallam/tv/issues/163) Option `--number of rows to output` requires spaces between words instead of dashes. All other long form options use a dash to delimit words. Thanks @derekmahar for bug report.
+
 
 1.4.30 (2022-08-23) 
 ==================
