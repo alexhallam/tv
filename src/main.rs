@@ -45,7 +45,7 @@ use std::convert::TryInto;
         ## head number of rows to output <row-display> [default: 25]
         #number = 35
         ## extend width and length in terms of the number of rows and columns displayed beyond term width [default: false]
-        # extend_width_and_length = true
+        # extend_width_length = true
         ## meta_color = [R,G,B] color for row index and \"tv dim: rows x cols\"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
@@ -159,6 +159,13 @@ struct Cli {
     )]
     no_row_numbering: bool,
 
+    #[structopt(
+        short = "C",
+        long = "config-details",
+        help = "Show the current config details"
+    )]
+    config_details: bool,
+
     #[structopt(name = "FILE", parse(from_os_str), help = "File to process")]
     file: Option<PathBuf>,
 }
@@ -166,19 +173,19 @@ struct Cli {
 fn main() {
     // toml struct
     #[derive(Deserialize, Serialize, Debug, Clone)]
-    struct Data {
-        delimiter: String,
-        title: String,
-        footer: String,
-        upper_column_width: usize,
-        lower_column_width: usize,
-        number: usize,
-        extend_width_length: bool,
-        meta_color: toml::value::Array,
-        header_color: toml::value::Array,
-        std_color: toml::value::Array,
-        na_color: toml::value::Array,
-        neg_num_color: toml::value::Array,
+    struct Config {
+        delimiter: Option<String>,
+        title: Option<String>,
+        footer: Option<String>,
+        upper_column_width: Option<usize>,
+        lower_column_width: Option<usize>,
+        number: Option<usize>,
+        extend_width_length: Option<bool>,
+        meta_color: Option<toml::value::Array>,
+        header_color: Option<toml::value::Array>,
+        std_color: Option<toml::value::Array>,
+        na_color: Option<toml::value::Array>,
+        neg_num_color: Option<toml::value::Array>,
     }
 
     let base_dir: Option<BaseDirs> = BaseDirs::new();
@@ -187,684 +194,892 @@ fn main() {
     let conf_file: PathBuf = PathBuf::from("tv.toml");
     let conf_dir_file: PathBuf = config_dir.join(conf_file);
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
-    // println!("file_contents {:?}", file_contents);
-    let config: Option<Data> = match file_contents {
-        Some(x) => toml::from_str(&x).ok(),
-        None => None,
+    let config: Config = match toml::from_str(file_contents.as_ref().unwrap_or(&String::new())) {
+        // return 'Ok' if the file was successfully parsed
+        // else return Config with all None values
+        Ok(x) => x,
+        Err(_) => Config {
+            delimiter: None,
+            title: None,
+            footer: None,
+            upper_column_width: None,
+            lower_column_width: None,
+            number: None,
+            extend_width_length: None,
+            meta_color: None,
+            header_color: None,
+            std_color: None,
+            na_color: None,
+            neg_num_color: None,
+        },
     };
-    // println!("config {:#?}", config);
+    // load cli args
+    let opt = Cli::from_args();
+
+    // print helpful config details
+    match opt.config_details {
+        true => {
+            println!("");
+            println!("{:}", "tv.toml".to_string().truecolor(94, 129, 172));
+            match config.clone().delimiter {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " delimiter = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),                // red
+                    " delimiter = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+            // match title
+            match config.clone().title {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " title = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),            // red
+                    " title = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match footer
+            match config.clone().footer {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " footer = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),             // red
+                    " footer = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match upper_column_width
+            match config.clone().upper_column_width {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " upper_column_width = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " upper_column_width = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match lower_column_width
+            match config.clone().lower_column_width {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " lower_column_width = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " lower_column_width = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match number
+            match config.clone().number {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " number = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),             // red
+                    " number = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match extend_width_length
+            match config.clone().extend_width_length {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " extend_width_length = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " extend_width_length = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+            // match meta_color
+            match config.clone().meta_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " meta_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " meta_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match header_color
+            match config.clone().header_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " header_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " header_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match std_color
+            match config.clone().std_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " std_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),                // red
+                    " std_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match na_color
+            match config.clone().na_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " na_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106),               // red
+                    " na_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            // match neg_num_color
+            match config.clone().neg_num_color {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " neg_num_color = ".to_string().truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " neg_num_color = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+
+            std::process::exit(0);
+        }
+        false => {}
+    }
 
     let term_tuple: (u16, u16) = size().unwrap();
-    let opt = Cli::from_args();
-    let color_option = opt.color;
-    let sigfig: i64 = if opt.sigfig >= 3 && opt.sigfig <= 7 {
-        opt.sigfig
-    } else {
-        panic!("sigfig range must be between 3 and 7")
-    };
-    let debug_mode: bool = opt.debug_mode;
-    let is_title_defined: bool = opt.title.chars().count() > 0;
-    let is_footer_defined: bool = opt.title.chars().count() > 0;
-    let is_row_display_defined: bool = opt.row_display != 25;
-    let is_tty: bool = atty::is(atty::Stream::Stdout);
-    let is_force_color: bool = opt.force_color;
-    let is_no_dimensions: bool = opt.no_dimensions;
-    let is_no_row_numbering: bool = opt.no_row_numbering;
-    let is_force_all_rows: bool = opt.force_all_rows;
+    // let color_option = opt.color;
+    // let sigfig: i64 = if opt.sigfig >= 3 && opt.sigfig <= 7 {
+    //     opt.sigfig
+    // } else {
+    //     panic!("sigfig range must be between 3 and 7")
+    // };
+    // let debug_mode: bool = opt.debug_mode;
+    // let is_title_defined: bool = opt.title.chars().count() > 0;
+    // let is_footer_defined: bool = opt.title.chars().count() > 0;
+    // let is_row_display_defined: bool = opt.row_display != 25;
+    // let is_tty: bool = atty::is(atty::Stream::Stdout);
+    // let is_force_color: bool = opt.force_color;
+    // let is_no_dimensions: bool = opt.no_dimensions;
+    // let is_no_row_numbering: bool = opt.no_row_numbering;
+    // let is_force_all_rows: bool = opt.force_all_rows;
 
-    let extend_width_length_option: bool = opt.extend_width_length
-        || config
-            .as_ref()
-            .map(|d: &Data| d.extend_width_length)
-            .unwrap_or(false);
+    // let extend_width_length_option: bool = opt.extend_width_length
+    //     || data
+    //         .config
+    //         .as_ref()
+    //         .map(|d: &Data| d.extend_width_length)
+    //         .unwrap_or(false);
 
-    let title_option: &String = match (&config, is_title_defined) {
-        (Some(x), false) => &x.title,
-        (Some(_x), true) => &opt.title,
-        (None, false) => &opt.title,
-        (None, true) => &opt.title,
-    };
-    let footer_option: &String = match (&config, is_footer_defined) {
-        (Some(x), false) => &x.footer,
-        (Some(_x), true) => &opt.footer,
-        (None, false) => &opt.footer,
-        (None, true) => &opt.footer,
-    };
+    // let title_option: &String = match (&config, is_title_defined) {
+    //     (Some(x), false) => &x.title,
+    //     (Some(_x), true) => &opt.title,
+    //     (None, false) => &opt.title,
+    //     (None, true) => &opt.title,
+    // };
+    // let footer_option: &String = match (&config, is_footer_defined) {
+    //     (Some(x), false) => &x.footer,
+    //     (Some(_x), true) => &opt.footer,
+    //     (None, false) => &opt.footer,
+    //     (None, true) => &opt.footer,
+    // };
 
-    let row_display_option: &usize = match (&config, is_row_display_defined) {
-        (Some(x), false) => &x.number,
-        (Some(_x), true) => &opt.row_display,
-        (None, false) => &opt.row_display,
-        (None, true) => &opt.row_display,
-    };
+    // let row_display_option: &usize = match (&config, is_row_display_defined) {
+    //     (Some(x), false) => &x.number,
+    //     (Some(_x), true) => &opt.row_display,
+    //     (None, false) => &opt.row_display,
+    //     (None, true) => &opt.row_display,
+    // };
 
-    // nord
-    let nord_meta_color: [u8; 3] = [143, 188, 187];
-    let nord_header_color: [u8; 3] = [94, 129, 172];
-    let nord_std_color: [u8; 3] = [216, 222, 233];
-    let nord_na_color: [u8; 3] = [191, 97, 106];
-    let nord_neg_num_color: [u8; 3] = [208, 135, 112];
-    // one dark
-    let one_dark_meta_color: [u8; 3] = [152, 195, 121];
-    let one_dark_header_color: [u8; 3] = [97, 175, 239];
-    let one_dark_std_color: [u8; 3] = [171, 178, 191];
-    let one_dark_na_color: [u8; 3] = [224, 108, 117];
-    let one_dark_neg_num_color: [u8; 3] = [229, 192, 123];
-    //// gruv
-    let gruvbox_meta_color: [u8; 3] = [184, 187, 38];
-    let gruvbox_header_color: [u8; 3] = [215, 153, 33];
-    let gruvbox_std_color: [u8; 3] = [235, 219, 178];
-    let gruvbox_na_color: [u8; 3] = [204, 36, 29];
-    let gruvbox_neg_num_color: [u8; 3] = [251, 73, 52];
-    //// dracula
-    let dracula_meta_color: [u8; 3] = [98, 114, 164];
-    let dracula_header_color: [u8; 3] = [80, 250, 123];
-    let dracula_std_color: [u8; 3] = [248, 248, 242];
-    let dracula_na_color: [u8; 3] = [255, 121, 198];
-    let dracula_neg_num_color: [u8; 3] = [188, 63, 60];
-    //// solarized light
-    let solarized_meta_color: [u8; 3] = [108, 113, 193];
-    let solarized_header_color: [u8; 3] = [88, 110, 117];
-    let solarized_std_color: [u8; 3] = [131, 148, 150];
-    let solarized_na_color: [u8; 3] = [220, 50, 47];
-    let solarized_neg_num_color: [u8; 3] = [42, 161, 152];
+    // // nord
+    // let nord_meta_color: [u8; 3] = [143, 188, 187];
+    // let nord_header_color: [u8; 3] = [94, 129, 172];
+    // let nord_std_color: [u8; 3] = [216, 222, 233];
+    // let nord_na_color: [u8; 3] = [191, 97, 106];
+    // let nord_neg_num_color: [u8; 3] = [208, 135, 112];
+    // // one dark
+    // let one_dark_meta_color: [u8; 3] = [152, 195, 121];
+    // let one_dark_header_color: [u8; 3] = [97, 175, 239];
+    // let one_dark_std_color: [u8; 3] = [171, 178, 191];
+    // let one_dark_na_color: [u8; 3] = [224, 108, 117];
+    // let one_dark_neg_num_color: [u8; 3] = [229, 192, 123];
+    // //// gruv
+    // let gruvbox_meta_color: [u8; 3] = [184, 187, 38];
+    // let gruvbox_header_color: [u8; 3] = [215, 153, 33];
+    // let gruvbox_std_color: [u8; 3] = [235, 219, 178];
+    // let gruvbox_na_color: [u8; 3] = [204, 36, 29];
+    // let gruvbox_neg_num_color: [u8; 3] = [251, 73, 52];
+    // //// dracula
+    // let dracula_meta_color: [u8; 3] = [98, 114, 164];
+    // let dracula_header_color: [u8; 3] = [80, 250, 123];
+    // let dracula_std_color: [u8; 3] = [248, 248, 242];
+    // let dracula_na_color: [u8; 3] = [255, 121, 198];
+    // let dracula_neg_num_color: [u8; 3] = [188, 63, 60];
+    // //// solarized light
+    // let solarized_meta_color: [u8; 3] = [108, 113, 193];
+    // let solarized_header_color: [u8; 3] = [88, 110, 117];
+    // let solarized_std_color: [u8; 3] = [131, 148, 150];
+    // let solarized_na_color: [u8; 3] = [220, 50, 47];
+    // let solarized_neg_num_color: [u8; 3] = [42, 161, 152];
 
-    // user args
-    let lower_column_width_defined: bool = opt.lower_column_width != 2;
-    let upper_column_width_defined: bool = opt.lower_column_width != 20;
-    let lower_column_width: usize = match (&config, lower_column_width_defined) {
-        (Some(x), false) => x.lower_column_width,
-        (Some(_x), true) => opt.lower_column_width,
-        (None, false) => opt.lower_column_width,
-        (None, true) => opt.lower_column_width,
-    };
-    let lower_column_width: usize = if lower_column_width < 2 {
-        panic!("lower-column-width must be larger than 2")
-    } else {
-        lower_column_width
-    };
-    let upper_column_width: usize = match (&config, upper_column_width_defined) {
-        (Some(x), false) => x.upper_column_width,
-        (Some(_x), true) => opt.upper_column_width,
-        (None, false) => opt.upper_column_width,
-        (None, true) => opt.upper_column_width,
-    };
-    let upper_column_width = if upper_column_width <= lower_column_width {
-        panic!("upper-column-width must be larger than lower-column-width")
-    } else {
-        upper_column_width
-    };
-    // logic for picking colors given config and user arguments
-    let (meta_color, header_color, std_color, na_color, neg_num_color) = match color_option {
-        1 => (
-            nord_meta_color,
-            nord_header_color,
-            nord_std_color,
-            nord_na_color,
-            nord_neg_num_color,
-        ),
-        2 => (
-            one_dark_meta_color,
-            one_dark_header_color,
-            one_dark_std_color,
-            one_dark_na_color,
-            one_dark_neg_num_color,
-        ),
-        3 => (
-            gruvbox_meta_color,
-            gruvbox_header_color,
-            gruvbox_std_color,
-            gruvbox_na_color,
-            gruvbox_neg_num_color,
-        ),
-        4 => (
-            dracula_meta_color,
-            dracula_header_color,
-            dracula_std_color,
-            dracula_na_color,
-            dracula_neg_num_color,
-        ),
-        5 => (
-            solarized_meta_color,
-            solarized_header_color,
-            solarized_std_color,
-            solarized_na_color,
-            solarized_neg_num_color,
-        ),
-        _ => (
-            nord_meta_color,
-            nord_header_color,
-            nord_std_color,
-            nord_na_color,
-            nord_neg_num_color,
-        ),
-    };
-    let is_color_defined = opt.color > 0;
-    let meta_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().meta_color),
-        (Some(_x), true) => meta_color,
-        (None, false) => nord_meta_color,
-        (None, true) => meta_color,
-    };
-    let header_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().header_color),
-        (Some(_x), true) => header_color,
-        (None, false) => nord_header_color,
-        (None, true) => header_color,
-    };
-    let std_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().std_color),
-        (Some(_x), true) => std_color,
-        (None, false) => nord_std_color,
-        (None, true) => std_color,
-    };
-    let na_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().na_color),
-        (Some(_x), true) => na_color,
-        (None, false) => nord_na_color,
-        (None, true) => na_color,
-    };
-    let neg_num_color = match (&config, is_color_defined) {
-        (Some(x), false) => get_color_from_config(&x.clone().neg_num_color),
-        (Some(_x), true) => neg_num_color,
-        (None, false) => nord_neg_num_color,
-        (None, true) => neg_num_color,
-    };
+    // // user args
+    // let lower_column_width_defined: bool = opt.lower_column_width != 2;
+    // let upper_column_width_defined: bool = opt.lower_column_width != 20;
+    // let lower_column_width: usize = match (&config, lower_column_width_defined) {
+    //     (Some(x), false) => x.lower_column_width,
+    //     (Some(_x), true) => opt.lower_column_width,
+    //     (None, false) => opt.lower_column_width,
+    //     (None, true) => opt.lower_column_width,
+    // };
+    // let lower_column_width: usize = if lower_column_width < 2 {
+    //     panic!("lower-column-width must be larger than 2")
+    // } else {
+    //     lower_column_width
+    // };
+    // let upper_column_width: usize = match (&config, upper_column_width_defined) {
+    //     (Some(x), false) => x.upper_column_width,
+    //     (Some(_x), true) => opt.upper_column_width,
+    //     (None, false) => opt.upper_column_width,
+    //     (None, true) => opt.upper_column_width,
+    // };
+    // let upper_column_width = if upper_column_width <= lower_column_width {
+    //     panic!("upper-column-width must be larger than lower-column-width")
+    // } else {
+    //     upper_column_width
+    // };
+    // // logic for picking colors given config and user arguments
+    // let (meta_color, header_color, std_color, na_color, neg_num_color) = match color_option {
+    //     1 => (
+    //         nord_meta_color,
+    //         nord_header_color,
+    //         nord_std_color,
+    //         nord_na_color,
+    //         nord_neg_num_color,
+    //     ),
+    //     2 => (
+    //         one_dark_meta_color,
+    //         one_dark_header_color,
+    //         one_dark_std_color,
+    //         one_dark_na_color,
+    //         one_dark_neg_num_color,
+    //     ),
+    //     3 => (
+    //         gruvbox_meta_color,
+    //         gruvbox_header_color,
+    //         gruvbox_std_color,
+    //         gruvbox_na_color,
+    //         gruvbox_neg_num_color,
+    //     ),
+    //     4 => (
+    //         dracula_meta_color,
+    //         dracula_header_color,
+    //         dracula_std_color,
+    //         dracula_na_color,
+    //         dracula_neg_num_color,
+    //     ),
+    //     5 => (
+    //         solarized_meta_color,
+    //         solarized_header_color,
+    //         solarized_std_color,
+    //         solarized_na_color,
+    //         solarized_neg_num_color,
+    //     ),
+    //     _ => (
+    //         nord_meta_color,
+    //         nord_header_color,
+    //         nord_std_color,
+    //         nord_na_color,
+    //         nord_neg_num_color,
+    //     ),
+    // };
+    // let is_color_defined = opt.color > 0;
+    // let meta_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().meta_color),
+    //     (Some(_x), true) => meta_color,
+    //     (None, false) => nord_meta_color,
+    //     (None, true) => meta_color,
+    // };
+    // let header_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().header_color),
+    //     (Some(_x), true) => header_color,
+    //     (None, false) => nord_header_color,
+    //     (None, true) => header_color,
+    // };
+    // let std_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().std_color),
+    //     (Some(_x), true) => std_color,
+    //     (None, false) => nord_std_color,
+    //     (None, true) => std_color,
+    // };
+    // let na_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().na_color),
+    //     (Some(_x), true) => na_color,
+    //     (None, false) => nord_na_color,
+    //     (None, true) => na_color,
+    // };
+    // let neg_num_color = match (&config, is_color_defined) {
+    //     (Some(x), false) => get_color_from_config(&x.clone().neg_num_color),
+    //     (Some(_x), true) => neg_num_color,
+    //     (None, false) => nord_neg_num_color,
+    //     (None, true) => neg_num_color,
+    // };
 
-    //   colname reader
-    let reader_result = build_reader(&opt);
-    let mut r = if let Ok(reader) = reader_result {
-        reader
-    } else {
-        // We can safely use unwrap, because if file in case when file is None
-        // build_reader would return reader created from stdin
-        let path_buf = opt.file.unwrap();
-        let path = path_buf.as_path();
-        if let Some(path) = path.to_str() {
-            eprintln!("Failed to open file: {}", path);
-        } else {
-            eprintln!("Failed to open file.")
-        }
-        return;
-    };
+    // //   colname reader
+    // let reader_result = build_reader(&opt);
+    // let mut r = if let Ok(reader) = reader_result {
+    //     reader
+    // } else {
+    //     // We can safely use unwrap, because if file in case when file is None
+    //     // build_reader would return reader created from stdin
+    //     let path_buf = opt.file.unwrap();
+    //     let path = path_buf.as_path();
+    //     if let Some(path) = path.to_str() {
+    //         eprintln!("Failed to open file: {}", path);
+    //     } else {
+    //         eprintln!("Failed to open file.")
+    //     }
+    //     return;
+    // };
 
-    let rdr = r
-        .records()
-        .into_iter()
-        //.take(row_display_option + 1)
-        .map(|x| x.expect("a csv record"))
-        .collect::<Vec<_>>();
+    // let rdr = r
+    //     .records()
+    //     .into_iter()
+    //     //.take(row_display_option + 1)
+    //     .map(|x| x.expect("a csv record"))
+    //     .collect::<Vec<_>>();
 
-    if debug_mode {
-        println!("{:?}", "StringRecord");
-        println!("{:?}", rdr);
-    }
+    // if debug_mode {
+    //     println!("{:?}", "StringRecord");
+    //     println!("{:?}", rdr);
+    // }
 
-    if rdr.is_empty() {
-        panic!("🤖 Looks like the file exists, but is empty. No data to read. 🤖")
-    };
-    let cols: usize = rdr[0].len();
-    let rows_in_file: usize = rdr.len();
-    let rows: usize = if extend_width_length_option {
-        // if extend_width_length_option print rows in file unless -n is set (issue #140)
-        if is_row_display_defined {
-            rdr.len().min(row_display_option + 1)
-        } else {
-            rdr.len().min(rows_in_file + 1)
-        }
-    } else {
-        rdr.len().min(row_display_option + 1)
-    };
+    // if rdr.is_empty() {
+    //     panic!("🤖 Looks like the file exists, but is empty. No data to read. 🤖")
+    // };
+    // let cols: usize = rdr[0].len();
+    // let rows_in_file: usize = rdr.len();
+    // let rows: usize = if extend_width_length_option {
+    //     // if extend_width_length_option print rows in file unless -n is set (issue #140)
+    //     if is_row_display_defined {
+    //         rdr.len().min(row_display_option + 1)
+    //     } else {
+    //         rdr.len().min(rows_in_file + 1)
+    //     }
+    // } else {
+    //     rdr.len().min(row_display_option + 1)
+    // };
 
-    //let rows_remaining: usize = rows_in_file - rows;
-    let rows_remaining: usize = match is_force_all_rows {
-        true => 0,
-        false => rows_in_file - rows,
-    };
+    // //let rows_remaining: usize = rows_in_file - rows;
+    // let rows_remaining: usize = match is_force_all_rows {
+    //     true => 0,
+    //     false => rows_in_file - rows,
+    // };
 
-    let rows = match is_force_all_rows {
-        true => rows_in_file,
-        false => rows,
-    };
+    // let rows = match is_force_all_rows {
+    //     true => rows_in_file,
+    //     false => rows,
+    // };
 
-    let ellipsis = '\u{2026}'.to_string();
-    let row_remaining_text: String = format!("{} with {} more rows", ellipsis, rows_remaining);
+    // let ellipsis = '\u{2026}'.to_string();
+    // let row_remaining_text: String = format!("{} with {} more rows", ellipsis, rows_remaining);
 
-    // csv gets records in rows. This makes them cols
-    let mut v: Vec<Vec<&str>> = Vec::new(); //vec![vec!["#"; rows as usize]; cols as usize];
-    for col in 0..cols {
-        let column = rdr
-            .iter()
-            .take(rows)
-            .map(|row| row.get(col).unwrap())
-            .collect();
-        v.push(column)
-    }
+    // // csv gets records in rows. This makes them cols
+    // let mut v: Vec<Vec<&str>> = Vec::new(); //vec![vec!["#"; rows as usize]; cols as usize];
+    // for col in 0..cols {
+    //     let column = rdr
+    //         .iter()
+    //         .take(rows)
+    //         .map(|row| row.get(col).unwrap())
+    //         .collect();
+    //     v.push(column)
+    // }
 
-    if debug_mode {
-        println!("{:?}", "v");
-        println!("{:?}", v);
-    }
+    // if debug_mode {
+    //     println!("{:?}", "v");
+    //     println!("{:?}", v);
+    // }
 
-    if debug_mode {
-        // make datatypes vector
-        let mut vec_datatypes = Vec::with_capacity(cols);
-        for column in &v {
-            vec_datatypes.push(datatype::get_col_data_type(column))
-        }
-        println!("{:?}", "vec_datatypes");
-        println!("{:?}", vec_datatypes);
-    }
+    // if debug_mode {
+    //     // make datatypes vector
+    //     let mut vec_datatypes = Vec::with_capacity(cols);
+    //     for column in &v {
+    //         vec_datatypes.push(datatype::get_col_data_type(column))
+    //     }
+    //     println!("{:?}", "vec_datatypes");
+    //     println!("{:?}", vec_datatypes);
+    // }
 
-    // vector of formatted values
-    let vf: Vec<Vec<String>> = v
-        .iter()
-        .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width, sigfig))
-        .collect();
+    // // vector of formatted values
+    // let vf: Vec<Vec<String>> = v
+    //     .iter()
+    //     .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width, sigfig))
+    //     .collect();
 
-    if debug_mode {
-        println!("{:?}", "Transposed Vector of Elements");
-        println!("{:?}", v);
-        println!("{:?}", "Formatted: Vector of Elements");
-        println!("{:?}", vf);
-    }
+    // if debug_mode {
+    //     println!("{:?}", "Transposed Vector of Elements");
+    //     println!("{:?}", v);
+    //     println!("{:?}", "Formatted: Vector of Elements");
+    //     println!("{:?}", vf);
+    // }
 
-    println!();
-    let mut vp: Vec<Vec<String>> = Vec::new();
-    for r in 0..rows {
-        let row = vf.iter().map(|col| col[r].to_string()).collect();
-        vp.push(row);
-    }
+    // println!();
+    // let mut vp: Vec<Vec<String>> = Vec::new();
+    // for r in 0..rows {
+    //     let row = vf.iter().map(|col| col[r].to_string()).collect();
+    //     vp.push(row);
+    // }
 
-    let num_cols_to_print = if extend_width_length_option {
-        cols
-    } else {
-        get_num_cols_to_print(cols, vp.clone(), term_tuple)
-    };
+    // let num_cols_to_print = if extend_width_length_option {
+    //     cols
+    // } else {
+    //     get_num_cols_to_print(cols, vp.clone(), term_tuple)
+    // };
 
-    // color
-    let meta_text: &str = "tv dim:";
-    let div: &str = "x";
-    let _ = match stdout!("{: >6}  ", "") {
-        Ok(_) => Ok(()),
-        Err(e) => match e.kind() {
-            std::io::ErrorKind::BrokenPipe => Ok(()),
-            _ => Err(e),
-        },
-    };
-    if !is_no_dimensions {
-        if is_tty || is_force_color {
-            let _ = match stdoutln!(
-                "{} {} {} {}",
-                meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]), // tv dim:
-                (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]), // rows
-                div.truecolor(meta_color[0], meta_color[1], meta_color[2]),       // x
-                (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),    // cols
-            ) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        } else {
-            let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        }
-    } else if is_tty || is_force_color {
-        let _ = match stdoutln!(
-            "{} {} {} {}",
-            "", // tv dim:
-            "", // rows
-            "", // x
-            "", // cols
-        ) {
-            Ok(_) => Ok(()),
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::BrokenPipe => Ok(()),
-                _ => Err(e),
-            },
-        };
-    } else {
-        let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
-            Ok(_) => Ok(()),
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::BrokenPipe => Ok(()),
-                _ => Err(e),
-            },
-        };
-    }
+    // // color
+    // let meta_text: &str = "tv dim:";
+    // let div: &str = "x";
+    // let _ = match stdout!("{: >6}  ", "") {
+    //     Ok(_) => Ok(()),
+    //     Err(e) => match e.kind() {
+    //         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //         _ => Err(e),
+    //     },
+    // };
+    // if !is_no_dimensions {
+    //     if is_tty || is_force_color {
+    //         let _ = match stdoutln!(
+    //             "{} {} {} {}",
+    //             meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]), // tv dim:
+    //             (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]), // rows
+    //             div.truecolor(meta_color[0], meta_color[1], meta_color[2]),       // x
+    //             (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),    // cols
+    //         ) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     } else {
+    //         let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     }
+    // } else if is_tty || is_force_color {
+    //     let _ = match stdoutln!(
+    //         "{} {} {} {}",
+    //         "", // tv dim:
+    //         "", // rows
+    //         "", // x
+    //         "", // cols
+    //     ) {
+    //         Ok(_) => Ok(()),
+    //         Err(e) => match e.kind() {
+    //             std::io::ErrorKind::BrokenPipe => Ok(()),
+    //             _ => Err(e),
+    //         },
+    //     };
+    // } else {
+    //     let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
+    //         Ok(_) => Ok(()),
+    //         Err(e) => match e.kind() {
+    //             std::io::ErrorKind::BrokenPipe => Ok(()),
+    //             _ => Err(e),
+    //         },
+    //     };
+    // }
 
-    // title
-    if !datatype::is_na(&title_option.clone()) {
-        let _ = match stdout!("{: >6}  ", "") {
-            Ok(_) => Ok(()),
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::BrokenPipe => Ok(()),
-                _ => Err(e),
-            },
-        };
-        if is_tty || is_force_color {
-            let _ = match stdoutln!(
-                "{}",
-                title_option
-                    .truecolor(meta_color[0], meta_color[1], meta_color[2])
-                    .underline()
-                    .bold()
-            ) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        } else {
-            let _ = match stdoutln!("{}", title_option) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        }
-    }
+    // // title
+    // if !datatype::is_na(&title_option.clone()) {
+    //     let _ = match stdout!("{: >6}  ", "") {
+    //         Ok(_) => Ok(()),
+    //         Err(e) => match e.kind() {
+    //             std::io::ErrorKind::BrokenPipe => Ok(()),
+    //             _ => Err(e),
+    //         },
+    //     };
+    //     if is_tty || is_force_color {
+    //         let _ = match stdoutln!(
+    //             "{}",
+    //             title_option
+    //                 .truecolor(meta_color[0], meta_color[1], meta_color[2])
+    //                 .underline()
+    //                 .bold()
+    //         ) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     } else {
+    //         let _ = match stdoutln!("{}", title_option) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     }
+    // }
 
-    // header
-    let _ = match stdout!("{: >6}  ", "") {
-        Ok(_) => Ok(()),
-        Err(e) => match e.kind() {
-            std::io::ErrorKind::BrokenPipe => Ok(()),
-            _ => Err(e),
-        },
-    };
-    //for col in 0..cols {
-    for col in 0..num_cols_to_print {
-        let text = vp[0].get(col).unwrap().to_string();
-        if is_tty || is_force_color {
-            let _ = match stdout!(
-                "{}",
-                text.truecolor(header_color[0], header_color[1], header_color[2])
-                    .bold()
-            ) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        } else {
-            let _ = match stdout!("{}", text) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        }
-    }
-    //println!();
-    // datatypes
-    //print!("{: >6}  ", "");
-    //for col in 0..cols{
-    //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
-    //    let mut owned_string: String = vec_datatypes[col].to_string();
-    //    let borrowed_string: &str = &" ".repeat(add_space);
-    //    owned_string.push_str(borrowed_string);
-    //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
-    //}
-    let _ = match stdoutln!() {
-        Ok(_) => Ok(()),
-        Err(e) => match e.kind() {
-            std::io::ErrorKind::BrokenPipe => Ok(()),
-            _ => Err(e),
-        },
-    };
-    // main body rows after the column names
-    vp.iter()
-        .enumerate()
-        .take(rows)
-        .skip(1)
-        .for_each(|(i, row)| {
-            if is_tty || is_force_color {
-                if is_no_row_numbering {
-                    let _ = match stdout!(
-                        "{: >6}  ",
-                        "".truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
-                    ) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                } else {
-                    let _ = match stdout!(
-                        "{: >6}  ",
-                        i.truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
-                    ) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                }
-            } else if is_no_row_numbering {
-                let _ = match stdout!("{: >6}  ", 
-                ""                                                           // this prints the row number
-            ) {
-                    Ok(_) => Ok(()),
-                    Err(e) => match e.kind() {
-                        std::io::ErrorKind::BrokenPipe => Ok(()),
-                        _ => Err(e),
-                    },
-                };
-            } else {
-                let _ = match stdout!("{: >6}  ", 
-                ""                                                           // this prints the row number
-            ) {
-                    Ok(_) => Ok(()),
-                    Err(e) => match e.kind() {
-                        std::io::ErrorKind::BrokenPipe => Ok(()),
-                        _ => Err(e),
-                    },
-                };
-            }
-            row.iter().take(num_cols_to_print).for_each(|col| {
-                if is_tty || is_force_color {
-                    let _ = match stdout!(
-                        "{}",
-                        if datatype::is_na_string_padded(col) {
-                            col.truecolor(na_color[0], na_color[1], na_color[2])
-                        } else if datatype::is_number(col) && datatype::is_negative_number(col) {
-                            col.truecolor(neg_num_color[0], neg_num_color[1], neg_num_color[2])
-                        } else {
-                            col.truecolor(std_color[0], std_color[1], std_color[2])
-                        }
-                    ) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                } else {
-                    let _ = match stdout!("{}", col) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                }
-            });
-            let _ = match stdoutln!() {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        });
+    // // header
+    // let _ = match stdout!("{: >6}  ", "") {
+    //     Ok(_) => Ok(()),
+    //     Err(e) => match e.kind() {
+    //         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //         _ => Err(e),
+    //     },
+    // };
+    // //for col in 0..cols {
+    // for col in 0..num_cols_to_print {
+    //     let text = vp[0].get(col).unwrap().to_string();
+    //     if is_tty || is_force_color {
+    //         let _ = match stdout!(
+    //             "{}",
+    //             text.truecolor(header_color[0], header_color[1], header_color[2])
+    //                 .bold()
+    //         ) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     } else {
+    //         let _ = match stdout!("{}", text) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     }
+    // }
+    // //println!();
+    // // datatypes
+    // //print!("{: >6}  ", "");
+    // //for col in 0..cols{
+    // //    let add_space = vec_datatypes[col].len() - col_largest_width[col];
+    // //    let mut owned_string: String = vec_datatypes[col].to_string();
+    // //    let borrowed_string: &str = &" ".repeat(add_space);
+    // //    owned_string.push_str(borrowed_string);
+    // //    print!("{}",owned_string.truecolor(143, 188, 187).bold());
+    // //}
+    // let _ = match stdoutln!() {
+    //     Ok(_) => Ok(()),
+    //     Err(e) => match e.kind() {
+    //         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //         _ => Err(e),
+    //     },
+    // };
+    // // main body rows after the column names
+    // vp.iter()
+    //     .enumerate()
+    //     .take(rows)
+    //     .skip(1)
+    //     .for_each(|(i, row)| {
+    //         if is_tty || is_force_color {
+    //             if is_no_row_numbering {
+    //                 let _ = match stdout!(
+    //                     "{: >6}  ",
+    //                     "".truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
+    //                 ) {
+    //                     Ok(_) => Ok(()),
+    //                     Err(e) => match e.kind() {
+    //                         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                         _ => Err(e),
+    //                     },
+    //                 };
+    //             } else {
+    //                 let _ = match stdout!(
+    //                     "{: >6}  ",
+    //                     i.truecolor(meta_color[0], meta_color[1], meta_color[2]) // this prints the row number
+    //                 ) {
+    //                     Ok(_) => Ok(()),
+    //                     Err(e) => match e.kind() {
+    //                         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                         _ => Err(e),
+    //                     },
+    //                 };
+    //             }
+    //         } else if is_no_row_numbering {
+    //             let _ = match stdout!("{: >6}  ",
+    //             ""                                                           // this prints the row number
+    //         ) {
+    //                 Ok(_) => Ok(()),
+    //                 Err(e) => match e.kind() {
+    //                     std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                     _ => Err(e),
+    //                 },
+    //             };
+    //         } else {
+    //             let _ = match stdout!("{: >6}  ",
+    //             ""                                                           // this prints the row number
+    //         ) {
+    //                 Ok(_) => Ok(()),
+    //                 Err(e) => match e.kind() {
+    //                     std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                     _ => Err(e),
+    //                 },
+    //             };
+    //         }
+    //         row.iter().take(num_cols_to_print).for_each(|col| {
+    //             if is_tty || is_force_color {
+    //                 let _ = match stdout!(
+    //                     "{}",
+    //                     if datatype::is_na_string_padded(col) {
+    //                         col.truecolor(na_color[0], na_color[1], na_color[2])
+    //                     } else if datatype::is_number(col) && datatype::is_negative_number(col) {
+    //                         col.truecolor(neg_num_color[0], neg_num_color[1], neg_num_color[2])
+    //                     } else {
+    //                         col.truecolor(std_color[0], std_color[1], std_color[2])
+    //                     }
+    //                 ) {
+    //                     Ok(_) => Ok(()),
+    //                     Err(e) => match e.kind() {
+    //                         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                         _ => Err(e),
+    //                     },
+    //                 };
+    //             } else {
+    //                 let _ = match stdout!("{}", col) {
+    //                     Ok(_) => Ok(()),
+    //                     Err(e) => match e.kind() {
+    //                         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                         _ => Err(e),
+    //                     },
+    //                 };
+    //             }
+    //         });
+    //         let _ = match stdoutln!() {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     });
 
-    // additional row info
-    if rows_remaining > 0 || (cols - num_cols_to_print) > 0 {
-        let _ = match stdout!("{: >6}  ", "") {
-            Ok(_) => Ok(()),
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::BrokenPipe => Ok(()),
-                _ => Err(e),
-            },
-        };
-        if is_tty || is_force_color {
-            let _ = match stdout!(
-                "{}",
-                row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
-            ) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        } else {
-            let _ = match stdout!("{}", row_remaining_text) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        }
-        let extra_cols_to_mention = num_cols_to_print;
-        let remainder_cols = cols - extra_cols_to_mention;
-        if extra_cols_to_mention < cols {
-            let meta_text_and = "and";
-            let meta_text_var = "more variables";
-            let meta_text_comma = ",";
-            let meta_text_colon = ":";
-            if is_tty || is_force_color {
-                let _ = match stdout!(
-                    " {} {} {}{}",
-                    meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-                    remainder_cols.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-                    meta_text_var.truecolor(meta_color[0], meta_color[1], meta_color[2]),
-                    meta_text_colon.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                ) {
-                    Ok(_) => Ok(()),
-                    Err(e) => match e.kind() {
-                        std::io::ErrorKind::BrokenPipe => Ok(()),
-                        _ => Err(e),
-                    },
-                };
-            } else {
-                let _ = match stdout!(
-                    " {} {} {}{}",
-                    meta_text_and,
-                    remainder_cols,
-                    meta_text_var,
-                    meta_text_colon
-                ) {
-                    Ok(_) => Ok(()),
-                    Err(e) => match e.kind() {
-                        std::io::ErrorKind::BrokenPipe => Ok(()),
-                        _ => Err(e),
-                    },
-                };
-            }
-            for col in extra_cols_to_mention..cols {
-                let text = rdr[0].get(col).unwrap();
-                if is_tty || is_force_color {
-                    let _ = match stdout!(
-                        " {}",
-                        text.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                    ) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                } else {
-                    let _ = match stdout!(" {}", text) {
-                        Ok(_) => Ok(()),
-                        Err(e) => match e.kind() {
-                            std::io::ErrorKind::BrokenPipe => Ok(()),
-                            _ => Err(e),
-                        },
-                    };
-                }
+    // // additional row info
+    // if rows_remaining > 0 || (cols - num_cols_to_print) > 0 {
+    //     let _ = match stdout!("{: >6}  ", "") {
+    //         Ok(_) => Ok(()),
+    //         Err(e) => match e.kind() {
+    //             std::io::ErrorKind::BrokenPipe => Ok(()),
+    //             _ => Err(e),
+    //         },
+    //     };
+    //     if is_tty || is_force_color {
+    //         let _ = match stdout!(
+    //             "{}",
+    //             row_remaining_text.truecolor(meta_color[0], meta_color[1], meta_color[2])
+    //         ) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     } else {
+    //         let _ = match stdout!("{}", row_remaining_text) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     }
+    //     let extra_cols_to_mention = num_cols_to_print;
+    //     let remainder_cols = cols - extra_cols_to_mention;
+    //     if extra_cols_to_mention < cols {
+    //         let meta_text_and = "and";
+    //         let meta_text_var = "more variables";
+    //         let meta_text_comma = ",";
+    //         let meta_text_colon = ":";
+    //         if is_tty || is_force_color {
+    //             let _ = match stdout!(
+    //                 " {} {} {}{}",
+    //                 meta_text_and.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+    //                 remainder_cols.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+    //                 meta_text_var.truecolor(meta_color[0], meta_color[1], meta_color[2]),
+    //                 meta_text_colon.truecolor(meta_color[0], meta_color[1], meta_color[2])
+    //             ) {
+    //                 Ok(_) => Ok(()),
+    //                 Err(e) => match e.kind() {
+    //                     std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                     _ => Err(e),
+    //                 },
+    //             };
+    //         } else {
+    //             let _ = match stdout!(
+    //                 " {} {} {}{}",
+    //                 meta_text_and,
+    //                 remainder_cols,
+    //                 meta_text_var,
+    //                 meta_text_colon
+    //             ) {
+    //                 Ok(_) => Ok(()),
+    //                 Err(e) => match e.kind() {
+    //                     std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                     _ => Err(e),
+    //                 },
+    //             };
+    //         }
+    //         for col in extra_cols_to_mention..cols {
+    //             let text = rdr[0].get(col).unwrap();
+    //             if is_tty || is_force_color {
+    //                 let _ = match stdout!(
+    //                     " {}",
+    //                     text.truecolor(meta_color[0], meta_color[1], meta_color[2])
+    //                 ) {
+    //                     Ok(_) => Ok(()),
+    //                     Err(e) => match e.kind() {
+    //                         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                         _ => Err(e),
+    //                     },
+    //                 };
+    //             } else {
+    //                 let _ = match stdout!(" {}", text) {
+    //                     Ok(_) => Ok(()),
+    //                     Err(e) => match e.kind() {
+    //                         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                         _ => Err(e),
+    //                     },
+    //                 };
+    //             }
 
-                // The last column mentioned in foot should not be followed by a comma
-                if col + 1 < cols {
-                    if is_tty || is_force_color {
-                        let _ = match stdout!(
-                            "{}",
-                            meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
-                        ) {
-                            Ok(_) => Ok(()),
-                            Err(e) => match e.kind() {
-                                std::io::ErrorKind::BrokenPipe => Ok(()),
-                                _ => Err(e),
-                            },
-                        };
-                    } else {
-                        let _ = match stdout!("{}", meta_text_comma) {
-                            Ok(_) => Ok(()),
-                            Err(e) => match e.kind() {
-                                std::io::ErrorKind::BrokenPipe => Ok(()),
-                                _ => Err(e),
-                            },
-                        };
-                    }
-                }
-            } // end extra cols mentioned in footer
-        }
-    }
+    //             // The last column mentioned in foot should not be followed by a comma
+    //             if col + 1 < cols {
+    //                 if is_tty || is_force_color {
+    //                     let _ = match stdout!(
+    //                         "{}",
+    //                         meta_text_comma.truecolor(meta_color[0], meta_color[1], meta_color[2])
+    //                     ) {
+    //                         Ok(_) => Ok(()),
+    //                         Err(e) => match e.kind() {
+    //                             std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                             _ => Err(e),
+    //                         },
+    //                     };
+    //                 } else {
+    //                     let _ = match stdout!("{}", meta_text_comma) {
+    //                         Ok(_) => Ok(()),
+    //                         Err(e) => match e.kind() {
+    //                             std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                             _ => Err(e),
+    //                         },
+    //                     };
+    //                 }
+    //             }
+    //         } // end extra cols mentioned in footer
+    //     }
+    // }
 
-    // footer
-    if !datatype::is_na(&footer_option.clone()) {
-        let _ = match stdout!("{: >6}  ", "") {
-            Ok(_) => Ok(()),
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::BrokenPipe => Ok(()),
-                _ => Err(e),
-            },
-        };
-        if is_tty || is_force_color {
-            let _ = match stdoutln!(
-                "{}",
-                footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
-            ) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        } else {
-            let _ = match stdoutln!("{}", footer_option) {
-                Ok(_) => Ok(()),
-                Err(e) => match e.kind() {
-                    std::io::ErrorKind::BrokenPipe => Ok(()),
-                    _ => Err(e),
-                },
-            };
-        }
-    }
+    // // footer
+    // if !datatype::is_na(&footer_option.clone()) {
+    //     let _ = match stdout!("{: >6}  ", "") {
+    //         Ok(_) => Ok(()),
+    //         Err(e) => match e.kind() {
+    //             std::io::ErrorKind::BrokenPipe => Ok(()),
+    //             _ => Err(e),
+    //         },
+    //     };
+    //     if is_tty || is_force_color {
+    //         let _ = match stdoutln!(
+    //             "{}",
+    //             footer_option.truecolor(meta_color[0], meta_color[1], meta_color[2])
+    //         ) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     } else {
+    //         let _ = match stdoutln!("{}", footer_option) {
+    //             Ok(_) => Ok(()),
+    //             Err(e) => match e.kind() {
+    //                 std::io::ErrorKind::BrokenPipe => Ok(()),
+    //                 _ => Err(e),
+    //             },
+    //         };
+    //     }
+    // }
 
-    let _ = match stdoutln!() {
-        Ok(_) => Ok(()),
-        Err(e) => match e.kind() {
-            std::io::ErrorKind::BrokenPipe => Ok(()),
-            _ => Err(e),
-        },
-    };
+    // let _ = match stdoutln!() {
+    //     Ok(_) => Ok(()),
+    //     Err(e) => match e.kind() {
+    //         std::io::ErrorKind::BrokenPipe => Ok(()),
+    //         _ => Err(e),
+    //     },
+    // };
 } // end main
 
 fn get_color_from_config(a: &toml::value::Array) -> [u8; 3] {
