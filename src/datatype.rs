@@ -2,6 +2,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::str::FromStr;
+use unicode_width::UnicodeWidthStr;
 use unicode_truncate::UnicodeTruncateStr;
 
 mod sigfig;
@@ -182,7 +183,7 @@ pub fn format_strings(
 
                 string.push_str(&" ".repeat(max_fract - fract));
             }
-            let len = string.chars().count();
+            let len = UnicodeWidthStr::width(string.as_str());
             // the string and its length
             (string, len)
         })
