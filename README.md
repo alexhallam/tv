@@ -2,6 +2,7 @@
 [![Crate](https://img.shields.io/crates/v/tidy-viewer.svg)](https://crates.io/crates/tidy-viewer)
 ![Crates.io](https://img.shields.io/crates/d/tidy-viewer?label=creates.io%20downloads)
 ![GitHub all releases](https://img.shields.io/github/downloads/alexhallam/tv/total?label=github%20release%20downloads)
+[![tidy-viewer](https://snapcraft.io/tidy-viewer/badge.svg)](https://snapcraft.io/tidy-viewer)
 
 <h1 align="center">Tidy Viewer (tv)</h1>
 <p align="center">Tidy Viewer (tv) is a cross-platform csv pretty printer that uses column styling to maximize viewer enjoyment.</p>
