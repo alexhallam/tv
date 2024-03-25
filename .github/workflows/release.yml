@@ -173,6 +173,8 @@ jobs:
         else
           echo "Target is not Windows Based"
           cp "target/${{ matrix.target }}/release/tidy-viewer" "$staging/"
+          chmod -R 755 $staging  # This command recursively sets read, write, and execute permissions
+          chown -R root:root $staging  # This command recursively changes the owner and group of the staging directory to root.
           tar czf "$staging.tar.gz" "$staging"
           echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
         fi
