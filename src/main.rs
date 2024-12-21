@@ -85,6 +85,12 @@ struct Cli {
     )]
     skip_invalid_rows: bool,
     #[structopt(
+        short = "p",
+        long = "pedantic",
+        help = "Crashes when csv input is malformed. Useful to check for valid csv data."
+    )]
+    pedantic: bool,
+    #[structopt(
         short = "t",
         long = "title",
         default_value = "NA",
@@ -221,6 +227,7 @@ fn main() {
         },
     };
     // load cli args
+    // Must be mut to allow the program to override the pedantic flag if the user asks for 'skip-invalid-rows'
     let opt = Cli::from_args();
 
     // print helpful config details
@@ -651,44 +658,18 @@ fn main() {
         return;
     };
 
-    let rdr = r.records().into_iter().collect::<Vec<_>>();
+    let rdr = r.records().collect::<Vec<_>>();
     //.take(row_display_option + 1);
 
     // If any of the records are errors, we should try a different stratagy
-    let rdr = if rdr.iter().any(|x| x.is_err()) {
-        /* steamroll errors */
-        if opt.skip_invalid_rows {
-            rdr.into_iter()
-                .filter(|x| x.is_ok())
-                .map(|x| x.unwrap())
-                .collect::<Vec<_>>()
-        } else {
-            let reader_result = build_flexible_reader(&opt);
-
-            let mut r = if let Ok(reader) = reader_result {
-                reader
-            } else {
-                // We can safely use unwrap, because if file in case when file is None
-                // build_reader would return reader created from stdin
-                let path_buf = opt.file.unwrap();
-                let path = path_buf.as_path();
-                if let Some(path) = path.to_str() {
-                    eprintln!("Failed to open file: {}", path);
-                } else {
-                    eprintln!("Failed to open file.")
-                }
-                return;
-            };
-
-            let rdr = r.records().into_iter().collect::<Vec<_>>();
-
-            rdr.into_iter()
-                .map(|x| x.unwrap_or_else(|e| csv::StringRecord::from(vec![""])))
-                .collect::<Vec<_>>()
-        }
+    let rdr = if opt.skip_invalid_rows {
+        rdr.into_iter()
+            .filter_map(|record| record.ok())
+            .collect::<Vec<_>>()
     } else {
-        // We can safely unwrap here, because we know that all records are Ok from the previous check
-        rdr.into_iter().map(|x| x.unwrap()).collect::<Vec<_>>()
+        rdr.into_iter()
+            .map(|record| record.expect("valid csv data"))
+            .collect::<Vec<_>>()
     };
 
     dbg!(&rdr);
@@ -1198,38 +1179,6 @@ fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u1
     last
 }
 
-fn build_flexible_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
-    let mut delimiter = b',';
-
-    let source: Box<dyn Read> = if let Some(path) = &opt.file {
-        let file = File::open(path)?;
-
-        // Update the default delimiter by checking the file extension.
-        delimiter = match path.extension() {
-            Some(ext) if ext == "tsv" => b'\t',
-            Some(ext) if ext == "psv" => b'|',
-            _ => delimiter,
-        };
-
-        Box::new(BufReader::new(file))
-    } else {
-        Box::new(io::stdin())
-    };
-
-    // Cli options take precedence.
-    if let Some(del) = opt.delimiter {
-        delimiter = del;
-    }
-
-    let reader = ReaderBuilder::new()
-        .flexible(true)
-        .has_headers(false)
-        .delimiter(delimiter)
-        .from_reader(source);
-
-    Ok(reader)
-}
-
 fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
     let mut delimiter = b',';
 
@@ -1254,6 +1203,7 @@ fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
     }
 
     let reader = ReaderBuilder::new()
+        .flexible(!(opt.pedantic || opt.skip_invalid_rows))
         .has_headers(false)
         .delimiter(delimiter)
         .from_reader(source);
