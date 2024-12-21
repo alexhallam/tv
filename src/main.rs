@@ -79,6 +79,12 @@ struct Cli {
     )]
     force_all_rows: bool,
     #[structopt(
+        short = "j",
+        long = "jump-invalid-rows",
+        help = "Jump over (skip) invalid rows in the file. This includes rows with the incorrect number of columns."
+    )]
+    skip_invalid_rows: bool,
+    #[structopt(
         short = "t",
         long = "title",
         default_value = "NA",
@@ -645,12 +651,47 @@ fn main() {
         return;
     };
 
-    let rdr = r
-        .records()
-        .into_iter()
-        //.take(row_display_option + 1)
-        .map(|x| x.expect("a csv record"))
-        .collect::<Vec<_>>();
+    let rdr = r.records().into_iter().collect::<Vec<_>>();
+    //.take(row_display_option + 1);
+
+    // If any of the records are errors, we should try a different stratagy
+    let rdr = if rdr.iter().any(|x| x.is_err()) {
+        /* steamroll errors */
+        if opt.skip_invalid_rows {
+            rdr.into_iter()
+                .filter(|x| x.is_ok())
+                .map(|x| x.unwrap())
+                .collect::<Vec<_>>()
+        } else {
+            let reader_result = build_flexible_reader(&opt);
+
+            let mut r = if let Ok(reader) = reader_result {
+                reader
+            } else {
+                // We can safely use unwrap, because if file in case when file is None
+                // build_reader would return reader created from stdin
+                let path_buf = opt.file.unwrap();
+                let path = path_buf.as_path();
+                if let Some(path) = path.to_str() {
+                    eprintln!("Failed to open file: {}", path);
+                } else {
+                    eprintln!("Failed to open file.")
+                }
+                return;
+            };
+
+            let rdr = r.records().into_iter().collect::<Vec<_>>();
+
+            rdr.into_iter()
+                .map(|x| x.unwrap_or_else(|e| csv::StringRecord::from(vec![""])))
+                .collect::<Vec<_>>()
+        }
+    } else {
+        // We can safely unwrap here, because we know that all records are Ok from the previous check
+        rdr.into_iter().map(|x| x.unwrap()).collect::<Vec<_>>()
+    };
+
+    dbg!(&rdr);
 
     if debug_mode {
         println!("{:?}", "StringRecord");
@@ -693,7 +734,7 @@ fn main() {
         let column = rdr
             .iter()
             .take(rows)
-            .map(|row| row.get(col).unwrap())
+            .map(|row| row.get(col).unwrap_or_default())
             .collect();
         v.push(column)
     }
@@ -1155,6 +1196,38 @@ fn get_num_cols_to_print(cols: usize, vp: Vec<Vec<String>>, term_tuple: (u16, u1
         last = col + 1;
     }
     last
+}
+
+fn build_flexible_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
+    let mut delimiter = b',';
+
+    let source: Box<dyn Read> = if let Some(path) = &opt.file {
+        let file = File::open(path)?;
+
+        // Update the default delimiter by checking the file extension.
+        delimiter = match path.extension() {
+            Some(ext) if ext == "tsv" => b'\t',
+            Some(ext) if ext == "psv" => b'|',
+            _ => delimiter,
+        };
+
+        Box::new(BufReader::new(file))
+    } else {
+        Box::new(io::stdin())
+    };
+
+    // Cli options take precedence.
+    if let Some(del) = opt.delimiter {
+        delimiter = del;
+    }
+
+    let reader = ReaderBuilder::new()
+        .flexible(true)
+        .has_headers(false)
+        .delimiter(delimiter)
+        .from_reader(source);
+
+    Ok(reader)
 }
 
 fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
