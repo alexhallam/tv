@@ -670,8 +670,6 @@ fn main() {
             .collect::<Vec<_>>()
     };
 
-    dbg!(&rdr);
-
     if debug_mode {
         println!("{:?}", "StringRecord");
         println!("{:?}", rdr);
