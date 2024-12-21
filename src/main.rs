@@ -227,7 +227,6 @@ fn main() {
         },
     };
     // load cli args
-    // Must be mut to allow the program to override the pedantic flag if the user asks for 'skip-invalid-rows'
     let opt = Cli::from_args();
 
     // print helpful config details
@@ -661,7 +660,6 @@ fn main() {
     let rdr = r.records().collect::<Vec<_>>();
     //.take(row_display_option + 1);
 
-    // If any of the records are errors, we should try a different stratagy
     let rdr = if opt.skip_invalid_rows {
         rdr.into_iter()
             .filter_map(|record| record.ok())
