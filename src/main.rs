@@ -79,6 +79,18 @@ struct Cli {
     )]
     force_all_rows: bool,
     #[structopt(
+        short = "j",
+        long = "jump-invalid-rows",
+        help = "Jump over (skip) invalid rows in the file. This includes rows with the incorrect number of columns."
+    )]
+    skip_invalid_rows: bool,
+    #[structopt(
+        short = "p",
+        long = "pedantic",
+        help = "Crashes when csv input is malformed. Useful to check for valid csv data."
+    )]
+    pedantic: bool,
+    #[structopt(
         short = "t",
         long = "title",
         default_value = "NA",
@@ -645,12 +657,18 @@ fn main() {
         return;
     };
 
-    let rdr = r
-        .records()
-        .into_iter()
-        //.take(row_display_option + 1)
-        .map(|x| x.expect("a csv record"))
-        .collect::<Vec<_>>();
+    let rdr = r.records().collect::<Vec<_>>();
+    //.take(row_display_option + 1);
+
+    let rdr = if opt.skip_invalid_rows {
+        rdr.into_iter()
+            .filter_map(|record| record.ok())
+            .collect::<Vec<_>>()
+    } else {
+        rdr.into_iter()
+            .map(|record| record.expect("valid csv data"))
+            .collect::<Vec<_>>()
+    };
 
     if debug_mode {
         println!("{:?}", "StringRecord");
@@ -693,7 +711,7 @@ fn main() {
         let column = rdr
             .iter()
             .take(rows)
-            .map(|row| row.get(col).unwrap())
+            .map(|row| row.get(col).unwrap_or_default())
             .collect();
         v.push(column)
     }
@@ -1181,6 +1199,7 @@ fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
     }
 
     let reader = ReaderBuilder::new()
+        .flexible(!(opt.pedantic || opt.skip_invalid_rows))
         .has_headers(false)
         .delimiter(delimiter)
         .from_reader(source);
