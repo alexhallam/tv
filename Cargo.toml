@@ -8,7 +8,7 @@ license = "Unlicense OR MIT"
 name = "tidy-viewer"
 readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
-version = "1.6.2"
+version = "1.6.3"
 
 [package.metadata.deb]
 assets = [
@@ -34,6 +34,7 @@ priority = "optional"
 section = "utility"
 
 [dependencies]
+arrow = "50.0"
 atty = "0.2.14"
 calm_io = "0.1.1"
 console = "0.15.0"

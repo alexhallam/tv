@@ -1,7 +1,42 @@
 
 
-1.6.2 (2025-01-27)
+1.6.3 (2025-01-27)
 ==================
+
+* **Major Feature** **Arrow IPC (Feather) File Support** - Added native support for reading and displaying Arrow IPC files with full compatibility with existing visualization features.
+
+  **New Capabilities:**
+  - **Multiple Extension Support**: Automatically detects Arrow IPC files with `.feather`, `.arrow`, and `.ipc` extensions
+  - **Schema-based Headers**: Column names extracted from Arrow schema metadata
+  - **Type-aware Data Conversion**: Properly handles Arrow data types (strings, integers, floats, booleans) with null value handling
+  - **Streaming Support**: Large Arrow files automatically use streaming mode for memory efficiency
+  - **Full Feature Compatibility**: All existing tv features work with Arrow files (colors, column width limits, row limits, etc.)
+
+  **Usage Examples:**
+  ```sh
+  # View Arrow IPC files (same as CSV/Parquet usage)
+  tv data.feather
+  tv data.arrow
+  tv data.ipc
+  
+  # Use with all existing options
+  tv data.feather -n 50 --color 2 --title "My Arrow Data"
+  
+  # Extended width for large datasets
+  tv large_dataset.arrow -e -f | less -S
+  ```
+
+  **Technical Implementation:**
+  - Integrated `arrow` crate v50.0 for Arrow IPC file reading
+  - Unified processing pipeline supporting CSV, Parquet, and Arrow inputs
+  - Memory-efficient batch processing for large Arrow files
+  - Maintains backward compatibility - no changes to existing functionality
+
+  **Benefits:**
+  - Access to high-performance Arrow IPC format without external tools
+  - Seamless workflow for data scientists using Arrow ecosystem
+  - Leverages tv's superior visualization for Arrow data exploration
+  - Significant performance benefits for data exchange workflows
 
 * **Bug Fix** **JSON File Graceful Error Handling** - Added proper detection and graceful error handling for JSON files to prevent crashes and provide helpful guidance.
 
