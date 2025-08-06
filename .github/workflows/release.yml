@@ -1,190 +1,335 @@
-# The way this works is the following:
-#
-# The create-release job runs purely to initialize the GitHub release itself
-# and to output upload_url for the following job.
-#
-# The build-release job runs only once create-release is finished. It gets the
-# release upload URL from create-release job outputs, then builds the release
-# executables for each supported platform and attaches them as release assets
-# to the previously created release.
-#
-# The key here is that we create the release only once.
-#
-# Reference:
-# https://eugene-babichenko.github.io/blog/2020/05/09/github-actions-cross-platform-auto-releases/
-## staging="tv-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
-name: release
+name: Release Process
+
 on:
   push:
-    # Enable when testing release infrastructure on a branch.
-    # branches:
-    # - ag/work
-    # Ignore README.md changes. No need to test code when only README changes
-    paths-ignore:
-      - 'README.md'
     tags:
-    - "[0-9]+.[0-9]+.[0-9]+"
+      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
-  create-release:
-    name: create-release
-    runs-on: ubuntu-latest
-    # env:
-      # Set to force version number, e.g., when no tag exists.
-      # RG_VERSION: TEST-0.0.0
-    outputs:
-      upload_url: ${{ steps.release.outputs.upload_url }}
-      tv_version: ${{ env.TV_VERSION }}
+  validate:
+    name: Pre-Release Validation
+    runs-on: ubuntu-22.04
     steps:
-      - name: Get the release version from the tag
-        shell: bash
-        if: env.TV_VERSION == ''
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Extract version from tag
+        id: version
         run: |
-          # Apparently, this is the right way to get a tag name. Really?
-          #
-          # See: https://github.community/t5/GitHub-Actions/How-to-get-just-the-tag-name/m-p/32167/highlight/true#M1027
-          echo "TV_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          echo "version is: ${{ env.TV_VERSION }}"
-      - name: GH Actions Release
-        id: release
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: X.Y.Z (e.g., 1.6.5)"
+            exit 1
+          fi
+          echo "✅ Version format valid: $VERSION"
+
+      - name: Check CHANGELOG
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! grep -q "^$VERSION (" CHANGELOG.md; then
+            echo "❌ Version $VERSION not found in CHANGELOG.md"
+            echo "Please add an entry for version $VERSION"
+            exit 1
+          fi
+          echo "✅ CHANGELOG entry found for version $VERSION"
+
+      - name: Check for uncommitted changes
+        run: |
+          if ! git diff-index --quiet HEAD --; then
+            echo "❌ Uncommitted changes detected"
+            git status
+            exit 1
+          fi
+          echo "✅ No uncommitted changes"
+
+      - name: Run tests
+        run: cargo test
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Validate documentation
+        run: |
+          # Check if README exists and has content
+          if [ ! -f README.md ] || [ ! -s README.md ]; then
+            echo "❌ README.md is missing or empty"
+            exit 1
+          fi
+          
+          # Check if docs directory exists
+          if [ ! -d docs ]; then
+            echo "❌ docs directory is missing"
+            exit 1
+          fi
+          
+          # Check for required documentation files
+          for file in docs/RELEASE.md docs/TESTING.md; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Required documentation file missing: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Documentation validation passed"
+
+  publish:
+    name: Publish to Cargo
+    needs: validate
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Login to crates.io
+        uses: actions-rs/cargo@v1
+        with:
+          command: login
+          args: --registry crates-io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ env.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish to crates.io
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --registry crates-io
+
+  build-packages:
+    name: Build Distribution Packages
+    needs: validate
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Install alien
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y alien
+
+      - name: Build Debian package
+        run: cargo deb
+
+      - name: Build RPM package
+        run: |
+          alien --verbose --to-rpm ./target/debian/tidy-viewer_*_amd64.deb
+          mv *.rpm ./target/
+
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-package
+          path: ./target/debian/*.deb
+
+      - name: Upload RPM package
+        uses: actions/upload-artifact@v3
+        with:
+          name: rpm-package
+          path: ./target/*.rpm
+
+  homebrew-update:
+    name: Update Homebrew Formulas
+    needs: [validate, publish]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get SHA256 of release tarball
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          wget https://github.com/alexhallam/tv/archive/refs/tags/v$VERSION.tar.gz
+          SHA256=$(sha256sum v$VERSION.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          echo "SHA256: $SHA256"
+
+      - name: Update personal homebrew tap
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SHA256="${{ steps.sha256.outputs.sha256 }}"
+          
+          # Clone personal homebrew tap
+          git clone https://github.com/alexhallam/homebrew-tidy-viewer.git
+          cd homebrew-tidy-viewer
+          
+          # Update formula
+          sed -i "s/version \"[^\"]*\"/version \"$VERSION\"/" tidy-viewer.rb
+          sed -i "s/sha256 \"[^\"]*\"/sha256 \"$SHA256\"/" tidy-viewer.rb
+          
+          # Commit and push
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add tidy-viewer.rb
+          git commit -m "Update tidy-viewer to version $VERSION"
+          git push origin main
+
+      - name: Create Homebrew Core PR
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SHA256="${{ steps.sha256.outputs.sha256 }}"
+          
+          # Clone personal homebrew-core fork
+          git clone https://github.com/alexhallam/homebrew-core.git
+          cd homebrew-core
+          
+          # Fetch upstream
+          git remote add upstream https://github.com/Homebrew/homebrew-core.git
+          git fetch upstream
+          git checkout main
+          git merge upstream/main
+          
+          # Update formula
+          sed -i "s/version \"[^\"]*\"/version \"$VERSION\"/" Formula/t/tidy-viewer.rb
+          sed -i "s/sha256 \"[^\"]*\"/sha256 \"$SHA256\"/" Formula/t/tidy-viewer.rb
+          
+          # Create branch and push
+          git checkout -b tidy-viewer-$VERSION
+          git add Formula/t/tidy-viewer.rb
+          git commit -m "tidy-viewer: update $VERSION bottle"
+          git push origin tidy-viewer-$VERSION
+          
+          # Create PR (using GitHub CLI if available)
+          gh pr create --title "tidy-viewer: update $VERSION bottle" --body "Update tidy-viewer to version $VERSION"
+
+  post-release:
+    name: Post-Release Verification
+    needs: [publish, build-packages, homebrew-update]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Verify crates.io publication
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sleep 30  # Wait for crates.io to update
+          
+          # Check if version is available on crates.io
+          if ! curl -s "https://crates.io/api/v1/crates/tidy-viewer" | grep -q "\"version\":\"$VERSION\""; then
+            echo "❌ Version $VERSION not yet available on crates.io"
+            exit 1
+          fi
+          echo "✅ Version $VERSION published to crates.io"
+
+      - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.TV_VERSION }}
-          release_name: ${{ env.TV_VERSION }}
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## What's New in Version ${{ steps.version.outputs.version }}
+            
+            See [CHANGELOG.md](https://github.com/alexhallam/tv/blob/main/CHANGELOG.md) for detailed changes.
+            
+            ## Installation
+            
+            ```bash
+            cargo install tidy-viewer
+            ```
+            
+            ## Downloads
+            
+            - [Debian Package](https://github.com/alexhallam/tv/releases/download/${{ github.ref }}/tidy-viewer_${{ steps.version.outputs.version }}_amd64.deb)
+            - [RPM Package](https://github.com/alexhallam/tv/releases/download/${{ github.ref }}/tidy-viewer_${{ steps.version.outputs.version }}_amd64.rpm)
           draft: false
           prerelease: false
 
-  build-release:
-    name: build-release
-    needs: ['create-release']
-    runs-on: ${{ matrix.os }}
-    env:
-      # For some builds, we use cross to test on 32-bit and big-endian
-      # systems.
-      CARGO: cargo
-      # When CARGO is set to CROSS, this is set to `--target matrix.target`.
-      TARGET_FLAGS: ""
-      # When CARGO is set to CROSS, TARGET_DIR includes matrix.target.
-      TARGET_DIR: ./target
-      # Emit backtraces on panics.
-      RUST_BACKTRACE: 1
-      # Build static releases with PCRE2.
-      PCRE2_SYS_STATIC: 1
-    strategy:
-      fail-fast: false
-      matrix:
-        build: [linux, linux-arm, macos, win-msvc, win-gnu, win32-msvc]
-        include:
-        - build: linux
-          os: ubuntu-18.04
-          rust: nightly
-          target: x86_64-unknown-linux-musl
-        - build: linux-arm
-          os: ubuntu-18.04
-          rust: nightly
-          target: arm-unknown-linux-gnueabihf
-        - build: macos
-          os: macOS-11
-          rust: nightly
-          target: x86_64-apple-darwin
-        - build: win-msvc
-          os: windows-2019
-          rust: nightly
-          target: x86_64-pc-windows-msvc
-        - build: win-gnu
-          os: ubuntu-18.04
-          rust: nightly-x86_64-gnu
-          target: x86_64-pc-windows-gnu
-        - build: win32-msvc
-          os: windows-2019
-          rust: nightly
-          target: i686-pc-windows-msvc
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./target/debian/*.deb
+          asset_name: tidy-viewer_${{ steps.version.outputs.version }}_amd64.deb
+          asset_content_type: application/vnd.debian.binary-package
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
+      - name: Upload RPM Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./target/*.rpm
+          asset_name: tidy-viewer_${{ steps.version.outputs.version }}_amd64.rpm
+          asset_content_type: application/x-rpm
 
-    - name: Install packages (Ubuntu)
-      if: matrix.os == 'ubuntu-18.04'
-      run: |
-        ci/ubuntu-install-packages
-
-    - name: Install packages (macOS)
-      if: matrix.os == 'macOS-11'
-      run: |
-        ci/macos-install-packages
-
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.rust }}
-        profile: minimal
-        override: true
-        target: ${{ matrix.target }}
-
-    - name: Use Cross
-      shell: bash
-      run: |
-        cargo install cross
-        echo "CARGO=cross" >> $GITHUB_ENV
-        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
-        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
-
-    - name: Show command used for Cargo
-      run: |
-        echo "cargo command is: ${{ env.CARGO }}"
-        echo "target flag is: ${{ env.TARGET_FLAGS }}"
-        echo "target dir is: ${{ env.TARGET_DIR }}"
-
-    - name: Build release binary
-      run: ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
-
-    - name: Strip release binary (linux and macos)
-      if: matrix.build == 'linux' || matrix.build == 'macos'
-      run: strip "target/${{ matrix.target }}/release/tidy-viewer"
-
-    - name: Strip release binary (arm)
-      if: matrix.build == 'linux-arm'
-      run: |
-        docker run --rm -v \
-          "$PWD/target:/target:Z" \
-          rustembedded/cross:arm-unknown-linux-gnueabihf \
-          arm-linux-gnueabihf-strip \
-          /target/arm-unknown-linux-gnueabihf/release/tidy-viewer
-
-    - name: Build archive
-      shell: bash
-      run: |
-        #outdir="(ci/cargo-out-dir ${{ env.TARGET_DIR }})"
-        staging="tidy-viewer-${{ needs.create-release.outputs.tv_version }}-${{ matrix.target }}"
-        mkdir -p "$staging"/{complete,doc}
-
-        cp {README.md,UNLICENSE} "$staging/"
-        #cp CHANGELOG.md "$staging/doc/"
-
-        if [ "${{ matrix.target }}" = "i686-pc-windows-msvc" ] || [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ] || [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
-          echo "Target is Windows Based"
-          cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
-          7z a "$staging.zip" "$staging"
-          echo "ASSET=$staging.zip" >> $GITHUB_ENV
-        else
-          echo "Target is not Windows Based"
-          cp "target/${{ matrix.target }}/release/tidy-viewer" "$staging/"
-          chmod -R 755 $staging  # This command recursively sets read, write, and execute permissions
-          chown -R root:root $staging  # This command recursively changes the owner and group of the staging directory to root.
-          tar czf "$staging.tar.gz" "$staging"
-          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
-        fi
-
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ${{ env.ASSET }}
-        asset_name: ${{ env.ASSET }}
-        asset_content_type: application/octet-stream
+      - name: Success Summary
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "🎉 Release $VERSION completed successfully!"
+          echo ""
+          echo "✅ Published to crates.io"
+          echo "✅ Built Debian and RPM packages"
+          echo "✅ Updated Homebrew formulas"
+          echo "✅ Created GitHub release"
+          echo ""
+          echo "📦 Installation:"
+          echo "  cargo install tidy-viewer"
+          echo "  brew install tidy-viewer"
