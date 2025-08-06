@@ -1,5 +1,55 @@
 
 
+1.6.5 (2025-01-27)
+==================
+
+* **Bug Fix** **CI Workflow Updates** - Fixed GitHub Actions workflow issues by updating runner versions.
+
+  **Issues Fixed:**
+  - **Windows Server 2019 Deprecation**: Updated Windows runners from `windows-2019` to `windows-2022`
+  - **Ubuntu 18.04 End of Life**: Updated Ubuntu runners from `ubuntu-18.04` to `ubuntu-22.04`
+  - **macOS Runner Updates**: Updated macOS runner from `macOS-11` to `macOS-13`
+  - **Runner Timeout Issues**: Updated all runners to supported versions to prevent timeout errors
+
+  **Changes Made:**
+  - **Windows Runners**: Updated `win-msvc` and `win-gnu` jobs to use `windows-2022`
+  - **Ubuntu Runners**: Updated all Ubuntu jobs to use `ubuntu-22.04`
+  - **macOS Runner**: Updated macOS job to use `macOS-13`
+  - **Conditional Checks**: Updated all conditional checks to match new runner names
+  - **Rustfmt Job**: Updated rustfmt job to use `ubuntu-22.04`
+
+  **Technical Details:**
+  - Fixed deprecation warnings for Windows Server 2019 (retired as of 2025-06-30)
+  - Updated to supported runner versions to prevent timeout issues
+  - Maintained all existing functionality while using supported infrastructure
+  - All CI/CD workflows now use current, supported runner versions
+
+  **Benefits:**
+  - **No More Timeouts**: Updated runners should resolve 24-hour timeout issues
+  - **Future-Proof**: Using supported runner versions prevents future deprecation issues
+  - **Reliable CI**: All workflows now use current, maintained infrastructure
+  - **Better Performance**: Newer runners provide better performance and reliability
+
+* **Documentation** **Release Process Documentation** - Added comprehensive release checklist and improved project documentation.
+
+  **New Documentation:**
+  - **Release Checklist**: Created `docs/RELEASE.md` with complete release process
+  - **Testing Guide**: Enhanced `docs/TESTING.md` with comprehensive testing instructions
+  - **Project Organization**: Improved file organization and documentation structure
+
+  **Release Process:**
+  - **Pre-release Checklist**: Documentation updates, code quality checks
+  - **Release Process**: Step-by-step git tagging and publishing
+  - **Package Distribution**: Debian, RPM, and Homebrew distribution instructions
+  - **Post-release Verification**: Installation testing and CI/CD verification
+
+  **Benefits:**
+  - **Consistent Releases**: Standardized process ensures no steps are missed
+  - **Easy Reference**: Comprehensive checklist for future releases
+  - **Multiple Distribution**: Support for Cargo, Homebrew, Debian, and RPM packages
+  - **Quality Assurance**: Built-in verification steps for release quality
+
+
 1.6.4 (2025-01-27)
 ==================
 

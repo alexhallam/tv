@@ -1,15 +1,15 @@
-use csv::{Reader, ReaderBuilder, StringRecord};
-use owo_colors::OwoColorize;
-use std::fs::File;
-use std::io::{self, BufReader, Read, BufRead};
-use std::path::PathBuf;
-use structopt::StructOpt;
-use parquet::file::reader::{FileReader, SerializedFileReader};
-use arrow::ipc::reader::FileReader as ArrowFileReader;
-use arrow::array::{Array, StringArray, Int64Array, Float64Array, BooleanArray};
+use arrow::array::{Array, BooleanArray, Float64Array, Int64Array, StringArray};
 use arrow::datatypes::DataType;
 use arrow::error::ArrowError;
+use arrow::ipc::reader::FileReader as ArrowFileReader;
+use csv::{Reader, ReaderBuilder, StringRecord};
 use lz4::block;
+use owo_colors::OwoColorize;
+use parquet::file::reader::{FileReader, SerializedFileReader};
+use std::fs::File;
+use std::io::{self, BufRead, BufReader, Read};
+use std::path::PathBuf;
+use structopt::StructOpt;
 mod datatype;
 use calm_io::stdout;
 use calm_io::stdoutln;
@@ -388,9 +388,7 @@ fn main() {
                 Some(x) => println!(
                     "{}{}{:?}",
                     "[+]".to_string().truecolor(143, 188, 187), // green
-                    " max_decimal_width = "
-                        .to_string()
-                        .truecolor(216, 222, 233), // white
+                    " max_decimal_width = ".to_string().truecolor(216, 222, 233), // white
                     x.truecolor(216, 222, 233)                  // white
                 ),
                 None => println!(
@@ -746,12 +744,17 @@ fn main() {
             handle_json_file(file_path);
         } else if is_arrow_file(file_path) {
             // Handle Arrow IPC files
-            let use_streaming = !opt.no_streaming && should_use_streaming_with_threshold(file_path, opt.streaming_threshold * 1024.0 * 1024.0).unwrap_or(false);
-            
+            let use_streaming = !opt.no_streaming
+                && should_use_streaming_with_threshold(
+                    file_path,
+                    opt.streaming_threshold * 1024.0 * 1024.0,
+                )
+                .unwrap_or(false);
+
             if use_streaming {
                 // Check file size for Arrow
                 let max_rows = calculate_sample_size(file_path).unwrap_or(1000);
-                
+
                 // Get row count from Arrow metadata to decide if streaming is needed
                 let needs_streaming = match File::open(file_path).and_then(|f| {
                     match ArrowFileReader::try_new(f, None) {
@@ -773,7 +776,7 @@ fn main() {
                     },
                     Err(_) => false, // If we can't read metadata, don't use streaming
                 };
-                
+
                 if needs_streaming {
                     // File is large, use streaming
                     match read_arrow_streaming(file_path, max_rows) {
@@ -783,9 +786,11 @@ fn main() {
                             } else {
                                 None
                             };
-                            let original_size = remaining.map(|r| r + (records.len() - 1)).unwrap_or(records.len() - 1);
+                            let original_size = remaining
+                                .map(|r| r + (records.len() - 1))
+                                .unwrap_or(records.len() - 1);
                             (records, info, Some(original_size))
-                        },
+                        }
                         Err(e) => {
                             eprintln!("Failed to read Arrow file: {}", e);
                             return;
@@ -812,23 +817,29 @@ fn main() {
             }
         } else if is_parquet_file(file_path) {
             // Handle Parquet files
-            let use_streaming = !opt.no_streaming && should_use_streaming_with_threshold(file_path, opt.streaming_threshold * 1024.0 * 1024.0).unwrap_or(false);
-            
+            let use_streaming = !opt.no_streaming
+                && should_use_streaming_with_threshold(
+                    file_path,
+                    opt.streaming_threshold * 1024.0 * 1024.0,
+                )
+                .unwrap_or(false);
+
             if use_streaming {
                 // Check file size for Parquet
                 let max_rows = calculate_sample_size(file_path).unwrap_or(1000);
-                
+
                 // Get row count from Parquet metadata to decide if streaming is needed
                 let needs_streaming = match File::open(file_path).and_then(|f| {
-                    SerializedFileReader::new(f).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+                    SerializedFileReader::new(f)
+                        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
                 }) {
                     Ok(reader) => {
                         let total_rows = reader.metadata().file_metadata().num_rows() as usize;
                         total_rows > max_rows
-                    },
+                    }
                     Err(_) => false, // If we can't read metadata, don't use streaming
                 };
-                
+
                 if needs_streaming {
                     // File is large, use streaming
                     match read_parquet_streaming(file_path, max_rows) {
@@ -838,9 +849,11 @@ fn main() {
                             } else {
                                 None
                             };
-                            let original_size = remaining.map(|r| r + (records.len() - 1)).unwrap_or(records.len() - 1);
+                            let original_size = remaining
+                                .map(|r| r + (records.len() - 1))
+                                .unwrap_or(records.len() - 1);
                             (records, info, Some(original_size))
-                        },
+                        }
                         Err(e) => {
                             eprintln!("Failed to read Parquet file: {}", e);
                             return;
@@ -867,19 +880,24 @@ fn main() {
             }
         } else {
             // Handle CSV/TSV/PSV files
-            let use_streaming = !opt.no_streaming && should_use_streaming_with_threshold(file_path, opt.streaming_threshold * 1024.0 * 1024.0).unwrap_or(false);
-            
+            let use_streaming = !opt.no_streaming
+                && should_use_streaming_with_threshold(
+                    file_path,
+                    opt.streaming_threshold * 1024.0 * 1024.0,
+                )
+                .unwrap_or(false);
+
             if use_streaming {
                 // First check if the file actually needs streaming by estimating its size
                 let estimated_total_lines = estimate_csv_rows(file_path).unwrap_or(1);
-                let estimated_data_rows = if estimated_total_lines > 0 { 
-                    estimated_total_lines - 1 
-                } else { 
-                    0 
+                let estimated_data_rows = if estimated_total_lines > 0 {
+                    estimated_total_lines - 1
+                } else {
+                    0
                 };
-                
+
                 let max_rows = calculate_sample_size(file_path).unwrap_or(1000);
-                
+
                 // If the file is actually small, don't use streaming even if threshold suggests it
                 if estimated_data_rows <= max_rows {
                     // File is small enough, read normally without streaming
@@ -917,9 +935,11 @@ fn main() {
                             } else {
                                 None
                             };
-                            let original_size = remaining.map(|r| r + (records.len() - 1)).unwrap_or(records.len() - 1);
+                            let original_size = remaining
+                                .map(|r| r + (records.len() - 1))
+                                .unwrap_or(records.len() - 1);
                             (records, info, Some(original_size))
-                        },
+                        }
                         Err(e) => {
                             eprintln!("Failed to read CSV file: {}", e);
                             return;
@@ -1044,7 +1064,16 @@ fn main() {
     // vector of formatted values
     let vf: Vec<Vec<String>> = v
         .iter()
-        .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width, sigfig, preserve_scientific_option, max_decimal_width_option))
+        .map(|col| {
+            datatype::format_strings(
+                col,
+                lower_column_width,
+                upper_column_width,
+                sigfig,
+                preserve_scientific_option,
+                max_decimal_width_option,
+            )
+        })
         .collect();
 
     if debug_mode {
@@ -1080,15 +1109,15 @@ fn main() {
     if !is_no_dimensions {
         // Add tilde prefix for streaming mode
         let row_count_prefix = if streaming_info.is_some() { "~" } else { "" };
-        
+
         if is_tty || is_force_color {
             let _ = match stdoutln!(
                 "{} {}{} {} {}",
                 meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]), // tv dim:
                 row_count_prefix.truecolor(meta_color[0], meta_color[1], meta_color[2]), // tilde prefix for streaming
                 (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]), // rows
-                div.truecolor(meta_color[0], meta_color[1], meta_color[2]),       // x
-                (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),    // cols
+                div.truecolor(meta_color[0], meta_color[1], meta_color[2]),              // x
+                (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),           // cols
             ) {
                 Ok(_) => Ok(()),
                 Err(e) => match e.kind() {
@@ -1097,7 +1126,14 @@ fn main() {
                 },
             };
         } else {
-            let _ = match stdoutln!("{} {}{} {} {}", meta_text, row_count_prefix, rows_in_file - 1, div, cols) {
+            let _ = match stdoutln!(
+                "{} {}{} {} {}",
+                meta_text,
+                row_count_prefix,
+                rows_in_file - 1,
+                div,
+                cols
+            ) {
                 Ok(_) => Ok(()),
                 Err(e) => match e.kind() {
                     std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -1447,8 +1483,6 @@ fn main() {
         }
     }
 
-
-
     let _ = match stdoutln!() {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
@@ -1523,45 +1557,50 @@ fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
     Ok(reader)
 }
 
-fn read_parquet_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+fn read_parquet_file(
+    file_path: &PathBuf,
+) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = SerializedFileReader::new(file)?;
     let iter = reader.get_row_iter(None)?;
-    
+
     let mut records = Vec::new();
     let mut headers = Vec::new();
-    
+
     // Extract column names from schema
     let schema = reader.metadata().file_metadata().schema_descr();
     let mut column_indices_to_include = Vec::new();
-    
+
     for i in 0..schema.num_columns() {
         let column = schema.column(i);
         let column_name = column.name().to_lowercase();
-        
+
         // Skip columns that are likely pandas index columns
         if column_name == "id" || column_name == "index" || column_name == "__index_level_0__" {
             continue;
         }
-        
+
         headers.push(column.name().to_string());
         column_indices_to_include.push(i);
     }
-    
+
     // Insert headers as first row (like CSV format)
     records.push(StringRecord::from(headers.clone()));
-    
+
     // Process all data rows
     for row_result in iter {
         let row = row_result?;
         let mut record_fields = Vec::new();
-        
+
         for &col_index in &column_indices_to_include {
             if let Some(field) = row.get_column_iter().nth(col_index) {
                 let value_str = format!("{}", field.1);
                 // Remove quotes from string values to match CSV behavior
-                let clean_value = if value_str.starts_with('"') && value_str.ends_with('"') && value_str.len() > 1 {
-                    value_str[1..value_str.len()-1].to_string()
+                let clean_value = if value_str.starts_with('"')
+                    && value_str.ends_with('"')
+                    && value_str.len() > 1
+                {
+                    value_str[1..value_str.len() - 1].to_string()
                 } else {
                     value_str
                 };
@@ -1572,57 +1611,60 @@ fn read_parquet_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringReco
         }
         records.push(StringRecord::from(record_fields));
     }
-    
+
     Ok((headers, records))
 }
 
 fn read_parquet_streaming(
-    file_path: &PathBuf, 
-    max_rows: usize
+    file_path: &PathBuf,
+    max_rows: usize,
 ) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = SerializedFileReader::new(file)?;
-    
+
     // Get exact total from metadata
     let total_rows = reader.metadata().file_metadata().num_rows() as usize;
-    
+
     let iter = reader.get_row_iter(None)?;
     let mut records = Vec::new();
     let mut headers = Vec::new();
-    
+
     // Extract column names from schema
     let schema = reader.metadata().file_metadata().schema_descr();
     let mut column_indices_to_include = Vec::new();
-    
+
     for i in 0..schema.num_columns() {
         let column = schema.column(i);
         let column_name = column.name().to_lowercase();
-        
+
         // Skip columns that are likely pandas index columns
         if column_name == "id" || column_name == "index" || column_name == "__index_level_0__" {
             continue;
         }
-        
+
         headers.push(column.name().to_string());
         column_indices_to_include.push(i);
     }
-    
+
     // Insert headers as first row (like CSV format)
     records.push(StringRecord::from(headers.clone()));
-    
+
     // If file is smaller than requested sample, don't use streaming
     if total_rows <= max_rows {
         // Read all data rows normally
         for row_result in iter {
             let row = row_result?;
             let mut record_fields = Vec::new();
-            
+
             for &col_index in &column_indices_to_include {
                 if let Some(field) = row.get_column_iter().nth(col_index) {
                     let value_str = format!("{}", field.1);
                     // Remove quotes from string values to match CSV behavior
-                    let clean_value = if value_str.starts_with('"') && value_str.ends_with('"') && value_str.len() > 1 {
-                        value_str[1..value_str.len()-1].to_string()
+                    let clean_value = if value_str.starts_with('"')
+                        && value_str.ends_with('"')
+                        && value_str.len() > 1
+                    {
+                        value_str[1..value_str.len() - 1].to_string()
                     } else {
                         value_str
                     };
@@ -1635,21 +1677,26 @@ fn read_parquet_streaming(
         }
         return Ok((headers, records, None, false)); // No streaming needed
     }
-    
+
     // Read sample data rows for large files
     let mut data_rows_read = 0;
     for row_result in iter {
-        if data_rows_read >= max_rows - 1 { break; } // -1 because headers count
-        
+        if data_rows_read >= max_rows - 1 {
+            break;
+        } // -1 because headers count
+
         let row = row_result?;
         let mut record_fields = Vec::new();
-        
+
         for &col_index in &column_indices_to_include {
             if let Some(field) = row.get_column_iter().nth(col_index) {
                 let value_str = format!("{}", field.1);
                 // Remove quotes from string values to match CSV behavior
-                let clean_value = if value_str.starts_with('"') && value_str.ends_with('"') && value_str.len() > 1 {
-                    value_str[1..value_str.len()-1].to_string()
+                let clean_value = if value_str.starts_with('"')
+                    && value_str.ends_with('"')
+                    && value_str.len() > 1
+                {
+                    value_str[1..value_str.len() - 1].to_string()
                 } else {
                     value_str
                 };
@@ -1661,7 +1708,7 @@ fn read_parquet_streaming(
         records.push(StringRecord::from(record_fields));
         data_rows_read += 1;
     }
-    
+
     let displayed_data_rows = data_rows_read;
     // The remaining calculation should be consistent with the ellipsis calculation
     // which shows total_rows - displayed_rows (where displayed_rows is the number shown)
@@ -1670,42 +1717,44 @@ fn read_parquet_streaming(
     // So for streaming, we should use: total_rows - min(displayed_data_rows, row_display_option)
     let actual_displayed_rows = std::cmp::min(displayed_data_rows, 25); // Default display limit
     let remaining = total_rows.saturating_sub(actual_displayed_rows);
-    
+
     Ok((headers, records, Some(remaining), true))
 }
 
-fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+fn read_arrow_file(
+    file_path: &PathBuf,
+) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
-    
+
     // Try to read as uncompressed first
     let reader = match ArrowFileReader::try_new(file, None) {
         Ok(reader) => reader,
         Err(ArrowError::InvalidArgumentError(msg)) if msg.contains("lz4") => {
             // Try to decompress LZ4 manually
             return read_arrow_file_with_lz4_decompression(file_path);
-        },
+        }
         Err(e) => return Err(e.into()),
     };
-    
+
     let schema = reader.schema();
-    
+
     let mut headers = Vec::new();
     let mut records = Vec::new();
-    
+
     // Extract column names from schema
     for field in schema.fields() {
         headers.push(field.name().to_string());
     }
-    
+
     // Add header record
     records.push(StringRecord::from(headers.clone()));
-    
+
     // Read all batches and convert to StringRecords
     for batch_result in reader {
         let batch = batch_result?;
         let num_rows = batch.num_rows();
         let num_cols = batch.num_columns();
-        
+
         for row_idx in 0..num_rows {
             let mut row_data = Vec::new();
             for col_idx in 0..num_cols {
@@ -1718,7 +1767,7 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                         } else {
                             string_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Int64 => {
                         let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -1726,7 +1775,7 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                         } else {
                             int_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Float64 => {
                         let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -1734,7 +1783,7 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                         } else {
                             float_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Boolean => {
                         let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
                         if array.is_null(row_idx) {
@@ -1742,7 +1791,7 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                         } else {
                             bool_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     _ => {
                         // For other types, convert to string representation
                         "NA".to_string()
@@ -1753,16 +1802,18 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
             records.push(StringRecord::from(row_data));
         }
     }
-    
+
     Ok((headers, records))
 }
 
-fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+fn read_arrow_file_with_lz4_decompression(
+    file_path: &PathBuf,
+) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
     // Read the entire file into memory
     let mut compressed_data = Vec::new();
     let mut file = File::open(file_path)?;
     file.read_to_end(&mut compressed_data)?;
-    
+
     // Try to decompress with LZ4
     let decompressed_data = match block::decompress(&compressed_data, None) {
         Ok(data) => data,
@@ -1770,28 +1821,28 @@ fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<St
             return Err("Failed to decompress LZ4 data. The file might not be LZ4 compressed or the compression format is not supported.".into());
         }
     };
-    
+
     // Create a reader from the decompressed data
     let reader = ArrowFileReader::try_new(std::io::Cursor::new(decompressed_data), None)?;
     let schema = reader.schema();
-    
+
     let mut headers = Vec::new();
     let mut records = Vec::new();
-    
+
     // Extract column names from schema
     for field in schema.fields() {
         headers.push(field.name().to_string());
     }
-    
+
     // Add header record
     records.push(StringRecord::from(headers.clone()));
-    
+
     // Read all batches and convert to StringRecords
     for batch_result in reader {
         let batch = batch_result?;
         let num_rows = batch.num_rows();
         let num_cols = batch.num_columns();
-        
+
         for row_idx in 0..num_rows {
             let mut row_data = Vec::new();
             for col_idx in 0..num_cols {
@@ -1804,7 +1855,7 @@ fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<St
                         } else {
                             string_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Int64 => {
                         let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -1812,7 +1863,7 @@ fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<St
                         } else {
                             int_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Float64 => {
                         let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -1820,7 +1871,7 @@ fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<St
                         } else {
                             float_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Boolean => {
                         let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
                         if array.is_null(row_idx) {
@@ -1828,7 +1879,7 @@ fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<St
                         } else {
                             bool_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     _ => {
                         // For other types, convert to string representation
                         "NA".to_string()
@@ -1839,13 +1890,13 @@ fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<St
             records.push(StringRecord::from(row_data));
         }
     }
-    
+
     Ok((headers, records))
 }
 
 fn read_arrow_streaming(
-    file_path: &PathBuf, 
-    max_rows: usize
+    file_path: &PathBuf,
+    max_rows: usize,
 ) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = match ArrowFileReader::try_new(file, None) {
@@ -1853,25 +1904,25 @@ fn read_arrow_streaming(
         Err(ArrowError::InvalidArgumentError(msg)) if msg.contains("lz4") => {
             // Try to decompress LZ4 manually
             return read_arrow_streaming_with_lz4_decompression(file_path, max_rows);
-        },
+        }
         Err(e) => return Err(e.into()),
     };
     let schema = reader.schema();
-    
+
     let mut headers = Vec::new();
     let mut records = Vec::new();
-    
+
     // Extract column names from schema
     for field in schema.fields() {
         headers.push(field.name().to_string());
     }
-    
+
     // Add header record
     records.push(StringRecord::from(headers.clone()));
-    
+
     let mut data_rows_read = 0;
     let mut total_rows = 0;
-    
+
     // First pass: count total rows
     let file_for_count = File::open(file_path)?;
     let count_reader = match ArrowFileReader::try_new(file_for_count, None) {
@@ -1879,25 +1930,25 @@ fn read_arrow_streaming(
         Err(ArrowError::InvalidArgumentError(msg)) if msg.contains("lz4") => {
             // For LZ4 files, we'll need to decompress to count rows
             return read_arrow_streaming_with_lz4_decompression(file_path, max_rows);
-        },
+        }
         Err(e) => return Err(e.into()),
     };
     for batch_result in count_reader {
         let batch = batch_result?;
         total_rows += batch.num_rows();
     }
-    
+
     // Second pass: read data up to max_rows
     for batch_result in reader {
         let batch = batch_result?;
         let num_rows = batch.num_rows();
         let num_cols = batch.num_columns();
-        
+
         for row_idx in 0..num_rows {
             if data_rows_read >= max_rows {
                 break;
             }
-            
+
             let mut row_data = Vec::new();
             for col_idx in 0..num_cols {
                 let array = batch.column(col_idx);
@@ -1909,7 +1960,7 @@ fn read_arrow_streaming(
                         } else {
                             string_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Int64 => {
                         let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -1917,7 +1968,7 @@ fn read_arrow_streaming(
                         } else {
                             int_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Float64 => {
                         let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -1925,7 +1976,7 @@ fn read_arrow_streaming(
                         } else {
                             float_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Boolean => {
                         let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
                         if array.is_null(row_idx) {
@@ -1933,7 +1984,7 @@ fn read_arrow_streaming(
                         } else {
                             bool_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     _ => {
                         // For other types, convert to string representation
                         "NA".to_string()
@@ -1944,28 +1995,28 @@ fn read_arrow_streaming(
             records.push(StringRecord::from(row_data));
             data_rows_read += 1;
         }
-        
+
         if data_rows_read >= max_rows {
             break;
         }
     }
-    
+
     // Calculate remaining rows (similar to Parquet logic)
     let actual_displayed_rows = std::cmp::min(data_rows_read, 25); // Default display limit
     let remaining = total_rows.saturating_sub(actual_displayed_rows);
-    
+
     Ok((headers, records, Some(remaining), true))
 }
 
 fn read_arrow_streaming_with_lz4_decompression(
-    file_path: &PathBuf, 
-    max_rows: usize
+    file_path: &PathBuf,
+    max_rows: usize,
 ) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
     // Read the entire file into memory
     let mut compressed_data = Vec::new();
     let mut file = File::open(file_path)?;
     file.read_to_end(&mut compressed_data)?;
-    
+
     // Try to decompress with LZ4
     let decompressed_data = match block::decompress(&compressed_data, None) {
         Ok(data) => data,
@@ -1973,43 +2024,44 @@ fn read_arrow_streaming_with_lz4_decompression(
             return Err("Failed to decompress LZ4 data. The file might not be LZ4 compressed or the compression format is not supported.".into());
         }
     };
-    
+
     // Create a reader from the decompressed data
     let reader = ArrowFileReader::try_new(std::io::Cursor::new(decompressed_data.clone()), None)?;
     let schema = reader.schema();
-    
+
     let mut headers = Vec::new();
     let mut records = Vec::new();
-    
+
     // Extract column names from schema
     for field in schema.fields() {
         headers.push(field.name().to_string());
     }
-    
+
     // Add header record
     records.push(StringRecord::from(headers.clone()));
-    
+
     let mut data_rows_read = 0;
     let mut total_rows = 0;
-    
+
     // First pass: count total rows
-    let count_reader = ArrowFileReader::try_new(std::io::Cursor::new(decompressed_data.clone()), None)?;
+    let count_reader =
+        ArrowFileReader::try_new(std::io::Cursor::new(decompressed_data.clone()), None)?;
     for batch_result in count_reader {
         let batch = batch_result?;
         total_rows += batch.num_rows();
     }
-    
+
     // Second pass: read data up to max_rows
     for batch_result in reader {
         let batch = batch_result?;
         let num_rows = batch.num_rows();
         let num_cols = batch.num_columns();
-        
+
         for row_idx in 0..num_rows {
             if data_rows_read >= max_rows {
                 break;
             }
-            
+
             let mut row_data = Vec::new();
             for col_idx in 0..num_cols {
                 let array = batch.column(col_idx);
@@ -2021,7 +2073,7 @@ fn read_arrow_streaming_with_lz4_decompression(
                         } else {
                             string_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Int64 => {
                         let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -2029,7 +2081,7 @@ fn read_arrow_streaming_with_lz4_decompression(
                         } else {
                             int_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Float64 => {
                         let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
                         if array.is_null(row_idx) {
@@ -2037,7 +2089,7 @@ fn read_arrow_streaming_with_lz4_decompression(
                         } else {
                             float_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     DataType::Boolean => {
                         let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
                         if array.is_null(row_idx) {
@@ -2045,7 +2097,7 @@ fn read_arrow_streaming_with_lz4_decompression(
                         } else {
                             bool_array.value(row_idx).to_string()
                         }
-                    },
+                    }
                     _ => {
                         // For other types, convert to string representation
                         "NA".to_string()
@@ -2056,16 +2108,16 @@ fn read_arrow_streaming_with_lz4_decompression(
             records.push(StringRecord::from(row_data));
             data_rows_read += 1;
         }
-        
+
         if data_rows_read >= max_rows {
             break;
         }
     }
-    
+
     // Calculate remaining rows
     let actual_displayed_rows = std::cmp::min(data_rows_read, 25);
     let remaining = total_rows.saturating_sub(actual_displayed_rows);
-    
+
     Ok((headers, records, Some(remaining), true))
 }
 
@@ -2103,24 +2155,27 @@ fn validate_json_content(file_path: &PathBuf) -> Result<bool, Box<dyn std::error
     }
 }
 
-    fn handle_json_file(_file_path: &PathBuf) -> ! {
-        eprintln!("❌ Error: JSON files are not currently supported by tidy-viewer.");
-        eprintln!();
-        eprintln!("📋 Supported formats:");
-        eprintln!("   • CSV files (.csv)");
-        eprintln!("   • Parquet files (.parquet)");
-        eprintln!("   • Arrow IPC files (.feather, .arrow, .ipc)");
-        eprintln!();
-        eprintln!("💡 For JSON files, consider using:");
-        eprintln!("   • jq - for JSON processing and formatting");
-        eprintln!("   • cat file.json | jq '.' - for pretty printing");
-        eprintln!("   • cat file.json | jq '.[]' - for array processing");
-        eprintln!();
-        eprintln!("🔗 Learn more: https://stedolan.github.io/jq/");
-        std::process::exit(1);
-    }
+fn handle_json_file(_file_path: &PathBuf) -> ! {
+    eprintln!("❌ Error: JSON files are not currently supported by tidy-viewer.");
+    eprintln!();
+    eprintln!("📋 Supported formats:");
+    eprintln!("   • CSV files (.csv)");
+    eprintln!("   • Parquet files (.parquet)");
+    eprintln!("   • Arrow IPC files (.feather, .arrow, .ipc)");
+    eprintln!();
+    eprintln!("💡 For JSON files, consider using:");
+    eprintln!("   • jq - for JSON processing and formatting");
+    eprintln!("   • cat file.json | jq '.' - for pretty printing");
+    eprintln!("   • cat file.json | jq '.[]' - for array processing");
+    eprintln!();
+    eprintln!("🔗 Learn more: https://stedolan.github.io/jq/");
+    std::process::exit(1);
+}
 
-fn should_use_streaming_with_threshold(file_path: &PathBuf, threshold_bytes: f64) -> Result<bool, Box<dyn std::error::Error>> {
+fn should_use_streaming_with_threshold(
+    file_path: &PathBuf,
+    threshold_bytes: f64,
+) -> Result<bool, Box<dyn std::error::Error>> {
     let metadata = std::fs::metadata(file_path)?;
     let file_size = metadata.len() as f64;
     Ok(file_size > threshold_bytes)
@@ -2129,12 +2184,12 @@ fn should_use_streaming_with_threshold(file_path: &PathBuf, threshold_bytes: f64
 fn calculate_sample_size(file_path: &PathBuf) -> Result<usize, Box<dyn std::error::Error>> {
     let metadata = std::fs::metadata(file_path)?;
     let file_size_mb = metadata.len() / (1024 * 1024);
-    
+
     let size = match file_size_mb {
-        0..=10 => 1000,      // Small files: 1K rows
-        11..=100 => 5000,    // Medium files: 5K rows  
-        101..=1000 => 7500,  // Large files: 7.5K rows
-        _ => 10000,          // Huge files: 10K rows
+        0..=10 => 1000,     // Small files: 1K rows
+        11..=100 => 5000,   // Medium files: 5K rows
+        101..=1000 => 7500, // Large files: 7.5K rows
+        _ => 10000,         // Huge files: 10K rows
     };
     Ok(size)
 }
@@ -2146,29 +2201,29 @@ fn estimate_csv_rows(file_path: &PathBuf) -> Result<usize, std::io::Error> {
 }
 
 fn read_csv_streaming(
-    file_path: &PathBuf, 
-    max_rows: usize
+    file_path: &PathBuf,
+    max_rows: usize,
 ) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let mut reader = csv::Reader::from_reader(file);
-    
+
     let mut records = Vec::new();
     let mut headers = Vec::new();
-    
+
     // Get headers
     if let Ok(header_record) = reader.headers() {
         headers = header_record.iter().map(|h| h.to_string()).collect();
         records.push(StringRecord::from(headers.clone()));
     }
-    
+
     // Estimate total data rows first (excluding header)
     let estimated_total_lines = estimate_csv_rows(file_path).unwrap_or(1);
-    let estimated_data_rows = if estimated_total_lines > 0 { 
-        estimated_total_lines - 1  // Subtract header line
-    } else { 
-        0 
+    let estimated_data_rows = if estimated_total_lines > 0 {
+        estimated_total_lines - 1 // Subtract header line
+    } else {
+        0
     };
-    
+
     // If file is smaller than requested sample, don't use streaming
     if estimated_data_rows <= max_rows {
         // Read all data rows normally
@@ -2180,12 +2235,14 @@ fn read_csv_streaming(
         }
         return Ok((headers, records, None, false)); // No streaming needed
     }
-    
+
     // Read sample data rows for large files
     let mut data_rows_read = 0;
     for result in reader.records() {
-        if data_rows_read >= max_rows - 1 { break; } // -1 because headers count
-        
+        if data_rows_read >= max_rows - 1 {
+            break;
+        } // -1 because headers count
+
         match result {
             Ok(record) => {
                 records.push(record);
@@ -2197,10 +2254,10 @@ fn read_csv_streaming(
             }
         }
     }
-    
+
     let displayed_data_rows = data_rows_read;
     let remaining = estimated_data_rows.saturating_sub(displayed_data_rows);
-    
+
     Ok((headers, records, Some(remaining), true))
 }
 
@@ -2532,11 +2589,11 @@ mod tests {
         let test_data = vec![
             vec!["value_type", "original_value"],
             vec!["scientific", "1.23e-7"],
-            vec!["scientific_neg", "-4.56e-10"], 
+            vec!["scientific_neg", "-4.56e-10"],
             vec!["decimal", "3.14159"],
             vec!["large_sci", "5.67e15"],
         ];
-        
+
         // Convert to the format expected by format_strings
         let columns: Vec<Vec<&str>> = (0..test_data[0].len())
             .map(|col| test_data.iter().map(|row| row[col]).collect())
@@ -2544,19 +2601,19 @@ mod tests {
 
         // Test with preserve_scientific = true
         let result_preserve = datatype::format_strings(&columns[1], 2, 20, 3, true, 13);
-        
+
         // Should preserve scientific notation in input
         assert!(result_preserve[1].trim().contains("1.23e-7"));
         assert!(result_preserve[2].trim().contains("-4.56e-10"));
         assert!(result_preserve[4].trim().contains("5.67e15"));
-        
+
         // Test with preserve_scientific = false
         let result_no_preserve = datatype::format_strings(&columns[1], 2, 20, 3, false, 13);
-        
+
         // Should convert scientific to decimal (within threshold)
         assert_eq!(result_no_preserve[1].trim(), "0.000000123");
         // -4.56e-10 converts to a very small decimal with sigfig formatting
-        assert!(result_no_preserve[2].trim().contains("-0.0000000005"));  // Scientific notation formatted as decimal
+        assert!(result_no_preserve[2].trim().contains("-0.0000000005")); // Scientific notation formatted as decimal
     }
 
     #[test]
@@ -2565,31 +2622,31 @@ mod tests {
         let test_data = vec![
             vec!["type", "value"],
             vec!["very_small", "0.000000123"],
-            vec!["very_large", "123456789012345"], 
+            vec!["very_large", "123456789012345"],
             vec!["normal", "3.14159"],
         ];
-        
+
         let columns: Vec<Vec<&str>> = (0..test_data[0].len())
             .map(|col| test_data.iter().map(|row| row[col]).collect())
             .collect();
 
         // Test with small max_decimal_width to trigger auto-conversion
         let result_auto = datatype::format_strings(&columns[1], 2, 20, 3, false, 8);
-        
+
         // Very small and large numbers should be auto-converted to scientific
-        assert!(result_auto[1].trim().contains("e-"));  // 1.23e-7 or similar
-        assert!(result_auto[2].trim().contains("e"));   // 1.23e14 or similar
-        
+        assert!(result_auto[1].trim().contains("e-")); // 1.23e-7 or similar
+        assert!(result_auto[2].trim().contains("e")); // 1.23e14 or similar
+
         // Normal number should stay decimal
         assert_eq!(result_auto[3].trim(), "3.14");
 
         // Test with large max_decimal_width to prevent auto-conversion
         let result_no_auto = datatype::format_strings(&columns[1], 2, 20, 3, false, 20);
-        
+
         // Should stay as decimals (but may be truncated with ellipsis due to column width)
         // The key is that it doesn't use scientific notation (no 'e')
-        assert!(result_no_auto[1].trim().contains("0.000"));  // Starts with small decimal
-        assert!(!result_no_auto[3].trim().contains("e"));     // Normal number has no 'e'
+        assert!(result_no_auto[1].trim().contains("0.000")); // Starts with small decimal
+        assert!(!result_no_auto[3].trim().contains("e")); // Normal number has no 'e'
     }
 
     #[test]
@@ -2597,41 +2654,41 @@ mod tests {
         // Test data combining both scenarios
         let test_data = vec![
             vec!["type", "value"],
-            vec!["input_sci", "7.849613446523261e-05"],  // Like the real data from norms.csv
+            vec!["input_sci", "7.849613446523261e-05"], // Like the real data from norms.csv
             vec!["long_decimal", "0.000000000123456"],
             vec!["normal", "1.23456"],
         ];
-        
+
         let columns: Vec<Vec<&str>> = (0..test_data[0].len())
             .map(|col| test_data.iter().map(|row| row[col]).collect())
             .collect();
 
         // Test both flags together
         let result_both = datatype::format_strings(&columns[1], 2, 25, 3, true, 10);
-        
+
         // Input scientific notation should be preserved
         assert!(result_both[1].trim().contains("7.849613446523261e-05"));
-        
+
         // Long decimal should be auto-converted
         assert!(result_both[2].trim().contains("e-"));
-        
+
         // Normal decimal should use sigfig rules
         assert_eq!(result_both[3].trim(), "1.23");
     }
 
-    #[test] 
+    #[test]
     fn test_real_norms_csv_data() {
         // Test with the actual problematic value from norms.csv
         let scientific_value = "7.849613446523261e-05";
-        
+
         // Test preserve functionality
         let preserved = datatype::format_if_num(scientific_value, 3, true, 13);
         assert_eq!(preserved, "7.849613446523261e-05");
-        
+
         // Test without preserve (should convert to decimal)
         let not_preserved = datatype::format_if_num(scientific_value, 3, false, 13);
         assert!(not_preserved.starts_with("0.0000"));
-        
+
         // Test auto-conversion with narrow width
         let auto_converted = datatype::format_if_num("0.0000785", 3, false, 8);
         assert!(auto_converted.contains("e-"));
@@ -2644,7 +2701,7 @@ mod tests {
         let arrow_path = PathBuf::from("test.arrow");
         let ipc_path = PathBuf::from("test.ipc");
         let csv_path = PathBuf::from("test.csv");
-        
+
         assert!(is_arrow_file(&feather_path));
         assert!(is_arrow_file(&arrow_path));
         assert!(is_arrow_file(&ipc_path));
@@ -2656,10 +2713,10 @@ mod tests {
         // This test will be run only if Arrow test files exist
         let test_files = [
             "data/test_small.feather",
-            "data/test_small.arrow", 
-            "data/test_small.ipc"
+            "data/test_small.arrow",
+            "data/test_small.ipc",
         ];
-        
+
         for file_path in &test_files {
             let path = PathBuf::from(file_path);
             if path.exists() {
@@ -2667,13 +2724,29 @@ mod tests {
                 let result = read_arrow_file(&path);
                 match result {
                     Ok((headers, records)) => {
-                        println!("Successfully read Arrow file: {} headers, {} records", headers.len(), records.len());
-                        assert!(!headers.is_empty(), "Headers should not be empty for {}", file_path);
-                        assert!(!records.is_empty(), "Records should not be empty for {}", file_path);
-                        
+                        println!(
+                            "Successfully read Arrow file: {} headers, {} records",
+                            headers.len(),
+                            records.len()
+                        );
+                        assert!(
+                            !headers.is_empty(),
+                            "Headers should not be empty for {}",
+                            file_path
+                        );
+                        assert!(
+                            !records.is_empty(),
+                            "Records should not be empty for {}",
+                            file_path
+                        );
+
                         // Check that we have at least a header row
-                        assert!(records.len() >= 1, "Should have at least header row for {}", file_path);
-                    },
+                        assert!(
+                            records.len() >= 1,
+                            "Should have at least header row for {}",
+                            file_path
+                        );
+                    }
                     Err(e) => {
                         println!("Error reading Arrow file {}: {:?}", file_path, e);
                         // For now, skip Arrow tests due to compression issues
