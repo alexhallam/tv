@@ -47,6 +47,10 @@ use std::convert::TryInto;
         #number = 35
         ## extend width and length in terms of the number of rows and columns displayed beyond term width [default: false]
         # extend_width_length = true
+        ## Auto-switch to scientific notation when decimal representation exceeds N characters [default: 13]
+        # max_decimal_width = 13
+        ## Preserve existing scientific notation in input data [default: false]
+        # preserve_scientific = false
         ## meta_color = [R,G,B] color for row index and \"tv dim: rows x cols\"
         #meta_color = [64, 179, 162]
         ## header_color = [R,G,B] color for column headers
@@ -140,6 +144,17 @@ struct Cli {
     )]
     sigfig: i64,
     #[structopt(
+        long = "max-decimal-width",
+        default_value = "13",
+        help = "Auto-switch to scientific notation when decimal representation exceeds N characters"
+    )]
+    max_decimal_width: usize,
+    #[structopt(
+        long = "preserve-scientific",
+        help = "Preserve existing scientific notation in input data"
+    )]
+    preserve_scientific: bool,
+    #[structopt(
         short = "e",
         long = "extend-width-and-length",
         help = "Extended width beyond term width (do not truncate). Useful with `less -S`."
@@ -194,6 +209,8 @@ fn main() {
         lower_column_width: Option<usize>,
         number: Option<usize>,
         extend_width_length: Option<bool>,
+        max_decimal_width: Option<usize>,
+        preserve_scientific: Option<bool>,
         meta_color: Option<toml::value::Array>,
         header_color: Option<toml::value::Array>,
         std_color: Option<toml::value::Array>,
@@ -219,6 +236,8 @@ fn main() {
             lower_column_width: None,
             number: None,
             extend_width_length: None,
+            max_decimal_width: None,
+            preserve_scientific: None,
             meta_color: None,
             header_color: None,
             std_color: None,
@@ -232,7 +251,7 @@ fn main() {
     // print helpful config details
     match opt.config_details {
         true => {
-            println!("");
+            println!();
             println!("{:}", "tv.toml".to_string().truecolor(94, 129, 172));
             match config.clone().delimiter {
                 Some(x) => println!(
@@ -342,6 +361,38 @@ fn main() {
                     " extend_width_length = None".truecolor(216, 222, 233)  // white
                 ),
             }
+            // match max_decimal_width
+            match config.clone().max_decimal_width {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " max_decimal_width = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " max_decimal_width = None".truecolor(216, 222, 233)  // white
+                ),
+            }
+            // match preserve_scientific
+            match config.clone().preserve_scientific {
+                Some(x) => println!(
+                    "{}{}{:?}",
+                    "[+]".to_string().truecolor(143, 188, 187), // green
+                    " preserve_scientific = "
+                        .to_string()
+                        .truecolor(216, 222, 233), // white
+                    x.truecolor(216, 222, 233)                  // white
+                ),
+                None => println!(
+                    "{}{}",
+                    "[-]".truecolor(191, 97, 106), // red
+                    " preserve_scientific = None".truecolor(216, 222, 233)  // white
+                ),
+            }
             // match meta_color
             match config.clone().meta_color {
                 Some(x) => println!(
@@ -439,6 +490,8 @@ fn main() {
     let is_no_row_numbering: bool = opt.no_row_numbering;
     let is_force_all_rows: bool = opt.force_all_rows;
     let is_extend_width_length: bool = opt.extend_width_length;
+    let is_preserve_scientific: bool = opt.preserve_scientific;
+    let is_max_decimal_width_defined: bool = opt.max_decimal_width != 13;
 
     // The options below all follow the same logic:
     //   If the user provides a config file and no cli argument, use the config file
@@ -452,15 +505,32 @@ fn main() {
             (None, false) => opt.extend_width_length,
             (None, true) => opt.extend_width_length,
         };
+
+    let preserve_scientific_option: bool =
+        match (config.preserve_scientific, is_preserve_scientific) {
+            (Some(x), false) => x,
+            (Some(_x), true) => opt.preserve_scientific,
+            (None, false) => opt.preserve_scientific,
+            (None, true) => opt.preserve_scientific,
+        };
+
+    let max_decimal_width_option: usize =
+        match (config.max_decimal_width, is_max_decimal_width_defined) {
+            (Some(x), false) => x,
+            (Some(_x), true) => opt.max_decimal_width,
+            (None, false) => opt.max_decimal_width,
+            (None, true) => opt.max_decimal_width,
+        };
+
     let title_option: &String = match (&config.title, &is_title_defined) {
-        (Some(ref x), false) => &x,
+        (Some(ref x), false) => x,
         (Some(_x), true) => &opt.title,
         (None, false) => &opt.title,
         (None, true) => &opt.title,
     };
 
     let footer_option: &String = match (&config.footer, &is_footer_defined) {
-        (Some(ref x), false) => &x,
+        (Some(ref x), false) => x,
         (Some(_x), true) => &opt.footer,
         (None, false) => &opt.footer,
         (None, true) => &opt.footer,
@@ -734,7 +804,7 @@ fn main() {
     // vector of formatted values
     let vf: Vec<Vec<String>> = v
         .iter()
-        .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width, sigfig))
+        .map(|col| datatype::format_strings(col, lower_column_width, upper_column_width, sigfig, preserve_scientific_option, max_decimal_width_option))
         .collect();
 
     if debug_mode {
@@ -1297,6 +1367,8 @@ mod tests {
                 col_largest_width_post_proc[i],
                 col_largest_width_post_proc[i],
                 3,
+                false,
+                13,
             );
         }
 
@@ -1375,6 +1447,8 @@ mod tests {
                 col_largest_width_post_proc[i],
                 col_largest_width_post_proc[i],
                 3,
+                false,
+                13,
             );
         }
 
@@ -1408,6 +1482,8 @@ mod tests {
                 col_largest_width_post_proc[i],
                 col_largest_width_post_proc[i],
                 3,
+                false,
+                13,
             );
         }
 
@@ -1521,5 +1597,116 @@ mod tests {
             vec!["-0.14008262537120889"],
             vec!["0.15503065800645952"],
         ];
+    }
+
+    #[test]
+    fn test_scientific_notation_preserve() {
+        // Test data with mixed scientific notation and regular decimals
+        let test_data = vec![
+            vec!["value_type", "original_value"],
+            vec!["scientific", "1.23e-7"],
+            vec!["scientific_neg", "-4.56e-10"], 
+            vec!["decimal", "3.14159"],
+            vec!["large_sci", "5.67e15"],
+        ];
+        
+        // Convert to the format expected by format_strings
+        let columns: Vec<Vec<&str>> = (0..test_data[0].len())
+            .map(|col| test_data.iter().map(|row| row[col]).collect())
+            .collect();
+
+        // Test with preserve_scientific = true
+        let result_preserve = datatype::format_strings(&columns[1], 2, 20, 3, true, 13);
+        
+        // Should preserve scientific notation in input
+        assert!(result_preserve[1].trim().contains("1.23e-7"));
+        assert!(result_preserve[2].trim().contains("-4.56e-10"));
+        assert!(result_preserve[4].trim().contains("5.67e15"));
+        
+        // Test with preserve_scientific = false
+        let result_no_preserve = datatype::format_strings(&columns[1], 2, 20, 3, false, 13);
+        
+        // Should convert scientific to decimal (within threshold)
+        assert_eq!(result_no_preserve[1].trim(), "0.000000123");
+        // -4.56e-10 converts to a very small decimal with sigfig formatting
+        assert!(result_no_preserve[2].trim().contains("-0.0000000005"));  // Scientific notation formatted as decimal
+    }
+
+    #[test]
+    fn test_scientific_notation_auto_convert() {
+        // Test data with very small/large decimals
+        let test_data = vec![
+            vec!["type", "value"],
+            vec!["very_small", "0.000000123"],
+            vec!["very_large", "123456789012345"], 
+            vec!["normal", "3.14159"],
+        ];
+        
+        let columns: Vec<Vec<&str>> = (0..test_data[0].len())
+            .map(|col| test_data.iter().map(|row| row[col]).collect())
+            .collect();
+
+        // Test with small max_decimal_width to trigger auto-conversion
+        let result_auto = datatype::format_strings(&columns[1], 2, 20, 3, false, 8);
+        
+        // Very small and large numbers should be auto-converted to scientific
+        assert!(result_auto[1].trim().contains("e-"));  // 1.23e-7 or similar
+        assert!(result_auto[2].trim().contains("e"));   // 1.23e14 or similar
+        
+        // Normal number should stay decimal
+        assert_eq!(result_auto[3].trim(), "3.14");
+
+        // Test with large max_decimal_width to prevent auto-conversion
+        let result_no_auto = datatype::format_strings(&columns[1], 2, 20, 3, false, 20);
+        
+        // Should stay as decimals (but may be truncated with ellipsis due to column width)
+        // The key is that it doesn't use scientific notation (no 'e')
+        assert!(result_no_auto[1].trim().contains("0.000"));  // Starts with small decimal
+        assert!(!result_no_auto[3].trim().contains("e"));     // Normal number has no 'e'
+    }
+
+    #[test]
+    fn test_scientific_notation_combined_flags() {
+        // Test data combining both scenarios
+        let test_data = vec![
+            vec!["type", "value"],
+            vec!["input_sci", "7.849613446523261e-05"],  // Like the real data from norms.csv
+            vec!["long_decimal", "0.000000000123456"],
+            vec!["normal", "1.23456"],
+        ];
+        
+        let columns: Vec<Vec<&str>> = (0..test_data[0].len())
+            .map(|col| test_data.iter().map(|row| row[col]).collect())
+            .collect();
+
+        // Test both flags together
+        let result_both = datatype::format_strings(&columns[1], 2, 25, 3, true, 10);
+        
+        // Input scientific notation should be preserved
+        assert!(result_both[1].trim().contains("7.849613446523261e-05"));
+        
+        // Long decimal should be auto-converted
+        assert!(result_both[2].trim().contains("e-"));
+        
+        // Normal decimal should use sigfig rules
+        assert_eq!(result_both[3].trim(), "1.23");
+    }
+
+    #[test] 
+    fn test_real_norms_csv_data() {
+        // Test with the actual problematic value from norms.csv
+        let scientific_value = "7.849613446523261e-05";
+        
+        // Test preserve functionality
+        let preserved = datatype::format_if_num(scientific_value, 3, true, 13);
+        assert_eq!(preserved, "7.849613446523261e-05");
+        
+        // Test without preserve (should convert to decimal)
+        let not_preserved = datatype::format_if_num(scientific_value, 3, false, 13);
+        assert!(not_preserved.starts_with("0.0000"));
+        
+        // Test auto-conversion with narrow width
+        let auto_converted = datatype::format_if_num("0.0000785", 3, false, 8);
+        assert!(auto_converted.contains("e-"));
     }
 }

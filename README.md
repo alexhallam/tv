@@ -326,7 +326,7 @@ For information on dotfile configuration see `tv --help`. This allows users to s
 `tv --help`
 
 ```txt
-tv 1.5.2
+tv 1.6.0
 Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
 
     Example Usage:
@@ -371,20 +371,23 @@ Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize vi
         #neg_num_color = [226, 125, 95]
 
 USAGE:
-    tidy-viewer [FLAGS] [OPTIONS] [FILE]
+    tv [FLAGS] [OPTIONS] [FILE]
 
 FLAGS:
-    -C, --config-details             Show the current config details
-    -d, --debug-mode                 Print object details to make it easier for the maintainer to find and resolve bugs.
-    -e, --extend-width-and-length    Extended width beyond term width (do not truncate). Useful with `less -S`.
-    -f, --force-all-rows             Print all rows in file. May be piped to 'less -S'. Example `tidy-viewer
-                                     data/diamonds.csv -f -a | less -R`
-    -a, --color-always               Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a
-                                     starwars.csv | bat -p`. The `less` cli has the `-R` flag to parse colored output.
-    -h, --help                       Prints help information
-    -D, --no-dimensions              Turns off dimensions of the data
-    -R, --no-row-numbering           Turns off row numbering
-    -V, --version                    Prints version information
+    -C, --config-details                Show the current config details
+    -d, --debug-mode                    Print object details to make it easier for the maintainer to find and resolve
+                                        bugs.
+    -e, --extend-width-and-length       Extended width beyond term width (do not truncate). Useful with `less -S`.
+    -f, --force-all-rows                Print all rows in file. May be piped to 'less -S'. Example `tidy-viewer
+                                        data/diamonds.csv -f -a | less -R`
+    -a, --color-always                  Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a
+                                        starwars.csv | bat -p`. The `less` cli has the `-R` flag to parse colored
+                                        output.
+    -h, --help                          Prints help information
+    -D, --no-dimensions                 Turns off dimensions of the data
+        --preserve-scientific           Preserve scientific notation in numeric values (e.g., 1.23e-4)
+    -R, --no-row-numbering              Turns off row numbering
+    -V, --version                       Prints version information
 
 OPTIONS:
     -c, --color <color>
@@ -394,10 +397,15 @@ OPTIONS:
                             (3)gruvbox
                             (4)dracula
                             (5)solarized light [default: 0]
+
     -s, --delimiter <delimiter>                      The delimiter separating the columns.
     -F, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
     -l, --lower-column-width <lower-column-width>
             The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
+
+        --max-decimal-width <max-decimal-width>
+            Maximum decimal width before converting to scientific notation (when preserve-scientific is false)
+            [default: 8]
 
     -n, --number-of-rows-to-output <row-display>     Show how many rows to display. [default: 25]
     -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]

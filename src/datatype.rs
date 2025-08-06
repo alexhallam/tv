@@ -54,6 +54,13 @@ pub fn is_double(text: &str) -> bool {
     f64::from_str(text.trim()).is_ok()
 }
 
+pub fn is_scientific_notation(text: &str) -> bool {
+    lazy_static! {
+        static ref R: Regex = Regex::new(r"^[+-]?[0-9]*\.?[0-9]+[eE][+-]?[0-9]+$").unwrap();
+    }
+    R.is_match(text.trim())
+}
+
 pub fn is_time(text: &str) -> bool {
     //let time = "11:59:37 UTC";
     //https://stackoverflow.com/a/25873711
@@ -128,13 +135,15 @@ pub fn format_strings(
     lower_column_width: usize,
     upper_column_width: usize,
     sigfig: i64,
+    preserve_scientific: bool,
+    max_decimal_width: usize,
 ) -> Vec<String> {
     let ellipsis = '\u{2026}';
 
     let strings_and_fracts: Vec<(String, usize, usize)> = vec_col
         .iter()
         .map(|&string| format_if_na(string))
-        .map(|string| format_if_num(&string, sigfig))
+        .map(|string| format_if_num(&string, sigfig, preserve_scientific, max_decimal_width))
         .map(|string| {
             // the string, and the length of its fractional digits if any
             let (lhs, rhs) = if is_double(&string) {
@@ -224,9 +233,24 @@ pub fn format_if_na(text: &str) -> String {
     string.to_string()
 }
 
-pub fn format_if_num(text: &str, sigfig: i64) -> String {
+pub fn format_if_num(text: &str, sigfig: i64, preserve_scientific: bool, max_decimal_width: usize) -> String {
+    // If preserve_scientific is enabled and the input is already in scientific notation, keep it
+    if preserve_scientific && is_scientific_notation(text) {
+        return text.to_string();
+    }
+    
     if let Ok(val) = text.parse::<f64>() {
-        sigfig::DecimalSplits { val, sigfig }.final_string()
+        let decimal_formatted = sigfig::DecimalSplits { val, sigfig }.final_string();
+        
+        // Check if we should auto-switch to scientific notation based on decimal width
+        if decimal_formatted.len() > max_decimal_width {
+            // Format in scientific notation with appropriate precision
+            if val.abs() < 1e-4 || val.abs() >= 10f64.powi(sigfig as i32) {
+                return format!("{:.precision$e}", val, precision = (sigfig - 1).max(0) as usize);
+            }
+        }
+        
+        decimal_formatted
     } else {
         text.to_string()
     }
@@ -261,7 +285,7 @@ pub fn parse_delimiter(src: &str) -> Result<u8, String> {
 
 #[cfg(test)]
 mod tests {
-    use crate::datatype::parse_delimiter;
+    use crate::datatype::{parse_delimiter, is_scientific_notation, format_if_num};
 
     #[test]
     fn one_byte_delimiter() {
@@ -291,5 +315,67 @@ mod tests {
             parse_delimiter("\\n"),
             Err("expected one byte as delimiter, got 2 bytes (\"\\n\")".to_string())
         );
+    }
+
+    #[test]
+    fn test_is_scientific_notation() {
+        // Valid scientific notation
+        assert_eq!(is_scientific_notation("1.23e-7"), true);
+        assert_eq!(is_scientific_notation("5.67e15"), true);
+        assert_eq!(is_scientific_notation("-4.56e-10"), true);
+        assert_eq!(is_scientific_notation("+2.34e8"), true);
+        assert_eq!(is_scientific_notation("1e5"), true);
+        assert_eq!(is_scientific_notation("3.14E-2"), true);
+        assert_eq!(is_scientific_notation("7.849613446523261e-05"), true);
+        
+        // Invalid scientific notation (should be false)
+        assert_eq!(is_scientific_notation("1.23"), false);
+        assert_eq!(is_scientific_notation("123"), false);
+        assert_eq!(is_scientific_notation("0.0001"), false);
+        assert_eq!(is_scientific_notation("e5"), false);
+        assert_eq!(is_scientific_notation("1.23e"), false);
+        assert_eq!(is_scientific_notation("text"), false);
+        assert_eq!(is_scientific_notation(""), false);
+    }
+
+    #[test]
+    fn test_format_if_num_preserve_scientific() {
+        // Test preserve scientific functionality
+        assert_eq!(format_if_num("1.23e-7", 3, true, 13), "1.23e-7");
+        assert_eq!(format_if_num("5.67e15", 3, true, 13), "5.67e15");
+        assert_eq!(format_if_num("-4.56e-10", 3, true, 13), "-4.56e-10");
+        
+        // Test normal numbers with preserve scientific (should use sigfig)
+        assert_eq!(format_if_num("1.23456", 3, true, 13), "1.23");
+        assert_eq!(format_if_num("123.456", 3, true, 13), "123.");
+        
+        // Test without preserve scientific (should convert to decimal)
+        assert_eq!(format_if_num("1.23e-7", 3, false, 13), "0.000000123");
+    }
+
+    #[test]
+    fn test_format_if_num_max_decimal_width() {
+        // Test auto-conversion based on decimal width
+        // Very small number should be converted to scientific notation
+        assert_eq!(format_if_num("0.000000123", 3, false, 8), "1.23e-7");
+        
+        // Large number should be converted to scientific notation  
+        assert_eq!(format_if_num("123456789012345", 3, false, 8), "1.23e14");
+        
+        // Normal number within threshold should stay decimal
+        assert_eq!(format_if_num("3.14159", 3, false, 8), "3.14");
+        
+        // Test with higher threshold
+        assert_eq!(format_if_num("0.000000123", 3, false, 15), "0.000000123");
+    }
+
+    #[test]
+    fn test_format_if_num_combined_flags() {
+        // Test both preserve_scientific and max_decimal_width together
+        // Scientific notation input should be preserved regardless of width
+        assert_eq!(format_if_num("1.23e-7", 3, true, 5), "1.23e-7");
+        
+        // Long decimal should be auto-converted even with preserve_scientific
+        assert_eq!(format_if_num("0.000000123", 3, true, 8), "1.23e-7");
     }
 }

@@ -1,5 +1,41 @@
 
 
+1.6.0 (2025-08-06)
+==================
+
+* **Feature** **Scientific Notation Formatting Override** - Added comprehensive support for handling scientific notation in CSV data to address cases where tv was converting pre-formatted scientific notation (like p-values) to hard-to-read decimal format.
+
+  **New Command-Line Options:**
+  - `--preserve-scientific`: Preserves existing scientific notation from input data (e.g., `7.55e-15` stays as `7.55e-15` instead of being converted to `0.000000000000008`)
+  - `--max-decimal-width N`: Auto-converts to scientific notation when decimal representation exceeds N characters (default: 13), similar to R's pillar package behavior
+
+  **Configuration File Support:**
+  Both options can be configured in `tv.toml`:
+  ```toml
+  preserve_scientific = true
+  max_decimal_width = 10
+  ```
+
+  **Examples:**
+  ```sh
+  # Preserve scientific notation from input
+  tv data.csv --preserve-scientific
+  
+  # Auto-convert long decimals to scientific notation
+  tv data.csv --max-decimal-width 8
+  
+  # Use both features together
+  tv data.csv --preserve-scientific --max-decimal-width 10
+  ```
+
+  **Benefits:**
+  - Scientific data with p-values and coefficients remains readable
+  - Maintains tv's excellent visual formatting while respecting input format
+  - Configurable thresholds for automatic conversion
+  - Backward compatible - existing behavior unchanged when flags not used
+
+* **Testing** Added comprehensive test suite with 8 new unit and integration tests covering scientific notation functionality, including regression protection for real-world data scenarios.
+
 1.5.2 (2023-07-04) 
 ==================
 

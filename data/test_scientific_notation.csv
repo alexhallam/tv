@@ -1,0 +1,11 @@
+test_type,original_value,expected_preserve,expected_auto_convert
+small_scientific,1.23e-7,1.23e-7,1.23e-7
+large_scientific,5.67e15,5.67e15,5.67e15
+negative_scientific,-4.56e-10,-4.56e-10,-4.56e-10
+positive_scientific,+2.34e8,+2.34e8,2.34e8
+very_small_decimal,0.000000123,0.000000123,1.23e-7
+very_large_decimal,123456789012345,123456789012345,1.23e14
+normal_decimal,3.14159,3.14159,3.14159
+zero,0,0,0
+negative_normal,-2.718,-2.718,-2.718
+mixed_precision,1.23456789e-15,1.23456789e-15,1.23e-15
