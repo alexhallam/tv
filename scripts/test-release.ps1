@@ -117,20 +117,20 @@ function Test-Release {
     Write-Status "  - Running tests..."
     cargo test
     if ($LASTEXITCODE -eq 0) {
-        Write-Success "  ✅ All tests passed"
+        Write-Success "  [OK] All tests passed"
     }
     else {
-        Write-Error "  ❌ Tests failed"
+        Write-Error "  [FAIL] Tests failed"
         exit 1
     }
     
     Write-Status "  - Checking formatting..."
     cargo fmt --all -- --check
     if ($LASTEXITCODE -eq 0) {
-        Write-Success "  ✅ Code formatting is correct"
+        Write-Success "  [OK] Code formatting is correct"
     }
     else {
-        Write-Warning "  ⚠️  Code formatting issues detected"
+        Write-Warning "  [WARN] Code formatting issues detected"
         if ($DryRun -eq "false") {
             Write-Error "Cannot proceed with formatting issues"
             exit 1
@@ -140,10 +140,10 @@ function Test-Release {
     Write-Status "  - Running clippy..."
     cargo clippy -- -D warnings
     if ($LASTEXITCODE -eq 0) {
-        Write-Success "  ✅ Clippy checks passed"
+        Write-Success "  [OK] Clippy checks passed"
     }
     else {
-        Write-Warning "  ⚠️  Clippy warnings detected"
+        Write-Warning "  [WARN] Clippy warnings detected"
         if ($DryRun -eq "false") {
             Write-Error "Cannot proceed with clippy warnings"
             exit 1
@@ -153,10 +153,10 @@ function Test-Release {
     Write-Status "  - Building release version..."
     cargo build --release
     if ($LASTEXITCODE -eq 0) {
-        Write-Success "  ✅ Release build successful"
+        Write-Success "  [OK] Release build successful"
     }
     else {
-        Write-Error "  ❌ Release build failed"
+        Write-Error "  [FAIL] Release build failed"
         exit 1
     }
     
@@ -190,14 +190,14 @@ function Test-Release {
         Write-Status "  - Testing Debian package build..."
         cargo deb --no-build
         if ($LASTEXITCODE -eq 0) {
-            Write-Success "  ✅ Debian package build simulation successful"
+            Write-Success "  [OK] Debian package build simulation successful"
         }
         else {
-            Write-Warning "  ⚠️  Debian package build simulation failed"
+            Write-Warning "  [WARN] Debian package build simulation failed"
         }
     }
     else {
-        Write-Warning "  ⚠️  cargo-deb not installed, skipping Debian package test"
+        Write-Warning "  [WARN] cargo-deb not installed, skipping Debian package test"
     }
     
     if (Test-Command "alien") {
@@ -205,18 +205,18 @@ function Test-Release {
         if (Test-Path "target/debian" -and (Get-ChildItem "target/debian/*.deb" -ErrorAction SilentlyContinue)) {
             alien --verbose --to-rpm ./target/debian/*.deb | Out-Null
             if ($LASTEXITCODE -eq 0) {
-                Write-Success "  ✅ RPM package build simulation successful"
+                Write-Success "  [OK] RPM package build simulation successful"
             }
             else {
-                Write-Warning "  ⚠️  RPM package build simulation failed"
+                Write-Warning "  [WARN] RPM package build simulation failed"
             }
         }
         else {
-            Write-Warning "  ⚠️  No Debian package found for RPM conversion"
+            Write-Warning "  [WARN] No Debian package found for RPM conversion"
         }
     }
     else {
-        Write-Warning "  ⚠️  alien not installed, skipping RPM package test"
+        Write-Warning "  [WARN] alien not installed, skipping RPM package test"
     }
     
     # Step 7: Homebrew formula test (simulation)
@@ -234,20 +234,20 @@ function Test-Release {
     }
     
     # Note: This is a simplified simulation since tar might not be available on Windows
-    Write-Success "  ✅ SHA256 calculation simulation completed"
+    Write-Success "  [OK] SHA256 calculation simulation completed"
     
     # Step 8: Final summary
     Write-Host ""
-    Write-Success "🎉 Release test completed successfully!"
+    Write-Success "[SUCCESS] Release test completed successfully!"
     Write-Host ""
     Write-Status "Summary for version ${Version}:"
-    Write-Host "  ✅ Version format valid"
-    Write-Host "  ✅ CHANGELOG entry found"
-    Write-Host "  ✅ Code quality checks passed"
-    Write-Host "  ✅ Documentation validation passed"
-    Write-Host "  ✅ Release build successful"
-    Write-Host "  ✅ Package building simulation completed"
-    Write-Host "  ✅ Homebrew formula simulation completed"
+    Write-Host "  [OK] Version format valid"
+    Write-Host "  [OK] CHANGELOG entry found"
+    Write-Host "  [OK] Code quality checks passed"
+    Write-Host "  [OK] Documentation validation passed"
+    Write-Host "  [OK] Release build successful"
+    Write-Host "  [OK] Package building simulation completed"
+    Write-Host "  [OK] Homebrew formula simulation completed"
     Write-Host ""
     Write-Status "Next steps for actual release:"
     Write-Host "  1. git add ."

@@ -106,17 +106,17 @@ main() {
     
     print_status "  - Running tests..."
     if cargo test; then
-        print_success "  ✅ All tests passed"
+        print_success "  [OK] All tests passed"
     else
-        print_error "  ❌ Tests failed"
+        print_error "  [FAIL] Tests failed"
         exit 1
     fi
     
     print_status "  - Checking formatting..."
     if cargo fmt --all -- --check; then
-        print_success "  ✅ Code formatting is correct"
+        print_success "  [OK] Code formatting is correct"
     else
-        print_warning "  ⚠️  Code formatting issues detected"
+        print_warning "  [WARN] Code formatting issues detected"
         if [ "$dry_run" = "false" ]; then
             print_error "Cannot proceed with formatting issues"
             exit 1
@@ -125,9 +125,9 @@ main() {
     
     print_status "  - Running clippy..."
     if cargo clippy -- -D warnings; then
-        print_success "  ✅ Clippy checks passed"
+        print_success "  [OK] Clippy checks passed"
     else
-        print_warning "  ⚠️  Clippy warnings detected"
+        print_warning "  [WARN] Clippy warnings detected"
         if [ "$dry_run" = "false" ]; then
             print_error "Cannot proceed with clippy warnings"
             exit 1
@@ -136,9 +136,9 @@ main() {
     
     print_status "  - Building release version..."
     if cargo build --release; then
-        print_success "  ✅ Release build successful"
+        print_success "  [OK] Release build successful"
     else
-        print_error "  ❌ Release build failed"
+        print_error "  [FAIL] Release build failed"
         exit 1
     fi
     
@@ -170,27 +170,27 @@ main() {
     if command_exists cargo-deb; then
         print_status "  - Testing Debian package build..."
         if cargo deb --no-build; then
-            print_success "  ✅ Debian package build simulation successful"
+            print_success "  [OK] Debian package build simulation successful"
         else
-            print_warning "  ⚠️  Debian package build simulation failed"
+            print_warning "  [WARN] Debian package build simulation failed"
         fi
     else
-        print_warning "  ⚠️  cargo-deb not installed, skipping Debian package test"
+        print_warning "  [WARN] cargo-deb not installed, skipping Debian package test"
     fi
     
     if command_exists alien; then
         print_status "  - Testing RPM package build..."
         if [ -d target/debian ] && ls target/debian/*.deb >/dev/null 2>&1; then
             if alien --verbose --to-rpm ./target/debian/*.deb >/dev/null 2>&1; then
-                print_success "  ✅ RPM package build simulation successful"
+                print_success "  [OK] RPM package build simulation successful"
             else
-                print_warning "  ⚠️  RPM package build simulation failed"
+                print_warning "  [WARN] RPM package build simulation failed"
             fi
         else
-            print_warning "  ⚠️  No Debian package found for RPM conversion"
+            print_warning "  [WARN] No Debian package found for RPM conversion"
         fi
     else
-        print_warning "  ⚠️  alien not installed, skipping RPM package test"
+        print_warning "  [WARN] alien not installed, skipping RPM package test"
     fi
     
     # Step 7: Homebrew formula test (simulation)
@@ -202,20 +202,20 @@ main() {
     tar -czf "$temp_file" --exclude='.git' --exclude='target' . >/dev/null 2>&1
     local sha256=$(sha256sum "$temp_file" | cut -d' ' -f1)
     rm "$temp_file"
-    print_success "  ✅ SHA256 calculated: $sha256"
+    print_success "  [OK] SHA256 calculated: $sha256"
     
     # Step 8: Final summary
     echo
-    print_success "🎉 Release test completed successfully!"
+    print_success "[SUCCESS] Release test completed successfully!"
     echo
     print_status "Summary for version $version:"
-    echo "  ✅ Version format valid"
-    echo "  ✅ CHANGELOG entry found"
-    echo "  ✅ Code quality checks passed"
-    echo "  ✅ Documentation validation passed"
-    echo "  ✅ Release build successful"
-    echo "  ✅ Package building simulation completed"
-    echo "  ✅ Homebrew formula simulation completed"
+    echo "  [OK] Version format valid"
+    echo "  [OK] CHANGELOG entry found"
+    echo "  [OK] Code quality checks passed"
+    echo "  [OK] Documentation validation passed"
+    echo "  [OK] Release build successful"
+    echo "  [OK] Package building simulation completed"
+    echo "  [OK] Homebrew formula simulation completed"
     echo
     print_status "Next steps for actual release:"
     echo "  1. git add ."
