@@ -3,6 +3,32 @@
 1.6.2 (2025-01-27)
 ==================
 
+* **Bug Fix** **JSON File Graceful Error Handling** - Added proper detection and graceful error handling for JSON files to prevent crashes and provide helpful guidance.
+
+  **Issues Fixed:**
+  - **JSON File Crashes**: Previously crashed with `UnequalLengths` error when trying to parse JSON as CSV
+  - **Poor User Experience**: No clear indication of why JSON files failed or what alternatives to use
+  - **Missing File Type Detection**: No detection of JSON files by extension or content
+
+  **Changes Made:**
+  - **JSON Detection**: Added detection of JSON files by `.json` extension and content validation
+  - **Graceful Error Messages**: Clear, helpful error messages explaining JSON is not supported
+  - **Alternative Suggestions**: Provides guidance on using `jq` for JSON processing
+  - **Maintained Compatibility**: All existing CSV, TSV, PSV, and Parquet functionality preserved
+
+  **Technical Details:**
+  - Added `serde_json` dependency for JSON content validation
+  - Implemented `is_json_file()` function for extension-based detection
+  - Added `validate_json_content()` function for content-based validation
+  - Created `handle_json_file()` function with comprehensive error messaging
+  - Integrated JSON detection into main file processing pipeline
+
+  **Benefits:**
+  - **No More Crashes**: JSON files now handled gracefully instead of causing panics
+  - **Better UX**: Clear error messages guide users to appropriate tools
+  - **Educational**: Helps users understand supported formats and alternatives
+  - **Robust**: Works with both valid and invalid JSON files
+
 * **Bug Fix** **Streaming Mode Display Consistency** - Fixed inconsistent row count reporting in streaming mode that was showing three different row counts for the same file.
 
   **Issues Fixed:**

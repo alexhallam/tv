@@ -12,6 +12,7 @@ use crossterm::terminal::size;
 use directories::BaseDirs;
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json;
 use std::convert::TryInto;
 
 #[derive(StructOpt)]
@@ -727,7 +728,17 @@ fn main() {
 
     //   colname reader
     let (rdr, streaming_info, original_file_size) = if let Some(file_path) = &opt.file {
-        if is_parquet_file(file_path) {
+        // Check for JSON files first
+        if is_json_file(file_path) {
+            // Validate JSON content and provide helpful error message
+            if let Ok(is_valid_json) = validate_json_content(file_path) {
+                if is_valid_json {
+                    handle_json_file(file_path);
+                }
+            }
+            // Even if content validation fails, still show JSON error for .json files
+            handle_json_file(file_path);
+        } else if is_parquet_file(file_path) {
             // Handle Parquet files
             let use_streaming = !opt.no_streaming && should_use_streaming_with_threshold(file_path, opt.streaming_threshold * 1024.0 * 1024.0).unwrap_or(false);
             
@@ -1598,6 +1609,39 @@ fn is_parquet_file(file_path: &PathBuf) -> bool {
         false
     }
 }
+
+fn is_json_file(file_path: &PathBuf) -> bool {
+    if let Some(ext) = file_path.extension() {
+        ext.to_string_lossy().to_lowercase() == "json"
+    } else {
+        false
+    }
+}
+
+fn validate_json_content(file_path: &PathBuf) -> Result<bool, Box<dyn std::error::Error>> {
+    let content = std::fs::read_to_string(file_path)?;
+    // Try to parse as JSON to validate content
+    match serde_json::from_str::<serde_json::Value>(&content) {
+        Ok(_) => Ok(true),
+        Err(_) => Ok(false), // Not valid JSON, but don't treat as error
+    }
+}
+
+    fn handle_json_file(_file_path: &PathBuf) -> ! {
+        eprintln!("❌ Error: JSON files are not currently supported by tidy-viewer.");
+        eprintln!();
+        eprintln!("📋 Supported formats:");
+        eprintln!("   • CSV files (.csv)");
+        eprintln!("   • Parquet files (.parquet)");
+        eprintln!();
+        eprintln!("💡 For JSON files, consider using:");
+        eprintln!("   • jq - for JSON processing and formatting");
+        eprintln!("   • cat file.json | jq '.' - for pretty printing");
+        eprintln!("   • cat file.json | jq '.[]' - for array processing");
+        eprintln!();
+        eprintln!("🔗 Learn more: https://stedolan.github.io/jq/");
+        std::process::exit(1);
+    }
 
 fn should_use_streaming_with_threshold(file_path: &PathBuf, threshold_bytes: f64) -> Result<bool, Box<dyn std::error::Error>> {
     let metadata = std::fs::metadata(file_path)?;
