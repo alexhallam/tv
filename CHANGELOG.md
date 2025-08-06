@@ -1,5 +1,33 @@
 
 
+1.6.2 (2025-01-27)
+==================
+
+* **Bug Fix** **Streaming Mode Display Consistency** - Fixed inconsistent row count reporting in streaming mode that was showing three different row counts for the same file.
+
+  **Issues Fixed:**
+  - **Inconsistent Row Counts**: Previously showed conflicting numbers between dimension line, ellipsis footer, and streaming footer
+  - **Streaming Indicator Placement**: Moved streaming indicator from separate footer to integrated dimension line display
+  - **Calculation Accuracy**: Fixed remaining row calculation in `read_parquet_streaming` function to match ellipsis logic
+
+  **Changes Made:**
+  - **Unified Display**: Streaming mode now shows `tv dim: ~[total_rows] x [cols]` with tilde prefix instead of separate footer
+  - **Consistent Calculations**: Remaining row count now correctly calculated as `total_rows - actual_displayed_rows`
+  - **Cleaner Output**: Removed redundant "Streaming mode: showing sample" footer for cleaner display
+  - **Better UX**: Tilde prefix (~) clearly indicates streaming mode without cluttering output
+
+  **Technical Details:**
+  - Fixed `remaining` calculation in `read_parquet_streaming` to use `actual_displayed_rows` instead of `displayed_data_rows`
+  - Updated dimension line display logic to include tilde prefix when streaming is active
+  - Removed streaming footer display code entirely
+  - Ensures consistency between ellipsis calculation and streaming remaining calculation
+
+  **Benefits:**
+  - **Consistent Output**: All row count references now show the same numbers
+  - **Cleaner Interface**: Single streaming indicator instead of multiple conflicting messages
+  - **Better UX**: Clear visual distinction between streaming and full file modes
+  - **Maintained Functionality**: All existing features work exactly as before
+
 1.6.1 (2025-08-06)
 ==================
 

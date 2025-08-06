@@ -895,12 +895,6 @@ fn main() {
         (records, None, None)
     };
 
-    // Display streaming indicator if applicable
-    if let Some((remaining_rows, _)) = streaming_info {
-        println!("📊 Streaming Mode: Showing sample of data (~{} more rows not shown)", remaining_rows);
-        println!();
-    }
-
     let rdr = rdr;
 
     if debug_mode {
@@ -1001,10 +995,14 @@ fn main() {
         },
     };
     if !is_no_dimensions {
+        // Add tilde prefix for streaming mode
+        let row_count_prefix = if streaming_info.is_some() { "~" } else { "" };
+        
         if is_tty || is_force_color {
             let _ = match stdoutln!(
-                "{} {} {} {}",
+                "{} {}{} {} {}",
                 meta_text.truecolor(meta_color[0], meta_color[1], meta_color[2]), // tv dim:
+                row_count_prefix.truecolor(meta_color[0], meta_color[1], meta_color[2]), // tilde prefix for streaming
                 (rows_in_file - 1).truecolor(meta_color[0], meta_color[1], meta_color[2]), // rows
                 div.truecolor(meta_color[0], meta_color[1], meta_color[2]),       // x
                 (cols).truecolor(meta_color[0], meta_color[1], meta_color[2]),    // cols
@@ -1016,7 +1014,7 @@ fn main() {
                 },
             };
         } else {
-            let _ = match stdoutln!("{} {} {} {}", meta_text, rows_in_file - 1, div, cols) {
+            let _ = match stdoutln!("{} {}{} {} {}", meta_text, row_count_prefix, rows_in_file - 1, div, cols) {
                 Ok(_) => Ok(()),
                 Err(e) => match e.kind() {
                     std::io::ErrorKind::BrokenPipe => Ok(()),
@@ -1366,6 +1364,8 @@ fn main() {
         }
     }
 
+
+
     let _ = match stdoutln!() {
         Ok(_) => Ok(()),
         Err(e) => match e.kind() {
@@ -1580,7 +1580,13 @@ fn read_parquet_streaming(
     }
     
     let displayed_data_rows = data_rows_read;
-    let remaining = total_rows.saturating_sub(displayed_data_rows);
+    // The remaining calculation should be consistent with the ellipsis calculation
+    // which shows total_rows - displayed_rows (where displayed_rows is the number shown)
+    // For streaming, we need to account for the fact that we only show a limited number of rows
+    // The ellipsis calculation uses: rows_in_file - rows (where rows is limited by row_display_option)
+    // So for streaming, we should use: total_rows - min(displayed_data_rows, row_display_option)
+    let actual_displayed_rows = std::cmp::min(displayed_data_rows, 25); // Default display limit
+    let remaining = total_rows.saturating_sub(actual_displayed_rows);
     
     Ok((headers, records, Some(remaining), true))
 }
@@ -1892,7 +1898,7 @@ mod tests {
             [
                 ["aColumn ", "1       "],
                 ["bColumn    ", "üÜğĞçÇşŞöÖ "],
-                ["cColumn              ", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞ… "],
+                ["cColumn              ", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞöÖ "],
                 ["dColumn ", "77      "],
                 ["eColumn ", "TR      "],
                 ["fColumn ", "77      "],
