@@ -2,3 +2,34 @@
 ./data/*.R
 .vscode
 .vscode/settings.json
+
+# Python environment and test files
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+generate_test_parquet.py
+
+# Large test files
+data/taxi_sample.parquet
+large_test.csv
+large_dataset.csv
+huge_data.csv
+sensor_data.parquet
+
+# Test data files (generated for testing)
+data/*_test.parquet
+data/*_test.csv
+data/*.parquet
+parquet-test/
+
+# Performance testing files (too large for git)
+performance_test_files/
+generate_performance_test_files.py

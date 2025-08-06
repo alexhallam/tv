@@ -1,9 +1,10 @@
-use csv::{Reader, ReaderBuilder};
+use csv::{Reader, ReaderBuilder, StringRecord};
 use owo_colors::OwoColorize;
 use std::fs::File;
-use std::io::{self, BufReader, Read};
+use std::io::{self, BufReader, Read, BufRead};
 use std::path::PathBuf;
 use structopt::StructOpt;
+use parquet::file::reader::{FileReader, SerializedFileReader};
 mod datatype;
 use calm_io::stdout;
 use calm_io::stdoutln;
@@ -16,11 +17,12 @@ use std::convert::TryInto;
 #[derive(StructOpt)]
 #[structopt(
     name = "tv",
-    about = "Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨\n
+    about = "Tidy Viewer (tv) is a data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, TSV, PSV, and Parquet files.✨✨📺✨✨\n
     Example Usage:
     wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
     cat diamonds.csv | head -n 35 | tv
     tv diamonds.csv
+    tv data.parquet
 
     Configuration File Support:
     An example config is printed to make it easy to copy/paste to `tv.toml`.
@@ -193,6 +195,19 @@ struct Cli {
         help = "Show the current config details"
     )]
     config_details: bool,
+
+    #[structopt(
+        long = "streaming-threshold",
+        default_value = "5",
+        help = "File size threshold in MB to automatically enable streaming mode"
+    )]
+    streaming_threshold: f64,
+
+    #[structopt(
+        long = "no-streaming",
+        help = "Disable streaming mode even for large files"
+    )]
+    no_streaming: bool,
 
     #[structopt(name = "FILE", parse(from_os_str), help = "File to process")]
     file: Option<PathBuf>,
@@ -711,34 +726,182 @@ fn main() {
     // };
 
     //   colname reader
-    let reader_result = build_reader(&opt);
-    let mut r = if let Ok(reader) = reader_result {
-        reader
-    } else {
-        // We can safely use unwrap, because if file in case when file is None
-        // build_reader would return reader created from stdin
-        let path_buf = opt.file.unwrap();
-        let path = path_buf.as_path();
-        if let Some(path) = path.to_str() {
-            eprintln!("Failed to open file: {}", path);
+    let (rdr, streaming_info, original_file_size) = if let Some(file_path) = &opt.file {
+        if is_parquet_file(file_path) {
+            // Handle Parquet files
+            let use_streaming = !opt.no_streaming && should_use_streaming_with_threshold(file_path, opt.streaming_threshold * 1024.0 * 1024.0).unwrap_or(false);
+            
+            if use_streaming {
+                // Check file size for Parquet
+                let max_rows = calculate_sample_size(file_path).unwrap_or(1000);
+                
+                // Get row count from Parquet metadata to decide if streaming is needed
+                let needs_streaming = match File::open(file_path).and_then(|f| {
+                    SerializedFileReader::new(f).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+                }) {
+                    Ok(reader) => {
+                        let total_rows = reader.metadata().file_metadata().num_rows() as usize;
+                        total_rows > max_rows
+                    },
+                    Err(_) => false, // If we can't read metadata, don't use streaming
+                };
+                
+                if needs_streaming {
+                    // File is large, use streaming
+                    match read_parquet_streaming(file_path, max_rows) {
+                        Ok((_headers, records, remaining, is_streaming)) => {
+                            let info = if is_streaming {
+                                Some((remaining.unwrap_or(0), true))
+                            } else {
+                                None
+                            };
+                            let original_size = remaining.map(|r| r + (records.len() - 1)).unwrap_or(records.len() - 1);
+                            (records, info, Some(original_size))
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to read Parquet file: {}", e);
+                            return;
+                        }
+                    }
+                } else {
+                    // File is small, read normally
+                    match read_parquet_file(file_path) {
+                        Ok((_headers, records)) => (records, None, None),
+                        Err(e) => {
+                            eprintln!("Failed to read Parquet file: {}", e);
+                            return;
+                        }
+                    }
+                }
+            } else {
+                match read_parquet_file(file_path) {
+                    Ok((_headers, records)) => (records, None, None),
+                    Err(e) => {
+                        eprintln!("Failed to read Parquet file: {}", e);
+                        return;
+                    }
+                }
+            }
         } else {
-            eprintln!("Failed to open file.")
+            // Handle CSV/TSV/PSV files
+            let use_streaming = !opt.no_streaming && should_use_streaming_with_threshold(file_path, opt.streaming_threshold * 1024.0 * 1024.0).unwrap_or(false);
+            
+            if use_streaming {
+                // First check if the file actually needs streaming by estimating its size
+                let estimated_total_lines = estimate_csv_rows(file_path).unwrap_or(1);
+                let estimated_data_rows = if estimated_total_lines > 0 { 
+                    estimated_total_lines - 1 
+                } else { 
+                    0 
+                };
+                
+                let max_rows = calculate_sample_size(file_path).unwrap_or(1000);
+                
+                // If the file is actually small, don't use streaming even if threshold suggests it
+                if estimated_data_rows <= max_rows {
+                    // File is small enough, read normally without streaming
+                    let reader_result = build_reader(&opt);
+                    let mut r = if let Ok(reader) = reader_result {
+                        reader
+                    } else {
+                        let path = file_path.as_path();
+                        if let Some(path) = path.to_str() {
+                            eprintln!("Failed to open file: {}", path);
+                        } else {
+                            eprintln!("Failed to open file.")
+                        }
+                        return;
+                    };
+
+                    let rdr = r.records().collect::<Vec<_>>();
+
+                    let records = if opt.skip_invalid_rows {
+                        rdr.into_iter()
+                            .filter_map(|record| record.ok())
+                            .collect::<Vec<_>>()
+                    } else {
+                        rdr.into_iter()
+                            .map(|record| record.expect("valid csv data"))
+                            .collect::<Vec<_>>()
+                    };
+                    (records, None, None)
+                } else {
+                    // File is large, use streaming
+                    match read_csv_streaming(file_path, max_rows) {
+                        Ok((_headers, records, remaining, is_streaming)) => {
+                            let info = if is_streaming {
+                                Some((remaining.unwrap_or(0), true))
+                            } else {
+                                None
+                            };
+                            let original_size = remaining.map(|r| r + (records.len() - 1)).unwrap_or(records.len() - 1);
+                            (records, info, Some(original_size))
+                        },
+                        Err(e) => {
+                            eprintln!("Failed to read CSV file: {}", e);
+                            return;
+                        }
+                    }
+                }
+            } else {
+                let reader_result = build_reader(&opt);
+                let mut r = if let Ok(reader) = reader_result {
+                    reader
+                } else {
+                    let path = file_path.as_path();
+                    if let Some(path) = path.to_str() {
+                        eprintln!("Failed to open file: {}", path);
+                    } else {
+                        eprintln!("Failed to open file.")
+                    }
+                    return;
+                };
+
+                let rdr = r.records().collect::<Vec<_>>();
+
+                let records = if opt.skip_invalid_rows {
+                    rdr.into_iter()
+                        .filter_map(|record| record.ok())
+                        .collect::<Vec<_>>()
+                } else {
+                    rdr.into_iter()
+                        .map(|record| record.expect("valid csv data"))
+                        .collect::<Vec<_>>()
+                };
+                (records, None, None)
+            }
         }
-        return;
-    };
-
-    let rdr = r.records().collect::<Vec<_>>();
-    //.take(row_display_option + 1);
-
-    let rdr = if opt.skip_invalid_rows {
-        rdr.into_iter()
-            .filter_map(|record| record.ok())
-            .collect::<Vec<_>>()
     } else {
-        rdr.into_iter()
-            .map(|record| record.expect("valid csv data"))
-            .collect::<Vec<_>>()
+        // Handle stdin (CSV only) - no streaming for stdin
+        let reader_result = build_reader(&opt);
+        let mut r = if let Ok(reader) = reader_result {
+            reader
+        } else {
+            eprintln!("Failed to read from stdin");
+            return;
+        };
+
+        let rdr = r.records().collect::<Vec<_>>();
+
+        let records = if opt.skip_invalid_rows {
+            rdr.into_iter()
+                .filter_map(|record| record.ok())
+                .collect::<Vec<_>>()
+        } else {
+            rdr.into_iter()
+                .map(|record| record.expect("valid csv data"))
+                .collect::<Vec<_>>()
+        };
+        (records, None, None)
     };
+
+    // Display streaming indicator if applicable
+    if let Some((remaining_rows, _)) = streaming_info {
+        println!("📊 Streaming Mode: Showing sample of data (~{} more rows not shown)", remaining_rows);
+        println!();
+    }
+
+    let rdr = rdr;
 
     if debug_mode {
         println!("{:?}", "StringRecord");
@@ -749,7 +912,7 @@ fn main() {
         panic!("🤖 Looks like the file exists, but is empty. No data to read. 🤖")
     };
     let cols: usize = rdr[0].len();
-    let rows_in_file: usize = rdr.len();
+    let rows_in_file: usize = original_file_size.unwrap_or(rdr.len());
     let rows: usize = if extend_width_length_option {
         // if extend_width_length_option print rows in file unless -n is set (issue #140)
         if is_row_display_defined {
@@ -1275,6 +1438,243 @@ fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
         .from_reader(source);
 
     Ok(reader)
+}
+
+fn read_parquet_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+    let file = File::open(file_path)?;
+    let reader = SerializedFileReader::new(file)?;
+    let iter = reader.get_row_iter(None)?;
+    
+    let mut records = Vec::new();
+    let mut headers = Vec::new();
+    
+    // Extract column names from schema
+    let schema = reader.metadata().file_metadata().schema_descr();
+    let mut column_indices_to_include = Vec::new();
+    
+    for i in 0..schema.num_columns() {
+        let column = schema.column(i);
+        let column_name = column.name().to_lowercase();
+        
+        // Skip columns that are likely pandas index columns
+        if column_name == "id" || column_name == "index" || column_name == "__index_level_0__" {
+            continue;
+        }
+        
+        headers.push(column.name().to_string());
+        column_indices_to_include.push(i);
+    }
+    
+    // Insert headers as first row (like CSV format)
+    records.push(StringRecord::from(headers.clone()));
+    
+    // Process all data rows
+    for row_result in iter {
+        let row = row_result?;
+        let mut record_fields = Vec::new();
+        
+        for &col_index in &column_indices_to_include {
+            if let Some(field) = row.get_column_iter().nth(col_index) {
+                let value_str = format!("{}", field.1);
+                // Remove quotes from string values to match CSV behavior
+                let clean_value = if value_str.starts_with('"') && value_str.ends_with('"') && value_str.len() > 1 {
+                    value_str[1..value_str.len()-1].to_string()
+                } else {
+                    value_str
+                };
+                record_fields.push(clean_value);
+            } else {
+                record_fields.push(String::new());
+            }
+        }
+        records.push(StringRecord::from(record_fields));
+    }
+    
+    Ok((headers, records))
+}
+
+fn read_parquet_streaming(
+    file_path: &PathBuf, 
+    max_rows: usize
+) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
+    let file = File::open(file_path)?;
+    let reader = SerializedFileReader::new(file)?;
+    
+    // Get exact total from metadata
+    let total_rows = reader.metadata().file_metadata().num_rows() as usize;
+    
+    let iter = reader.get_row_iter(None)?;
+    let mut records = Vec::new();
+    let mut headers = Vec::new();
+    
+    // Extract column names from schema
+    let schema = reader.metadata().file_metadata().schema_descr();
+    let mut column_indices_to_include = Vec::new();
+    
+    for i in 0..schema.num_columns() {
+        let column = schema.column(i);
+        let column_name = column.name().to_lowercase();
+        
+        // Skip columns that are likely pandas index columns
+        if column_name == "id" || column_name == "index" || column_name == "__index_level_0__" {
+            continue;
+        }
+        
+        headers.push(column.name().to_string());
+        column_indices_to_include.push(i);
+    }
+    
+    // Insert headers as first row (like CSV format)
+    records.push(StringRecord::from(headers.clone()));
+    
+    // If file is smaller than requested sample, don't use streaming
+    if total_rows <= max_rows {
+        // Read all data rows normally
+        for row_result in iter {
+            let row = row_result?;
+            let mut record_fields = Vec::new();
+            
+            for &col_index in &column_indices_to_include {
+                if let Some(field) = row.get_column_iter().nth(col_index) {
+                    let value_str = format!("{}", field.1);
+                    // Remove quotes from string values to match CSV behavior
+                    let clean_value = if value_str.starts_with('"') && value_str.ends_with('"') && value_str.len() > 1 {
+                        value_str[1..value_str.len()-1].to_string()
+                    } else {
+                        value_str
+                    };
+                    record_fields.push(clean_value);
+                } else {
+                    record_fields.push(String::new());
+                }
+            }
+            records.push(StringRecord::from(record_fields));
+        }
+        return Ok((headers, records, None, false)); // No streaming needed
+    }
+    
+    // Read sample data rows for large files
+    let mut data_rows_read = 0;
+    for row_result in iter {
+        if data_rows_read >= max_rows - 1 { break; } // -1 because headers count
+        
+        let row = row_result?;
+        let mut record_fields = Vec::new();
+        
+        for &col_index in &column_indices_to_include {
+            if let Some(field) = row.get_column_iter().nth(col_index) {
+                let value_str = format!("{}", field.1);
+                // Remove quotes from string values to match CSV behavior
+                let clean_value = if value_str.starts_with('"') && value_str.ends_with('"') && value_str.len() > 1 {
+                    value_str[1..value_str.len()-1].to_string()
+                } else {
+                    value_str
+                };
+                record_fields.push(clean_value);
+            } else {
+                record_fields.push(String::new());
+            }
+        }
+        records.push(StringRecord::from(record_fields));
+        data_rows_read += 1;
+    }
+    
+    let displayed_data_rows = data_rows_read;
+    let remaining = total_rows.saturating_sub(displayed_data_rows);
+    
+    Ok((headers, records, Some(remaining), true))
+}
+
+fn is_parquet_file(file_path: &PathBuf) -> bool {
+    if let Some(ext) = file_path.extension() {
+        ext.to_string_lossy().to_lowercase() == "parquet"
+    } else {
+        false
+    }
+}
+
+fn should_use_streaming_with_threshold(file_path: &PathBuf, threshold_bytes: f64) -> Result<bool, Box<dyn std::error::Error>> {
+    let metadata = std::fs::metadata(file_path)?;
+    let file_size = metadata.len() as f64;
+    Ok(file_size > threshold_bytes)
+}
+
+fn calculate_sample_size(file_path: &PathBuf) -> Result<usize, Box<dyn std::error::Error>> {
+    let metadata = std::fs::metadata(file_path)?;
+    let file_size_mb = metadata.len() / (1024 * 1024);
+    
+    let size = match file_size_mb {
+        0..=10 => 1000,      // Small files: 1K rows
+        11..=100 => 5000,    // Medium files: 5K rows  
+        101..=1000 => 7500,  // Large files: 7.5K rows
+        _ => 10000,          // Huge files: 10K rows
+    };
+    Ok(size)
+}
+
+fn estimate_csv_rows(file_path: &PathBuf) -> Result<usize, std::io::Error> {
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+    Ok(reader.lines().count())
+}
+
+fn read_csv_streaming(
+    file_path: &PathBuf, 
+    max_rows: usize
+) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
+    let file = File::open(file_path)?;
+    let mut reader = csv::Reader::from_reader(file);
+    
+    let mut records = Vec::new();
+    let mut headers = Vec::new();
+    
+    // Get headers
+    if let Ok(header_record) = reader.headers() {
+        headers = header_record.iter().map(|h| h.to_string()).collect();
+        records.push(StringRecord::from(headers.clone()));
+    }
+    
+    // Estimate total data rows first (excluding header)
+    let estimated_total_lines = estimate_csv_rows(file_path).unwrap_or(1);
+    let estimated_data_rows = if estimated_total_lines > 0 { 
+        estimated_total_lines - 1  // Subtract header line
+    } else { 
+        0 
+    };
+    
+    // If file is smaller than requested sample, don't use streaming
+    if estimated_data_rows <= max_rows {
+        // Read all data rows normally
+        for result in reader.records() {
+            match result {
+                Ok(record) => records.push(record),
+                Err(_) => continue, // Skip invalid rows
+            }
+        }
+        return Ok((headers, records, None, false)); // No streaming needed
+    }
+    
+    // Read sample data rows for large files
+    let mut data_rows_read = 0;
+    for result in reader.records() {
+        if data_rows_read >= max_rows - 1 { break; } // -1 because headers count
+        
+        match result {
+            Ok(record) => {
+                records.push(record);
+                data_rows_read += 1;
+            }
+            Err(_) => {
+                // Skip invalid rows for streaming
+                continue;
+            }
+        }
+    }
+    
+    let displayed_data_rows = data_rows_read;
+    let remaining = estimated_data_rows.saturating_sub(displayed_data_rows);
+    
+    Ok((headers, records, Some(remaining), true))
 }
 
 #[cfg(test)]
