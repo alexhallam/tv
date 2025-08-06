@@ -1,0 +1,7 @@
+value_type,original_value,description
+small_decimal,0.000000123,very small decimal
+scientific_input,1.23e-7,already in scientific notation
+large_number,1234567890,large integer
+normal_decimal,3.14159,normal decimal
+negative_scientific,-5.67e-10,negative scientific notation
+zero,0.0,zero value
