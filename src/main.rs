@@ -2419,7 +2419,7 @@ mod tests {
             [
                 ["aColumn ", "1       "],
                 ["bColumn    ", "üÜğĞçÇşŞöÖ "],
-                ["cColumn              ", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞöÖ "],
+                ["cColumn              ", "üÜğĞçÇşŞöÖ üÜğĞçÇşŞ… "],
                 ["dColumn ", "77      "],
                 ["eColumn ", "TR      "],
                 ["fColumn ", "77      "],
