@@ -34,7 +34,8 @@ priority = "optional"
 section = "utility"
 
 [dependencies]
-arrow = "50.0"
+arrow = "56.0"
+arrow-ipc = { version = "56.0", features = ["lz4"] }
 atty = "0.2.14"
 calm_io = "0.1.1"
 console = "0.15.0"
@@ -43,6 +44,7 @@ csv = "1.1.6"
 directories = "4.0"
 itertools = "0.10.0"
 lazy_static = "1.4.0"
+lz4 = "1.28.1"
 owo-colors = "3.0.1"
 parquet = "53.0"
 regex = "1.5.4"

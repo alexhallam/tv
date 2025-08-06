@@ -31,6 +31,12 @@ data/*.parquet
 data/*_test.feather
 data/*_test.arrow
 data/*_test.ipc
+data/uncompressed_*.feather
+data/uncompressed_*.arrow
+data/uncompressed_*.ipc
+data/compressed_*.feather
+data/compressed_*.arrow
+data/compressed_*.ipc
 parquet-test/
 
 # Performance testing files (too large for git)

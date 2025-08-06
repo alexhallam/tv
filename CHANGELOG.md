@@ -7,6 +7,7 @@
 
   **New Capabilities:**
   - **Multiple Extension Support**: Automatically detects Arrow IPC files with `.feather`, `.arrow`, and `.ipc` extensions
+  - **LZ4 Compression Support**: Full support for both compressed and uncompressed Arrow IPC files
   - **Schema-based Headers**: Column names extracted from Arrow schema metadata
   - **Type-aware Data Conversion**: Properly handles Arrow data types (strings, integers, floats, booleans) with null value handling
   - **Streaming Support**: Large Arrow files automatically use streaming mode for memory efficiency
@@ -19,6 +20,10 @@
   tv data.arrow
   tv data.ipc
   
+  # Works with both compressed and uncompressed files
+  tv compressed_data.feather  # LZ4 compressed
+  tv uncompressed_data.arrow # Uncompressed
+  
   # Use with all existing options
   tv data.feather -n 50 --color 2 --title "My Arrow Data"
   
@@ -27,7 +32,7 @@
   ```
 
   **Technical Implementation:**
-  - Integrated `arrow` crate v50.0 for Arrow IPC file reading
+  - Integrated `arrow` crate v56.0 and `arrow-ipc` crate v56.0 with LZ4 features for compression support
   - Unified processing pipeline supporting CSV, Parquet, and Arrow inputs
   - Memory-efficient batch processing for large Arrow files
   - Maintains backward compatibility - no changes to existing functionality
@@ -37,6 +42,7 @@
   - Seamless workflow for data scientists using Arrow ecosystem
   - Leverages tv's superior visualization for Arrow data exploration
   - Significant performance benefits for data exchange workflows
+  - Support for compressed Arrow files reduces storage requirements
 
 * **Bug Fix** **JSON File Graceful Error Handling** - Added proper detection and graceful error handling for JSON files to prevent crashes and provide helpful guidance.
 

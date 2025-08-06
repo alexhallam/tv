@@ -6,10 +6,10 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use parquet::file::reader::{FileReader, SerializedFileReader};
 use arrow::ipc::reader::FileReader as ArrowFileReader;
-use arrow::record_batch::RecordBatch;
 use arrow::array::{Array, StringArray, Int64Array, Float64Array, BooleanArray};
-use arrow::datatypes::{Schema, Field, DataType};
+use arrow::datatypes::DataType;
 use arrow::error::ArrowError;
+use lz4::block;
 mod datatype;
 use calm_io::stdout;
 use calm_io::stdoutln;
@@ -1676,13 +1676,17 @@ fn read_parquet_streaming(
 
 fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
+    
+    // Try to read as uncompressed first
     let reader = match ArrowFileReader::try_new(file, None) {
         Ok(reader) => reader,
         Err(ArrowError::InvalidArgumentError(msg)) if msg.contains("lz4") => {
-            return Err(format!("Arrow file is compressed with LZ4. Please use uncompressed Arrow files or install Arrow with LZ4 support. Error: {}", msg).into());
+            // Try to decompress LZ4 manually
+            return read_arrow_file_with_lz4_decompression(file_path);
         },
         Err(e) => return Err(e.into()),
     };
+    
     let schema = reader.schema();
     
     let mut headers = Vec::new();
@@ -1709,7 +1713,7 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                 let value = match array.data_type() {
                     DataType::Utf8 => {
                         let string_array = array.as_any().downcast_ref::<StringArray>().unwrap();
-                        if string_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             string_array.value(row_idx).to_string()
@@ -1717,7 +1721,7 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                     },
                     DataType::Int64 => {
                         let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
-                        if int_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             int_array.value(row_idx).to_string()
@@ -1725,7 +1729,7 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                     },
                     DataType::Float64 => {
                         let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
-                        if float_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             float_array.value(row_idx).to_string()
@@ -1733,7 +1737,93 @@ fn read_arrow_file(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord
                     },
                     DataType::Boolean => {
                         let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
-                        if bool_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            bool_array.value(row_idx).to_string()
+                        }
+                    },
+                    _ => {
+                        // For other types, convert to string representation
+                        "NA".to_string()
+                    }
+                };
+                row_data.push(value);
+            }
+            records.push(StringRecord::from(row_data));
+        }
+    }
+    
+    Ok((headers, records))
+}
+
+fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+    // Read the entire file into memory
+    let mut compressed_data = Vec::new();
+    let mut file = File::open(file_path)?;
+    file.read_to_end(&mut compressed_data)?;
+    
+    // Try to decompress with LZ4
+    let decompressed_data = match block::decompress(&compressed_data, None) {
+        Ok(data) => data,
+        Err(_) => {
+            return Err("Failed to decompress LZ4 data. The file might not be LZ4 compressed or the compression format is not supported.".into());
+        }
+    };
+    
+    // Create a reader from the decompressed data
+    let reader = ArrowFileReader::try_new(std::io::Cursor::new(decompressed_data), None)?;
+    let schema = reader.schema();
+    
+    let mut headers = Vec::new();
+    let mut records = Vec::new();
+    
+    // Extract column names from schema
+    for field in schema.fields() {
+        headers.push(field.name().to_string());
+    }
+    
+    // Add header record
+    records.push(StringRecord::from(headers.clone()));
+    
+    // Read all batches and convert to StringRecords
+    for batch_result in reader {
+        let batch = batch_result?;
+        let num_rows = batch.num_rows();
+        let num_cols = batch.num_columns();
+        
+        for row_idx in 0..num_rows {
+            let mut row_data = Vec::new();
+            for col_idx in 0..num_cols {
+                let array = batch.column(col_idx);
+                let value = match array.data_type() {
+                    DataType::Utf8 => {
+                        let string_array = array.as_any().downcast_ref::<StringArray>().unwrap();
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            string_array.value(row_idx).to_string()
+                        }
+                    },
+                    DataType::Int64 => {
+                        let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            int_array.value(row_idx).to_string()
+                        }
+                    },
+                    DataType::Float64 => {
+                        let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            float_array.value(row_idx).to_string()
+                        }
+                    },
+                    DataType::Boolean => {
+                        let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             bool_array.value(row_idx).to_string()
@@ -1761,7 +1851,8 @@ fn read_arrow_streaming(
     let reader = match ArrowFileReader::try_new(file, None) {
         Ok(reader) => reader,
         Err(ArrowError::InvalidArgumentError(msg)) if msg.contains("lz4") => {
-            return Err(format!("Arrow file is compressed with LZ4. Please use uncompressed Arrow files or install Arrow with LZ4 support. Error: {}", msg).into());
+            // Try to decompress LZ4 manually
+            return read_arrow_streaming_with_lz4_decompression(file_path, max_rows);
         },
         Err(e) => return Err(e.into()),
     };
@@ -1786,7 +1877,8 @@ fn read_arrow_streaming(
     let count_reader = match ArrowFileReader::try_new(file_for_count, None) {
         Ok(reader) => reader,
         Err(ArrowError::InvalidArgumentError(msg)) if msg.contains("lz4") => {
-            return Err(format!("Arrow file is compressed with LZ4. Please use uncompressed Arrow files or install Arrow with LZ4 support. Error: {}", msg).into());
+            // For LZ4 files, we'll need to decompress to count rows
+            return read_arrow_streaming_with_lz4_decompression(file_path, max_rows);
         },
         Err(e) => return Err(e.into()),
     };
@@ -1812,7 +1904,7 @@ fn read_arrow_streaming(
                 let value = match array.data_type() {
                     DataType::Utf8 => {
                         let string_array = array.as_any().downcast_ref::<StringArray>().unwrap();
-                        if string_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             string_array.value(row_idx).to_string()
@@ -1820,7 +1912,7 @@ fn read_arrow_streaming(
                     },
                     DataType::Int64 => {
                         let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
-                        if int_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             int_array.value(row_idx).to_string()
@@ -1828,7 +1920,7 @@ fn read_arrow_streaming(
                     },
                     DataType::Float64 => {
                         let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
-                        if float_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             float_array.value(row_idx).to_string()
@@ -1836,7 +1928,7 @@ fn read_arrow_streaming(
                     },
                     DataType::Boolean => {
                         let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
-                        if bool_array.is_null(row_idx) {
+                        if array.is_null(row_idx) {
                             "NA".to_string()
                         } else {
                             bool_array.value(row_idx).to_string()
@@ -1860,6 +1952,118 @@ fn read_arrow_streaming(
     
     // Calculate remaining rows (similar to Parquet logic)
     let actual_displayed_rows = std::cmp::min(data_rows_read, 25); // Default display limit
+    let remaining = total_rows.saturating_sub(actual_displayed_rows);
+    
+    Ok((headers, records, Some(remaining), true))
+}
+
+fn read_arrow_streaming_with_lz4_decompression(
+    file_path: &PathBuf, 
+    max_rows: usize
+) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
+    // Read the entire file into memory
+    let mut compressed_data = Vec::new();
+    let mut file = File::open(file_path)?;
+    file.read_to_end(&mut compressed_data)?;
+    
+    // Try to decompress with LZ4
+    let decompressed_data = match block::decompress(&compressed_data, None) {
+        Ok(data) => data,
+        Err(_) => {
+            return Err("Failed to decompress LZ4 data. The file might not be LZ4 compressed or the compression format is not supported.".into());
+        }
+    };
+    
+    // Create a reader from the decompressed data
+    let reader = ArrowFileReader::try_new(std::io::Cursor::new(decompressed_data.clone()), None)?;
+    let schema = reader.schema();
+    
+    let mut headers = Vec::new();
+    let mut records = Vec::new();
+    
+    // Extract column names from schema
+    for field in schema.fields() {
+        headers.push(field.name().to_string());
+    }
+    
+    // Add header record
+    records.push(StringRecord::from(headers.clone()));
+    
+    let mut data_rows_read = 0;
+    let mut total_rows = 0;
+    
+    // First pass: count total rows
+    let count_reader = ArrowFileReader::try_new(std::io::Cursor::new(decompressed_data.clone()), None)?;
+    for batch_result in count_reader {
+        let batch = batch_result?;
+        total_rows += batch.num_rows();
+    }
+    
+    // Second pass: read data up to max_rows
+    for batch_result in reader {
+        let batch = batch_result?;
+        let num_rows = batch.num_rows();
+        let num_cols = batch.num_columns();
+        
+        for row_idx in 0..num_rows {
+            if data_rows_read >= max_rows {
+                break;
+            }
+            
+            let mut row_data = Vec::new();
+            for col_idx in 0..num_cols {
+                let array = batch.column(col_idx);
+                let value = match array.data_type() {
+                    DataType::Utf8 => {
+                        let string_array = array.as_any().downcast_ref::<StringArray>().unwrap();
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            string_array.value(row_idx).to_string()
+                        }
+                    },
+                    DataType::Int64 => {
+                        let int_array = array.as_any().downcast_ref::<Int64Array>().unwrap();
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            int_array.value(row_idx).to_string()
+                        }
+                    },
+                    DataType::Float64 => {
+                        let float_array = array.as_any().downcast_ref::<Float64Array>().unwrap();
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            float_array.value(row_idx).to_string()
+                        }
+                    },
+                    DataType::Boolean => {
+                        let bool_array = array.as_any().downcast_ref::<BooleanArray>().unwrap();
+                        if array.is_null(row_idx) {
+                            "NA".to_string()
+                        } else {
+                            bool_array.value(row_idx).to_string()
+                        }
+                    },
+                    _ => {
+                        // For other types, convert to string representation
+                        "NA".to_string()
+                    }
+                };
+                row_data.push(value);
+            }
+            records.push(StringRecord::from(row_data));
+            data_rows_read += 1;
+        }
+        
+        if data_rows_read >= max_rows {
+            break;
+        }
+    }
+    
+    // Calculate remaining rows
+    let actual_displayed_rows = std::cmp::min(data_rows_read, 25);
     let remaining = total_rows.saturating_sub(actual_displayed_rows);
     
     Ok((headers, records, Some(remaining), true))
