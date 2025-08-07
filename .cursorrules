@@ -1,0 +1,31 @@
+# Cursor Rules Configuration
+# This file configures Cursor IDE behavior for this project
+
+# Python Package Management
+# Always use uv instead of pip for Python package management
+- When suggesting Python package installation commands, always use `uv add` instead of `pip install`
+- When suggesting Python package removal commands, always use `uv remove` instead of `pip uninstall`
+- When suggesting Python environment setup, prefer `uv` commands over `pip` or `conda`
+- When creating requirements files, suggest using `uv pip compile` or `uv lock` instead of `pip freeze`
+
+# Python Development
+- Prefer `uv run` for running Python scripts instead of `python` directly
+- When suggesting virtual environment creation, use `uv venv` instead of `python -m venv`
+- When suggesting dependency management, use `uv sync` instead of `pip install -r requirements.txt`
+
+# Project-specific Rules
+- This is a Rust project with Python bindings using PyO3
+- The main Python package is in the `tidy-viewer-py/` directory
+- Use `uv` for all Python dependency management in this project
+- When building the Python package, use `uv run maturin develop` instead of `pip install -e .`
+
+# Code Style
+- Follow Rust coding conventions for Rust files
+- Follow PEP 8 for Python files
+- Use type hints in Python code
+- Prefer f-strings over .format() or % formatting in Python
+
+# Documentation
+- Include docstrings for all Python functions
+- Include rustdoc comments for all public Rust functions
+- Update README.md when adding new features
