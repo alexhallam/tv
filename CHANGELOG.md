@@ -1,5 +1,26 @@
 
 
+1.6.6 (2025-01-28)
+==================
+
+* **Code Quality** **Clippy Fixes** - Fixed all clippy warnings to improve code quality.
+
+  **Improvements:**
+  - Removed redundant `serde_json` import
+  - Fixed uninlined format arguments throughout the codebase
+  - Converted single-branch match statement to if statement
+  - Replaced `std::io::Error::new` with `std::io::Error::other` where appropriate
+  - Used `.flatten()` iterator method instead of manual pattern matching
+  - Removed redundant variable redefinition
+  - Changed function parameters from `&PathBuf` to `&Path` for better API design
+  - Fixed formatting issues with whitespace
+
+  **Benefits:**
+  - Cleaner, more idiomatic Rust code
+  - Better performance with inlined format arguments
+  - More maintainable codebase following Rust best practices
+  - No functional changes, only code quality improvements
+
 1.6.5 (2025-01-27)
 ==================
 

@@ -124,7 +124,7 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
                 // 0.0001
                 // 0.001
                 let w = (x.abs().log10().floor()).abs() as usize;
-                let fstring = format!("{:.w$}", r, w = w);
+                let fstring = format!("{r:.w$}");
                 fstring
             } else {
                 // standard lhs only sigs
@@ -211,7 +211,7 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         //let total = lhs + rhs;
         //let total_string = total.to_string();
         let w: usize = (sigfig as usize) - 1;
-        let x = format!("{:.w$}", x, w = w);
+        let x = format!("{x:.w$}");
         let total_string = x;
         let total_clone = total_string.clone();
         let split = total_clone.split('.');
@@ -233,7 +233,7 @@ pub fn get_final_string(x: f64, lhs: f64, rhs: f64, neg: bool, sigfig: i64) -> S
         //let total = lhs + rhs;
         //let total_string = total.to_string();
         let w: usize = (sigfig as usize) - 1;
-        let x = format!("{:.w$}", x, w = w);
+        let x = format!("{x:.w$}");
         let total_string = x;
         let total_clone = total_string.clone();
         let split = total_clone.split('.');

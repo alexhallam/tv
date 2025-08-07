@@ -8,7 +8,7 @@ use owo_colors::OwoColorize;
 use parquet::file::reader::{FileReader, SerializedFileReader};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Read};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 mod datatype;
 use calm_io::stdout;
@@ -17,7 +17,6 @@ use crossterm::terminal::size;
 use directories::BaseDirs;
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json;
 use std::convert::TryInto;
 
 #[derive(StructOpt)]
@@ -242,7 +241,16 @@ fn main() {
 
     let base_dir: Option<BaseDirs> = BaseDirs::new();
     let config_base_dir: BaseDirs = base_dir.unwrap();
-    let config_dir = config_base_dir.config_dir();
+
+    // Use the appropriate directory based on the platform
+    // On macOS, use data_dir() to get ~/Library/Application Support
+    // On other platforms, use config_dir() to get ~/.config (Linux) or AppData\Roaming (Windows)
+    let config_dir = if cfg!(target_os = "macos") {
+        config_base_dir.data_dir()
+    } else {
+        config_base_dir.config_dir()
+    };
+
     let conf_file: PathBuf = PathBuf::from("tv.toml");
     let conf_dir_file: PathBuf = config_dir.join(conf_file);
     let file_contents: Option<String> = std::fs::read_to_string(conf_dir_file).ok();
@@ -271,226 +279,223 @@ fn main() {
     let opt = Cli::from_args();
 
     // print helpful config details
-    match opt.config_details {
-        true => {
-            println!();
-            println!("{:}", "tv.toml".to_string().truecolor(94, 129, 172));
-            match config.clone().delimiter {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " delimiter = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106),                // red
-                    " delimiter = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-            // match title
-            match config.clone().title {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " title = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106),            // red
-                    " title = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match footer
-            match config.clone().footer {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " footer = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106),             // red
-                    " footer = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match upper_column_width
-            match config.clone().upper_column_width {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " upper_column_width = "
-                        .to_string()
-                        .truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " upper_column_width = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match lower_column_width
-            match config.clone().lower_column_width {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " lower_column_width = "
-                        .to_string()
-                        .truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " lower_column_width = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match number
-            match config.clone().number {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " number = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106),             // red
-                    " number = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match extend_width_length
-            match config.clone().extend_width_length {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " extend_width_length = "
-                        .to_string()
-                        .truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " extend_width_length = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-            // match max_decimal_width
-            match config.clone().max_decimal_width {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " max_decimal_width = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " max_decimal_width = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-            // match preserve_scientific
-            match config.clone().preserve_scientific {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " preserve_scientific = "
-                        .to_string()
-                        .truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " preserve_scientific = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-            // match meta_color
-            match config.clone().meta_color {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " meta_color = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " meta_color = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match header_color
-            match config.clone().header_color {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " header_color = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " header_color = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match std_color
-            match config.clone().std_color {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " std_color = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106),                // red
-                    " std_color = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match na_color
-            match config.clone().na_color {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " na_color = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106),               // red
-                    " na_color = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            // match neg_num_color
-            match config.clone().neg_num_color {
-                Some(x) => println!(
-                    "{}{}{:?}",
-                    "[+]".to_string().truecolor(143, 188, 187), // green
-                    " neg_num_color = ".to_string().truecolor(216, 222, 233), // white
-                    x.truecolor(216, 222, 233)                  // white
-                ),
-                None => println!(
-                    "{}{}",
-                    "[-]".truecolor(191, 97, 106), // red
-                    " neg_num_color = None".truecolor(216, 222, 233)  // white
-                ),
-            }
-
-            std::process::exit(0);
+    if opt.config_details {
+        println!();
+        println!("{:}", "tv.toml".to_string().truecolor(94, 129, 172));
+        match config.clone().delimiter {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " delimiter = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106),                // red
+                " delimiter = None".truecolor(216, 222, 233)  // white
+            ),
         }
-        false => {}
+        // match title
+        match config.clone().title {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " title = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106),            // red
+                " title = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match footer
+        match config.clone().footer {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " footer = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106),             // red
+                " footer = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match upper_column_width
+        match config.clone().upper_column_width {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " upper_column_width = "
+                    .to_string()
+                    .truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " upper_column_width = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match lower_column_width
+        match config.clone().lower_column_width {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " lower_column_width = "
+                    .to_string()
+                    .truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " lower_column_width = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match number
+        match config.clone().number {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " number = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106),             // red
+                " number = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match extend_width_length
+        match config.clone().extend_width_length {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " extend_width_length = "
+                    .to_string()
+                    .truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " extend_width_length = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+        // match max_decimal_width
+        match config.clone().max_decimal_width {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " max_decimal_width = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " max_decimal_width = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+        // match preserve_scientific
+        match config.clone().preserve_scientific {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " preserve_scientific = "
+                    .to_string()
+                    .truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " preserve_scientific = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+        // match meta_color
+        match config.clone().meta_color {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " meta_color = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " meta_color = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match header_color
+        match config.clone().header_color {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " header_color = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " header_color = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match std_color
+        match config.clone().std_color {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " std_color = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106),                // red
+                " std_color = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match na_color
+        match config.clone().na_color {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " na_color = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106),               // red
+                " na_color = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        // match neg_num_color
+        match config.clone().neg_num_color {
+            Some(x) => println!(
+                "{}{}{:?}",
+                "[+]".to_string().truecolor(143, 188, 187), // green
+                " neg_num_color = ".to_string().truecolor(216, 222, 233), // white
+                x.truecolor(216, 222, 233)                  // white
+            ),
+            None => println!(
+                "{}{}",
+                "[-]".truecolor(191, 97, 106), // red
+                " neg_num_color = None".truecolor(216, 222, 233)  // white
+            ),
+        }
+
+        std::process::exit(0);
     }
 
     let term_tuple: (u16, u16) = size().unwrap();
@@ -760,17 +765,15 @@ fn main() {
                     match ArrowFileReader::try_new(f, None) {
                         Ok(reader) => Ok(reader),
                         Err(ArrowError::InvalidArgumentError(msg)) if msg.contains("lz4") => {
-                            Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Arrow file is compressed with LZ4. Please use uncompressed Arrow files or install Arrow with LZ4 support. Error: {}", msg)))
+                            Err(std::io::Error::other(format!("Arrow file is compressed with LZ4. Please use uncompressed Arrow files or install Arrow with LZ4 support. Error: {msg}")))
                         },
-                        Err(e) => Err(std::io::Error::new(std::io::ErrorKind::Other, e)),
+                        Err(e) => Err(std::io::Error::other(e)),
                     }
                 }) {
                     Ok(reader) => {
                         let mut total_rows = 0;
-                        for batch_result in reader {
-                            if let Ok(batch) = batch_result {
-                                total_rows += batch.num_rows();
-                            }
+                        for batch in reader.flatten() {
+                            total_rows += batch.num_rows();
                         }
                         total_rows > max_rows
                     },
@@ -792,7 +795,7 @@ fn main() {
                             (records, info, Some(original_size))
                         }
                         Err(e) => {
-                            eprintln!("Failed to read Arrow file: {}", e);
+                            eprintln!("Failed to read Arrow file: {e}");
                             return;
                         }
                     }
@@ -801,7 +804,7 @@ fn main() {
                     match read_arrow_file(file_path) {
                         Ok((_headers, records)) => (records, None, None),
                         Err(e) => {
-                            eprintln!("Failed to read Arrow file: {}", e);
+                            eprintln!("Failed to read Arrow file: {e}");
                             return;
                         }
                     }
@@ -831,7 +834,7 @@ fn main() {
                 // Get row count from Parquet metadata to decide if streaming is needed
                 let needs_streaming = match File::open(file_path).and_then(|f| {
                     SerializedFileReader::new(f)
-                        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+                        .map_err(|e| std::io::Error::other(e))
                 }) {
                     Ok(reader) => {
                         let total_rows = reader.metadata().file_metadata().num_rows() as usize;
@@ -855,7 +858,7 @@ fn main() {
                             (records, info, Some(original_size))
                         }
                         Err(e) => {
-                            eprintln!("Failed to read Parquet file: {}", e);
+                            eprintln!("Failed to read Parquet file: {e}");
                             return;
                         }
                     }
@@ -864,7 +867,7 @@ fn main() {
                     match read_parquet_file(file_path) {
                         Ok((_headers, records)) => (records, None, None),
                         Err(e) => {
-                            eprintln!("Failed to read Parquet file: {}", e);
+                            eprintln!("Failed to read Parquet file: {e}");
                             return;
                         }
                     }
@@ -873,7 +876,7 @@ fn main() {
                 match read_parquet_file(file_path) {
                     Ok((_headers, records)) => (records, None, None),
                     Err(e) => {
-                        eprintln!("Failed to read Parquet file: {}", e);
+                        eprintln!("Failed to read Parquet file: {e}");
                         return;
                     }
                 }
@@ -907,7 +910,7 @@ fn main() {
                     } else {
                         let path = file_path.as_path();
                         if let Some(path) = path.to_str() {
-                            eprintln!("Failed to open file: {}", path);
+                            eprintln!("Failed to open file: {path}");
                         } else {
                             eprintln!("Failed to open file.")
                         }
@@ -941,7 +944,7 @@ fn main() {
                             (records, info, Some(original_size))
                         }
                         Err(e) => {
-                            eprintln!("Failed to read CSV file: {}", e);
+                            eprintln!("Failed to read CSV file: {e}");
                             return;
                         }
                     }
@@ -998,11 +1001,11 @@ fn main() {
         (records, None, None)
     };
 
-    let rdr = rdr;
+
 
     if debug_mode {
         println!("{:?}", "StringRecord");
-        println!("{:?}", rdr);
+        println!("{rdr:?}");
     }
 
     if rdr.is_empty() {
@@ -1033,7 +1036,7 @@ fn main() {
     };
 
     let ellipsis = '\u{2026}'.to_string();
-    let row_remaining_text: String = format!("{} with {} more rows", ellipsis, rows_remaining);
+    let row_remaining_text: String = format!("{ellipsis} with {rows_remaining} more rows");
 
     // csv gets records in rows. This makes them cols
     let mut v: Vec<Vec<&str>> = Vec::new(); //vec![vec!["#"; rows as usize]; cols as usize];
@@ -1048,7 +1051,7 @@ fn main() {
 
     if debug_mode {
         println!("{:?}", "v");
-        println!("{:?}", v);
+        println!("{v:?}");
     }
 
     if debug_mode {
@@ -1058,7 +1061,7 @@ fn main() {
             vec_datatypes.push(datatype::get_col_data_type(column))
         }
         println!("{:?}", "vec_datatypes");
-        println!("{:?}", vec_datatypes);
+        println!("{vec_datatypes:?}");
     }
 
     // vector of formatted values
@@ -1078,9 +1081,9 @@ fn main() {
 
     if debug_mode {
         println!("{:?}", "Transposed Vector of Elements");
-        println!("{:?}", v);
+        println!("{v:?}");
         println!("{:?}", "Formatted: Vector of Elements");
-        println!("{:?}", vf);
+        println!("{vf:?}");
     }
 
     println!();
@@ -2121,7 +2124,7 @@ fn read_arrow_streaming_with_lz4_decompression(
     Ok((headers, records, Some(remaining), true))
 }
 
-fn is_parquet_file(file_path: &PathBuf) -> bool {
+fn is_parquet_file(file_path: &Path) -> bool {
     if let Some(ext) = file_path.extension() {
         ext.to_string_lossy().to_lowercase() == "parquet"
     } else {
@@ -2129,7 +2132,7 @@ fn is_parquet_file(file_path: &PathBuf) -> bool {
     }
 }
 
-fn is_json_file(file_path: &PathBuf) -> bool {
+fn is_json_file(file_path: &Path) -> bool {
     if let Some(ext) = file_path.extension() {
         ext.to_string_lossy().to_lowercase() == "json"
     } else {
@@ -2137,7 +2140,7 @@ fn is_json_file(file_path: &PathBuf) -> bool {
     }
 }
 
-fn is_arrow_file(file_path: &PathBuf) -> bool {
+fn is_arrow_file(file_path: &Path) -> bool {
     if let Some(ext) = file_path.extension() {
         let ext_lower = ext.to_string_lossy().to_lowercase();
         ext_lower == "feather" || ext_lower == "arrow" || ext_lower == "ipc"
@@ -2155,7 +2158,7 @@ fn validate_json_content(file_path: &PathBuf) -> Result<bool, Box<dyn std::error
     }
 }
 
-fn handle_json_file(_file_path: &PathBuf) -> ! {
+fn handle_json_file(_file_path: &Path) -> ! {
     eprintln!("❌ Error: JSON files are not currently supported by tidy-viewer.");
     eprintln!();
     eprintln!("📋 Supported formats:");
