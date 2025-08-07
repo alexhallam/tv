@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install maturin[patchelf] pytest pandas
+    
+    - name: Build and install package
+      run: |
+        maturin develop --release
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v
+    
+    - name: Run demo
+      run: |
+        python demo.py
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Install Python linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff mypy
+    
+    - name: Run Rust lints
+      run: |
+        cargo fmt --check
+        cargo clippy -- -D warnings
+    
+    - name: Run Python lints
+      run: |
+        ruff check src/tidy_viewer_py/
+        mypy src/tidy_viewer_py/ --ignore-missing-imports
+
+  build-wheels:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install maturin
+      run: |
+        python -m pip install --upgrade pip
+        pip install maturin[patchelf]
+    
+    - name: Build wheel
+      run: |
+        maturin build --release --strip --interpreter python${{ matrix.python-version }}
+    
+    - name: Upload wheel
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: target/wheels/*.whl

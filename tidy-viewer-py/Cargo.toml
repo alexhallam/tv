@@ -1,0 +1,31 @@
+[package]
+name = "tidy-viewer-py-rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "tidy_viewer_py"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+csv = "1.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+arrow = { version = "50", optional = true }
+parquet = { version = "50", optional = true }
+owo-colors = "4.0"
+unicode-width = "0.1"
+unicode-truncate = "0.2"
+lazy_static = "1.4"
+regex = "1.10"
+anyhow = "1.0"
+
+[features]
+default = []
+arrow-support = ["arrow", "parquet"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
