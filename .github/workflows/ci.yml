@@ -117,10 +117,7 @@ jobs:
           echo "cargo command is: ${{ env.CARGO }}"
           echo "target flag is: ${{ env.TARGET_FLAGS }}"
 
-      - name: Update rustup for edition 2021
-        run: rustup update stable
-
-      - name: Build tidy-viewer and all crates
+             - name: Build tidy-viewer and all crates
         run: ${{ env.CARGO }} build --verbose --workspace ${{ env.TARGET_FLAGS }}
 
       # This is useful for debugging problems when the expected build artifacts
