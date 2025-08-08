@@ -8,6 +8,7 @@ tabular data from various sources including CSVs, pandas DataFrames, and Polars 
 
 import sys
 import os
+from io import StringIO
 
 # Try to import tidy_viewer_py - works when package is installed
 try:
@@ -69,39 +70,46 @@ def demo_basic_usage():
     print(result)
 
 def demo_csv_handling():
-    """Demonstrate CSV file handling."""
+    """Demonstrate CSV file handling using StringIO."""
     print("\n" + "="*60)
     print("CSV HANDLING")
     print("="*60)
     
-    # Check if iris.csv exists
-    iris_path = "../data/iris.csv"
-    if os.path.exists(iris_path):
-        print(f"📁 Reading CSV file: {iris_path}")
-        result = tv.format_csv(iris_path)
-        print(result)
-    else:
-        print(f"⚠️  File not found: {iris_path}")
-        print("Creating a sample CSV for demonstration...")
-        
-        # Create a sample CSV
-        sample_data = [
-            ['Name', 'Age', 'City'],
-            ['Alice', 25, 'New York'],
-            ['Bob', 30, 'Los Angeles'],
-            ['Charlie', 35, 'Chicago']
-        ]
-        
-        with open('sample.csv', 'w') as f:
-            for row in sample_data:
-                f.write(','.join(map(str, row)) + '\n')
-        
-        print("📁 Reading sample CSV file:")
-        result = tv.format_csv('sample.csv')
-        print(result)
-        
-        # Clean up
-        os.remove('sample.csv')
+    # Create sample CSV data using StringIO
+    csv_data = """Name,Age,City,Salary
+Alice,25,New York,75000
+Bob,30,Los Angeles,85000
+Charlie,35,Chicago,95000
+Diana,28,Boston,80000
+Eve,32,Seattle,90000"""
+    
+    # Write to a temporary file-like object
+    csv_file = StringIO(csv_data)
+    
+    print("📁 Reading CSV data from StringIO:")
+    print("CSV Content:")
+    print(csv_data)
+    print("\n📊 Formatted output:")
+    
+    # For demonstration, we'll create a temporary file
+    # In practice, you'd use tv.format_csv() with a file path
+    # Here we'll show the data formatting directly
+    lines = csv_data.strip().split('\n')
+    headers = lines[0].split(',')
+    data = [line.split(',') for line in lines[1:]]
+    
+    result = tv.format_table(data, headers=headers)
+    print(result)
+    
+    # Show different formatting options
+    print("\n📊 With custom options (no colors, no dimensions):")
+    options = tv.FormatOptions(
+        use_color=False,
+        no_dimensions=True,
+        no_row_numbering=True
+    )
+    result = tv.format_table(data, headers=headers, options=options)
+    print(result)
 
 def demo_pandas_integration():
     """Demonstrate pandas DataFrame integration."""
@@ -247,6 +255,37 @@ def demo_file_formats():
     print("   • Parquet files (.parquet)")
     print("   • Arrow files (.arrow, .feather, .ipc)")
 
+def demo_numeric_formatting():
+    """Demonstrate numeric formatting features."""
+    print("\n" + "="*60)
+    print("NUMERIC FORMATTING")
+    print("="*60)
+    
+    # Create data with various numeric types
+    data = [
+        ['Small', 1.23456789, 0.00123456, 1234567.89],
+        ['Medium', 12.3456789, 0.0123456, 123456.789],
+        ['Large', 123.456789, 0.123456, 12345.6789],
+        ['Scientific', 1.23e-5, 1.23e5, 1.23e10],
+        ['Integers', 123, 12345, 123456789],
+        ['Mixed', 1.23, 123, 1.23e6, 'Text']
+    ]
+    headers = ['Type', 'Float1', 'Float2', 'Float3']
+    
+    print("📊 Default numeric formatting:")
+    result = tv.format_table(data, headers=headers)
+    print(result)
+    
+    print("\n📊 With 2 significant figures:")
+    options = tv.FormatOptions(significant_figures=2)
+    result = tv.format_table(data, headers=headers, options=options)
+    print(result)
+    
+    print("\n📊 With 5 significant figures:")
+    options = tv.FormatOptions(significant_figures=5)
+    result = tv.format_table(data, headers=headers, options=options)
+    print(result)
+
 def main():
     """Run all demonstrations."""
     print("🚀 Getting Started with tidy-viewer-py")
@@ -258,6 +297,7 @@ def main():
     demo_pandas_integration()
     demo_polars_integration()
     demo_advanced_features()
+    demo_numeric_formatting()
     demo_file_formats()
     
     print("\n" + "="*60)
