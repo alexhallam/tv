@@ -67,7 +67,7 @@ After the above steps I would highly recommend you make an alias for `tidy-viewe
 
 📚 **Comprehensive documentation is available:**
 
-- **[📖 API Documentation](https://alexhallam.github.io/tv/)** - Rust API reference with examples
+- **[📖 API Documentation](https://docs.rs/tidy-viewer-core)** - Rust API reference with examples
 - **[🏗️ Contributing Guide](CONTRIBUTING.md)** - Architecture overview and development guidelines
 - **[🐍 Python Documentation](tidy-viewer-py/README.md)** - Python bindings usage and examples
 
@@ -133,6 +133,9 @@ Have some fun with the following datasets!
 ```sh
 # Download the diamonds data
 wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
+
+# Note Powershell wget would look like this
+# Invoke-WebRequest https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv -OutFile diamonds.csv
 
 # pipe to tv
 cat diamonds.csv | tv
