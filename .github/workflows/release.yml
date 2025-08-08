@@ -25,7 +25,7 @@ jobs:
           override: true
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -120,19 +120,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Login to crates.io
-        uses: actions-rs/cargo@v1
-        with:
-          command: login
-          args: --registry crates-io
+      # Cargo uses CARGO_REGISTRY_TOKEN env directly; no need to login
+      - name: Publish to crates.io
+        run: cargo publish --no-verify
         env:
           CARGO_REGISTRY_TOKEN: ${{ env.CARGO_REGISTRY_TOKEN }}
-
-      - name: Publish to crates.io
-        uses: actions-rs/cargo@v1
-        with:
-          command: publish
-          args: --registry crates-io
 
   build-packages:
     name: Build Distribution Packages
@@ -165,13 +157,13 @@ jobs:
           mv *.rpm ./target/
 
       - name: Upload Debian package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: debian-package
           path: ./target/debian/*.deb
 
       - name: Upload RPM package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rpm-package
           path: ./target/*.rpm
@@ -180,6 +172,8 @@ jobs:
     name: Update Homebrew Formulas
     needs: [validate, publish]
     runs-on: ubuntu-22.04
+    env:
+      GH_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -192,6 +186,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Get SHA256 of release tarball
+        id: sha256
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           wget https://github.com/alexhallam/tv/archive/refs/tags/v$VERSION.tar.gz
@@ -201,12 +196,13 @@ jobs:
           echo "SHA256: $SHA256"
 
       - name: Update personal homebrew tap
+        if: env.GH_TOKEN != ''
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           SHA256="${{ steps.sha256.outputs.sha256 }}"
           
-          # Clone personal homebrew tap
-          git clone https://github.com/alexhallam/homebrew-tidy-viewer.git
+          # Clone personal homebrew tap with token
+          git clone https://x-access-token:${GH_TOKEN}@github.com/alexhallam/homebrew-tidy-viewer.git
           cd homebrew-tidy-viewer
           
           # Update formula
@@ -217,16 +213,17 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add tidy-viewer.rb
-          git commit -m "Update tidy-viewer to version $VERSION"
+          git commit -m "Update tidy-viewer to version $VERSION" || echo "No changes to commit"
           git push origin main
 
       - name: Create Homebrew Core PR
+        if: env.GH_TOKEN != ''
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           SHA256="${{ steps.sha256.outputs.sha256 }}"
           
-          # Clone personal homebrew-core fork
-          git clone https://github.com/alexhallam/homebrew-core.git
+          # Clone personal homebrew-core fork with token
+          git clone https://x-access-token:${GH_TOKEN}@github.com/alexhallam/homebrew-core.git
           cd homebrew-core
           
           # Fetch upstream
@@ -242,15 +239,15 @@ jobs:
           # Create branch and push
           git checkout -b tidy-viewer-$VERSION
           git add Formula/t/tidy-viewer.rb
-          git commit -m "tidy-viewer: update $VERSION bottle"
+          git commit -m "tidy-viewer: update $VERSION bottle" || echo "No changes to commit"
           git push origin tidy-viewer-$VERSION
           
-          # Create PR (using GitHub CLI if available)
+          # Create PR
           gh pr create --title "tidy-viewer: update $VERSION bottle" --body "Update tidy-viewer to version $VERSION"
 
   post-release:
     name: Post-Release Verification
-    needs: [publish, build-packages, homebrew-update]
+    needs: [publish, build-packages]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -276,12 +273,13 @@ jobs:
           echo "✅ Version $VERSION published to crates.io"
 
       - name: Create GitHub Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ steps.version.outputs.version }}
           body: |
             ## What's New in Version ${{ steps.version.outputs.version }}
             
@@ -295,28 +293,47 @@ jobs:
             
             ## Downloads
             
-            - [Debian Package](https://github.com/alexhallam/tv/releases/download/${{ github.ref }}/tidy-viewer_${{ steps.version.outputs.version }}_amd64.deb)
-            - [RPM Package](https://github.com/alexhallam/tv/releases/download/${{ github.ref }}/tidy-viewer_${{ steps.version.outputs.version }}_amd64.rpm)
+            - Debian and RPM packages attached as assets below
           draft: false
           prerelease: false
 
-      - name: Upload Release Assets
+      - name: Download Debian package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: debian-package
+          path: dist
+
+      - name: Download RPM package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rpm-package
+          path: dist
+
+      - name: Locate release assets
+        id: assets
+        run: |
+          echo "deb_path=$(ls dist/*.deb | head -n1)" >> $GITHUB_OUTPUT
+          echo "rpm_path=$(ls dist/*.rpm | head -n1)" >> $GITHUB_OUTPUT
+          echo "Found DEB: $(ls dist/*.deb | head -n1)"
+          echo "Found RPM: $(ls dist/*.rpm | head -n1)"
+
+      - name: Upload Debian Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/debian/*.deb
+          asset_path: ${{ steps.assets.outputs.deb_path }}
           asset_name: tidy-viewer_${{ steps.version.outputs.version }}_amd64.deb
           asset_content_type: application/vnd.debian.binary-package
 
-      - name: Upload RPM Asset
+      - name: Upload RPM Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./target/*.rpm
+          asset_path: ${{ steps.assets.outputs.rpm_path }}
           asset_name: tidy-viewer_${{ steps.version.outputs.version }}_amd64.rpm
           asset_content_type: application/x-rpm
 
@@ -327,7 +344,6 @@ jobs:
           echo ""
           echo "✅ Published to crates.io"
           echo "✅ Built Debian and RPM packages"
-          echo "✅ Updated Homebrew formulas"
           echo "✅ Created GitHub release"
           echo ""
           echo "📦 Installation:"
