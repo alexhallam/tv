@@ -13,8 +13,8 @@ use structopt::StructOpt;
 
 // Import from core library
 use tidy_viewer_core::{
-    format_strings, is_na, is_negative_number, parse_delimiter, get_col_data_type,
-    is_logical, is_number, format_if_num
+    format_if_num, format_strings, get_col_data_type, is_logical, is_na, is_negative_number,
+    is_number, parse_delimiter,
 };
 
 use calm_io::stdout;

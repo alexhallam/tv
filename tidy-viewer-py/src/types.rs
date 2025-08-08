@@ -28,7 +28,7 @@ impl Default for FormatOptions {
             preserve_scientific: false,
             max_decimal_width: 13,
             no_dimensions: false,
-            no_row_numbering: false,  // Match Rust tv CLI terminal behavior (show row numbers by default)
+            no_row_numbering: false, // Match Rust tv CLI terminal behavior (show row numbers by default)
             title: None,
             footer: None,
         }
@@ -60,7 +60,7 @@ impl ColorScheme {
             neg_num_color: [208, 135, 112],
         }
     }
-    
+
     pub fn one_dark() -> Self {
         Self {
             meta_color: [152, 195, 121],
@@ -70,7 +70,7 @@ impl ColorScheme {
             neg_num_color: [229, 192, 123],
         }
     }
-    
+
     pub fn gruvbox() -> Self {
         Self {
             meta_color: [184, 187, 38],
@@ -80,7 +80,7 @@ impl ColorScheme {
             neg_num_color: [251, 73, 52],
         }
     }
-    
+
     pub fn dracula() -> Self {
         Self {
             meta_color: [98, 114, 164],
@@ -90,7 +90,7 @@ impl ColorScheme {
             neg_num_color: [188, 63, 60],
         }
     }
-    
+
     pub fn solarized_light() -> Self {
         Self {
             meta_color: [108, 113, 193],
@@ -101,6 +101,3 @@ impl ColorScheme {
         }
     }
 }
-
-
-

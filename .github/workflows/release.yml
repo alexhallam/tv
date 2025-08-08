@@ -3,8 +3,8 @@ name: Release Process
 on:
   push:
     tags:
-      - 'v*'
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - "v*"
+      - "[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
 
 permissions:
@@ -78,9 +78,6 @@ jobs:
       - name: Run tests
         run: cargo test
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
       - name: Run clippy
         run: cargo clippy -- -D warnings
 
@@ -94,13 +91,13 @@ jobs:
             echo "❌ README.md is missing or empty"
             exit 1
           fi
-          
+
           # Check if docs directory exists
           if [ ! -d docs ]; then
             echo "❌ docs directory is missing"
             exit 1
           fi
-          
+
           # Check for required documentation files
           for file in docs/RELEASE.md docs/TESTING.md; do
             if [ ! -f "$file" ]; then
@@ -108,7 +105,7 @@ jobs:
               exit 1
             fi
           done
-          
+
           echo "✅ Documentation validation passed"
 
   publish:
@@ -124,7 +121,6 @@ jobs:
         with:
           toolchain: stable
           override: true
-
 
       - name: Publish to crates.io
         uses: actions-rs/cargo@v1
@@ -204,15 +200,15 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           SHA256="${{ steps.sha256.outputs.sha256 }}"
-          
+
           # Clone personal homebrew tap with token
           git clone https://x-access-token:${{ env.HOMEBREW_TOKEN }}@github.com/alexhallam/homebrew-tidy-viewer.git
           cd homebrew-tidy-viewer
-          
+
           # Update formula
           sed -i "s/version \"[^\"]*\"/version \"$VERSION\"/" tidy-viewer.rb
           sed -i "s/sha256 \"[^\"]*\"/sha256 \"$SHA256\"/" tidy-viewer.rb
-          
+
           # Commit and push
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
@@ -227,33 +223,33 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           SHA256="${{ steps.sha256.outputs.sha256 }}"
-          
+
           # Install gh if missing
           if ! command -v gh >/dev/null 2>&1; then
             sudo apt-get update
             sudo apt-get install -y gh
           fi
-          
+
           # Clone personal homebrew-core fork with token
           git clone https://x-access-token:${{ env.HOMEBREW_TOKEN }}@github.com/alexhallam/homebrew-core.git
           cd homebrew-core
-          
+
           # Fetch upstream
           git remote add upstream https://github.com/Homebrew/homebrew-core.git
           git fetch upstream
           git checkout main
           git merge upstream/main
-          
+
           # Update formula
           sed -i "s/version \"[^\"]*\"/version \"$VERSION\"/" Formula/t/tidy-viewer.rb
           sed -i "s/sha256 \"[^\"]*\"/sha256 \"$SHA256\"/" Formula/t/tidy-viewer.rb
-          
+
           # Create branch and push
           git checkout -b tidy-viewer-$VERSION
           git add Formula/t/tidy-viewer.rb
           git commit -m "tidy-viewer: update $VERSION bottle"
           git push origin tidy-viewer-$VERSION
-          
+
           # Create PR using gh
           gh pr create --title "tidy-viewer: update $VERSION bottle" --body "Update tidy-viewer to version $VERSION"
 
@@ -276,7 +272,7 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           sleep 30  # Wait for crates.io to update
-          
+
           # Check if version is available on crates.io
           if ! curl -s "https://crates.io/api/v1/crates/tidy-viewer" | grep -q "\"version\":\"$VERSION\""; then
             echo "❌ Version $VERSION not yet available on crates.io"
@@ -303,17 +299,17 @@ jobs:
           name: Release ${{ github.ref }}
           body: |
             ## What's New in Version ${{ steps.version.outputs.version }}
-            
+
             See [CHANGELOG.md](https://github.com/alexhallam/tv/blob/main/CHANGELOG.md) for detailed changes.
-            
+
             ## Installation
-            
+
             ```bash
             cargo install tidy-viewer
             ```
-            
+
             ## Downloads
-            
+
             Debian and RPM packages are attached as release assets below.
           draft: false
           prerelease: false

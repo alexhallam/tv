@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyModule, PyAny};
+use pyo3::types::{PyAny, PyModule};
 use std::collections::HashMap;
 
 // Import from core library
@@ -8,8 +8,8 @@ use tidy_viewer_core::format_strings;
 mod formatting;
 mod types;
 
-use crate::types::{FormatOptions, ColorScheme};
-use crate::formatting::{format_table, format_csv_file};
+use crate::formatting::{format_csv_file, format_table};
+use crate::types::{ColorScheme, FormatOptions};
 
 /// Python class for formatting options
 #[pyclass]
@@ -89,9 +89,12 @@ impl PyFormatOptions {
             "gruvbox" => ColorScheme::gruvbox(),
             "dracula" => ColorScheme::dracula(),
             "solarized_light" => ColorScheme::solarized_light(),
-            _ => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                format!("Unknown color theme: {}", theme)
-            )),
+            _ => {
+                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
+                    "Unknown color theme: {}",
+                    theme
+                )))
+            }
         };
         Ok(())
     }
@@ -118,10 +121,7 @@ pub fn format_data(
 /// Format a CSV file
 #[pyfunction]
 #[pyo3(signature = (file_path, options=None))]
-pub fn format_csv(
-    file_path: &str,
-    options: Option<&PyFormatOptions>,
-) -> PyResult<String> {
+pub fn format_csv(file_path: &str, options: Option<&PyFormatOptions>) -> PyResult<String> {
     let format_options = if let Some(opts) = options {
         &opts.inner
     } else {
@@ -135,10 +135,7 @@ pub fn format_csv(
 /// Format a Parquet file
 #[pyfunction]
 #[pyo3(signature = (file_path, options=None))]
-pub fn format_parquet(
-    file_path: &str,
-    options: Option<&PyFormatOptions>,
-) -> PyResult<String> {
+pub fn format_parquet(file_path: &str, options: Option<&PyFormatOptions>) -> PyResult<String> {
     let format_options = if let Some(opts) = options {
         &opts.inner
     } else {
@@ -152,10 +149,7 @@ pub fn format_parquet(
 /// Format an Arrow file
 #[pyfunction]
 #[pyo3(signature = (file_path, options=None))]
-pub fn format_arrow(
-    file_path: &str,
-    options: Option<&PyFormatOptions>,
-) -> PyResult<String> {
+pub fn format_arrow(file_path: &str, options: Option<&PyFormatOptions>) -> PyResult<String> {
     let format_options = if let Some(opts) = options {
         &opts.inner
     } else {
@@ -166,60 +160,62 @@ pub fn format_arrow(
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
 }
 
-
-
 /// Format a dictionary of lists
 #[pyfunction]
-pub fn format_dict_of_lists(data_dict: &Bound<'_, PyAny>, options: Option<&PyFormatOptions>) -> PyResult<String> {
+pub fn format_dict_of_lists(
+    data_dict: &Bound<'_, PyAny>,
+    options: Option<&PyFormatOptions>,
+) -> PyResult<String> {
     let dict: HashMap<String, Vec<String>> = data_dict.extract()?;
-    
+
     if dict.is_empty() {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-            "Dictionary is empty"
+            "Dictionary is empty",
         ));
     }
-    
+
     // Get headers (keys)
     let headers: Vec<String> = dict.keys().cloned().collect();
-    
+
     // Get maximum length
     let max_len = dict.values().map(|v| v.len()).max().unwrap_or(0);
-    
+
     // Convert to list of lists
     let mut data = Vec::new();
     for i in 0..max_len {
         let mut row = Vec::new();
         for header in &headers {
             let na_value = "NA".to_string();
-            let value = dict.get(header)
-                .and_then(|v| v.get(i))
-                .unwrap_or(&na_value);
+            let value = dict.get(header).and_then(|v| v.get(i)).unwrap_or(&na_value);
             row.push(value.clone());
         }
         data.push(row);
     }
-    
+
     format_data(data, Some(headers), options)
 }
 
 /// Format a list of dictionaries
 #[pyfunction]
-pub fn format_list_of_dicts(data_list: &Bound<'_, PyAny>, options: Option<&PyFormatOptions>) -> PyResult<String> {
+pub fn format_list_of_dicts(
+    data_list: &Bound<'_, PyAny>,
+    options: Option<&PyFormatOptions>,
+) -> PyResult<String> {
     let list: Vec<HashMap<String, String>> = data_list.extract()?;
-    
+
     if list.is_empty() {
         return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-            "List is empty"
+            "List is empty",
         ));
     }
-    
+
     // Get all unique keys
     let mut all_keys = std::collections::HashSet::new();
     for dict in &list {
         all_keys.extend(dict.keys().cloned());
     }
     let headers: Vec<String> = all_keys.into_iter().collect();
-    
+
     // Convert to list of lists
     let mut data = Vec::new();
     for dict in &list {
@@ -231,7 +227,7 @@ pub fn format_list_of_dicts(data_list: &Bound<'_, PyAny>, options: Option<&PyFor
         }
         data.push(row);
     }
-    
+
     format_data(data, Some(headers), options)
 }
 
@@ -247,4 +243,3 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(format_list_of_dicts, m)?)?;
     Ok(())
 }
-

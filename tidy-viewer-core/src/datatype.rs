@@ -1,29 +1,29 @@
 //! # Data Type Module
-//! 
+//!
 //! This module provides data type inference, formatting, and validation functions
 //! for tabular data processing. It handles various data types including numbers,
 //! dates, times, logical values, and missing values.
-//! 
+//!
 //! ## Key Functions
-//! 
+//!
 //! - **Type Detection**: Functions to identify data types (`is_integer`, `is_double`, etc.)
 //! - **Formatting**: Functions to format data with significant figures and width constraints
 //! - **Column Analysis**: Functions to analyze entire columns for type consistency
 //! - **Width Calculation**: Functions to calculate optimal column widths
-//! 
+//!
 //! ## Usage Examples
-//! 
+//!
 //! ```rust
 //! use tidy_viewer_core::datatype::{is_integer, is_double, format_strings, ValueType};
-//! 
+//!
 //! // Detect data types
 //! assert!(is_integer("123"));
 //! assert!(is_double("123.45"));
-//! 
+//!
 //! // Format a column of data
 //! let data = vec!["123", "456.78", "NA"];
 //! let formatted = format_strings(&data, 2, 20, 3, false, 13);
-//! 
+//!
 //! // Infer column type
 //! let col_type = tidy_viewer_core::get_col_data_type(&data);
 //! ```
@@ -38,7 +38,7 @@ use unicode_width::UnicodeWidthStr;
 pub mod sigfig;
 
 /// Represents the type of a value in tabular data.
-/// 
+///
 /// This enum is used to classify the data type of individual values
 /// or entire columns in tabular data.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,18 +62,18 @@ pub enum ValueType {
 }
 
 /// Checks if a string represents a logical/boolean value.
-/// 
+///
 /// Recognizes various boolean representations:
 /// - `true`, `false`, `TRUE`, `FALSE`
 /// - `t`, `f`, `T`, `F`
 /// - `True`, `False`
 /// - `1`, `0`
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_logical;
-/// 
+///
 /// assert!(is_logical("true"));
 /// assert!(is_logical("FALSE"));
 /// assert!(is_logical("1"));
@@ -91,14 +91,14 @@ pub fn is_logical(text: &str) -> bool {
 }
 
 /// Checks if a string represents an integer value.
-/// 
+///
 /// Recognizes integers with optional leading sign and whitespace.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_integer;
-/// 
+///
 /// assert!(is_integer("123"));
 /// assert!(is_integer("-456"));
 /// assert!(is_integer(" 789 "));
@@ -114,12 +114,12 @@ pub fn is_integer(text: &str) -> bool {
 }
 
 /// Checks if a string represents any numeric value (integer or double).
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_number;
-/// 
+///
 /// assert!(is_number("123"));
 /// assert!(is_number("123.45"));
 /// assert!(is_number("-456.78"));
@@ -130,12 +130,12 @@ pub fn is_number(text: &str) -> bool {
 }
 
 /// Checks if a string represents a negative number.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_negative_number;
-/// 
+///
 /// assert!(is_negative_number("-123"));
 /// assert!(is_negative_number("-123.45"));
 /// assert!(!is_negative_number("123"));
@@ -149,12 +149,12 @@ pub fn is_negative_number(text: &str) -> bool {
 }
 
 /// Checks if a string represents a floating-point number.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_double;
-/// 
+///
 /// assert!(is_double("123.45"));
 /// assert!(is_double("-456.78"));
 /// assert!(is_double("123"));
@@ -165,12 +165,12 @@ pub fn is_double(text: &str) -> bool {
 }
 
 /// Checks if a string represents a number in scientific notation.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_scientific_notation;
-/// 
+///
 /// assert!(is_scientific_notation("1.23e-4"));
 /// assert!(is_scientific_notation("1.23E+4"));
 /// assert!(!is_scientific_notation("123.45"));
@@ -184,12 +184,12 @@ pub fn is_scientific_notation(text: &str) -> bool {
 }
 
 /// Checks if a string represents a time value (HH:MM:SS format).
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_time;
-/// 
+///
 /// assert!(is_time("11:59:37"));
 /// assert!(is_time("23:45:12"));
 /// assert!(!is_time("25:00:00")); // Invalid hour
@@ -206,12 +206,12 @@ pub fn is_time(text: &str) -> bool {
 }
 
 /// Checks if a string represents a date value (YYYY-MM-DD format).
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_date;
-/// 
+///
 /// assert!(is_date("2020-10-09"));
 /// assert!(is_date("1999-12-31"));
 /// assert!(!is_date("2020/10/09")); // Wrong format
@@ -225,12 +225,12 @@ pub fn is_date(text: &str) -> bool {
 }
 
 /// Checks if a string represents a date-time value.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_date_time;
-/// 
+///
 /// assert!(is_date_time("11:59:37"));
 /// assert!(is_date_time("23:45:12"));
 /// assert!(!is_date_time("25:00:00")); // Invalid hour
@@ -247,17 +247,17 @@ pub fn is_date_time(text: &str) -> bool {
 }
 
 /// Checks if a string represents a missing/null value.
-/// 
+///
 /// Recognizes various NA representations:
 /// - Empty strings
 /// - `NA`, `N/A`, `NaN`, `null`
 /// - Case variations: `na`, `Na`, `NULL`, etc.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::is_na;
-/// 
+///
 /// assert!(is_na(""));
 /// assert!(is_na("NA"));
 /// assert!(is_na("null"));
@@ -287,15 +287,15 @@ pub fn is_na_string_padded(text: &str) -> bool {
 // utilities
 
 /// Infers the data type of a string value.
-/// 
+///
 /// This function analyzes a string and returns the most appropriate `ValueType`.
 /// The inference follows a priority order: NA → Boolean → Integer → Double → Date → Time → Character.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::{infer_type_from_string, ValueType};
-/// 
+///
 /// assert_eq!(infer_type_from_string(""), ValueType::Na);
 /// assert_eq!(infer_type_from_string("true"), ValueType::Boolean);
 /// assert_eq!(infer_type_from_string("123"), ValueType::Integer);
@@ -325,32 +325,32 @@ pub fn infer_type_from_string(text: &str) -> ValueType {
 }
 
 /// Formats a column of strings with consistent width and significant figures.
-/// 
+///
 /// This is the main formatting function that processes an entire column of data.
 /// It applies significant figure formatting to numeric values, handles NA values,
 /// and ensures all strings fit within the specified width constraints.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `vec_col` - Vector of string references representing the column data
 /// * `lower_column_width` - Minimum column width
 /// * `upper_column_width` - Maximum column width
 /// * `sigfig` - Number of significant figures for numeric values
 /// * `preserve_scientific` - Whether to preserve scientific notation
 /// * `max_decimal_width` - Maximum width for decimal places
-/// 
+///
 /// # Returns
-/// 
+///
 /// A vector of formatted strings with consistent width and formatting.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::format_strings;
-/// 
+///
 /// let data = vec!["123.456", "NA", "-42.1", "hello"];
 /// let formatted = format_strings(&data, 2, 20, 3, false, 13);
-/// 
+///
 /// // All formatted strings will have consistent width and formatting
 /// assert_eq!(formatted.len(), 4);
 /// ```
@@ -517,42 +517,38 @@ pub fn parse_delimiter(src: &str) -> Result<u8, String> {
 }
 
 /// Calculates the optimal width for a column based on its content.
-/// 
+///
 /// This function analyzes all strings in a column and determines the optimal width
 /// that accommodates the content while respecting minimum and maximum constraints.
 /// It uses Unicode width calculation to handle multi-byte characters correctly.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `column` - Vector of formatted strings representing the column
 /// * `min_width` - Minimum allowed column width
 /// * `max_width` - Maximum allowed column width
-/// 
+///
 /// # Returns
-/// 
+///
 /// The calculated optimal width for the column.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use tidy_viewer_core::datatype::calculate_column_width;
-/// 
+///
 /// let column = vec!["123".to_string(), "456.78".to_string(), "hello".to_string()];
 /// let width = calculate_column_width(&column, 2, 20);
-/// 
+///
 /// assert!(width >= 2 && width <= 20);
 /// ```
-pub fn calculate_column_width(
-    column: &[String],
-    min_width: usize,
-    max_width: usize,
-) -> usize {
+pub fn calculate_column_width(column: &[String], min_width: usize, max_width: usize) -> usize {
     let max_content_width = column
         .iter()
         .map(|cell| unicode_width::UnicodeWidthStr::width(cell.as_str()))
         .max()
         .unwrap_or(0);
-    
+
     max_content_width.clamp(min_width, max_width)
 }
 
@@ -652,4 +648,3 @@ mod tests {
         assert_eq!(format_if_num("0.000000123", 3, true, 8), "1.23e-7");
     }
 }
-
