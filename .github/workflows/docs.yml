@@ -1,6 +1,0 @@
-name: Disabled Docs Workflow
-
-on:
-  workflow_dispatch:
-
-jobs: {}
