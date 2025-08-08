@@ -1500,7 +1500,7 @@ dependencies = [
 
 [[package]]
 name = "tidy-viewer"
-version = "1.6.6"
+version = "1.7.0"
 dependencies = [
  "arrow",
  "arrow-ipc 56.0.0",

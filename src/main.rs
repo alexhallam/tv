@@ -430,7 +430,7 @@ fn main() {
             ),
             None => println!(
                 "{}{}",
-                "[-]".truecolor(191, 97, 106), // red
+                "[-]".truecolor(191, 97, 106),                 // red
                 " meta_color = None".truecolor(216, 222, 233)  // white
             ),
         }
@@ -445,7 +445,7 @@ fn main() {
             ),
             None => println!(
                 "{}{}",
-                "[-]".truecolor(191, 97, 106), // red
+                "[-]".truecolor(191, 97, 106),                   // red
                 " header_color = None".truecolor(216, 222, 233)  // white
             ),
         }
@@ -490,7 +490,7 @@ fn main() {
             ),
             None => println!(
                 "{}{}",
-                "[-]".truecolor(191, 97, 106), // red
+                "[-]".truecolor(191, 97, 106),                    // red
                 " neg_num_color = None".truecolor(216, 222, 233)  // white
             ),
         }
@@ -833,8 +833,7 @@ fn main() {
 
                 // Get row count from Parquet metadata to decide if streaming is needed
                 let needs_streaming = match File::open(file_path).and_then(|f| {
-                    SerializedFileReader::new(f)
-                        .map_err(|e| std::io::Error::other(e))
+                    SerializedFileReader::new(f).map_err(|e| std::io::Error::other(e))
                 }) {
                     Ok(reader) => {
                         let total_rows = reader.metadata().file_metadata().num_rows() as usize;
@@ -1000,8 +999,6 @@ fn main() {
         };
         (records, None, None)
     };
-
-
 
     if debug_mode {
         println!("{:?}", "StringRecord");

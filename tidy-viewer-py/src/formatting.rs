@@ -161,8 +161,16 @@ pub fn format_csv_file(
     options: &FormatOptions,
 ) -> Result<String, Box<dyn Error>> {
     let file = File::open(file_path)?;
+    
+    // Handle empty delimiter by using comma as default
+    let delimiter = if options.delimiter.is_empty() {
+        b','
+    } else {
+        options.delimiter.as_bytes()[0]
+    };
+    
     let mut reader = ReaderBuilder::new()
-        .delimiter(options.delimiter.as_bytes()[0])
+        .delimiter(delimiter)
         .from_reader(BufReader::new(file));
     
     // Read headers
@@ -378,7 +386,13 @@ fn format_data_row_from_columns(
     }
     
     for (col_idx, formatted_col) in formatted_columns.iter().enumerate() {
-        let cell = &formatted_col[row_idx];
+        // Handle uneven rows by providing a default value if the cell doesn't exist
+        let cell = if row_idx < formatted_col.len() {
+            &formatted_col[row_idx]
+        } else {
+            "NA"  // Default value for missing cells
+        };
+        
         let width = widths.get(col_idx).unwrap_or(&0);
         
         let padded = format!("{:<width$}", cell, width = width);

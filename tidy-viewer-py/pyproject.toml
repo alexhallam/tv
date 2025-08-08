@@ -1,11 +1,9 @@
 [project]
 name = "tidy-viewer-py"
-version = "0.1.0"
+version = "0.2.0"
 description = "Beautiful terminal table formatting powered by Rust"
 readme = "README.md"
-authors = [
-    { name = "Your Name", email = "your.email@example.com" }
-]
+authors = [{ name = "Your Name", email = "your.email@example.com" }]
 license = { text = "MIT OR Apache-2.0" }
 requires-python = ">=3.8"
 classifiers = [
@@ -71,5 +69,3 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
-
-
