@@ -1,11 +1,11 @@
 [package]
 name = "tidy-viewer"
-version.workspace = true
+version = "1.8.0"
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
-edition.workspace = true
-license.workspace = true
-repository.workspace = true
-readme.workspace = true
+edition = "2021"
+license = "Unlicense OR MIT"
+repository = "https://github.com/alexhallam/tv"
+readme = "README.md"
 description = "Head, but for CSV files and with color"
 categories = ["command-line-utilities"]
 keywords = ["csv", "tv", "csv-viewer", "csv-pretty-print", "csv-cat"]
