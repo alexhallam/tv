@@ -6,7 +6,7 @@ use owo_colors::OwoColorize;
 use unicode_width::UnicodeWidthStr;
 
 use crate::types::{FormatOptions, ColorScheme};
-use crate::datatype::{format_strings, calculate_column_width, is_negative_number, is_na};
+use tidy_viewer_core::{format_strings, calculate_column_width, is_negative_number, is_na};
 
 /// Main entry point for formatting tabular data
 pub fn format_table(
@@ -69,7 +69,7 @@ pub fn format_table(
                 col,
                 options.min_col_width,
                 options.max_col_width,
-                options.significant_figures as u8,
+                options.significant_figures as i64,
                 options.preserve_scientific,
                 options.max_decimal_width,
             )
@@ -110,7 +110,7 @@ pub fn format_table(
                     col,
                     options.min_col_width,
                     options.max_col_width,
-                    options.significant_figures as u8,
+                    options.significant_figures as i64,
                     options.preserve_scientific,
                     options.max_decimal_width,
                 )

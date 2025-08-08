@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidy-Viewer Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+
+        .link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .link:hover {
+            background: #1d4ed8;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: #10b981;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">📊 Tidy-Viewer</div>
+        <div class="subtitle">Cross-platform data pretty printer with intelligent formatting</div>
+    </div>
+
+    <div class="section">
+        <h2>📚 Documentation</h2>
+        <p>Welcome to the Tidy-Viewer documentation! This project provides comprehensive data formatting capabilities
+            for tabular data across multiple interfaces.</p>
+
+        <div style="text-align: center; margin: 2rem 0;">
+            <a href="tidy_viewer_core/index.html" class="link">📖 View Rust API Documentation</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🏗️ Architecture</h2>
+        <p>Tidy-Viewer is organized as a Cargo workspace with three main components:</p>
+        <ul class="feature-list">
+            <li><strong>tidy-viewer-core</strong> - Shared core library with data type inference and formatting logic
+            </li>
+            <li><strong>tidy-viewer-cli</strong> - Command-line interface for direct file processing</li>
+            <li><strong>tidy-viewer-py</strong> - Python bindings using PyO3 for integration with Python workflows</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>✨ Key Features</h2>
+        <ul class="feature-list">
+            <li><span class="badge">Multi-format</span> Support for CSV, TSV, PSV, Parquet, and Arrow files</li>
+            <li><span class="badge">Smart Formatting</span> Intelligent significant figure handling and column width
+                calculation</li>
+            <li><span class="badge">Unicode Support</span> Full Unicode character width calculation and truncation</li>
+            <li><span class="badge">Type Inference</span> Automatic detection of data types (numbers, dates, times,
+                logical)</li>
+            <li><span class="badge">Cross-platform</span> Works on Windows, macOS, and Linux</li>
+            <li><span class="badge">Python Integration</span> Native Python bindings for data science workflows</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🔗 Quick Links</h2>
+        <ul class="feature-list">
+            <li><a href="https://github.com/alexhallam/tv">GitHub Repository</a></li>
+            <li><a href="https://crates.io/crates/tidy-viewer">Crates.io Package</a></li>
+            <li><a href="CONTRIBUTING.md">Contributing Guide</a></li>
+            <li><a href="README.md">Main README</a></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🚀 Getting Started</h2>
+        <p>Install Tidy-Viewer using your preferred method:</p>
+        <ul class="feature-list">
+            <li><strong>Cargo:</strong> <code>cargo install tidy-viewer</code></li>
+            <li><strong>Python:</strong> <code>pip install tidy-viewer-py</code></li>
+            <li><strong>Homebrew:</strong> <code>brew install tidy-viewer</code></li>
+        </ul>
+    </div>
+
+    <script>
+        // Auto-redirect to Rust docs if available
+        window.addEventListener('load', function () {
+            const rustDocsLink = document.querySelector('a[href="tidy_viewer_core/index.html"]');
+            if (rustDocsLink) {
+                // Check if the Rust docs exist
+                fetch('tidy_viewer_core/index.html', { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            // Redirect after a short delay
+                            setTimeout(() => {
+                                window.location.href = 'tidy_viewer_core/index.html';
+                            }, 3000);
+                        }
+                    })
+                    .catch(() => {
+                        // Rust docs not available, stay on this page
+                    });
+            }
+        });
+    </script>
+</body>
+
+</html>

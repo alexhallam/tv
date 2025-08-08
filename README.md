@@ -17,6 +17,7 @@
 * [Features](#features)
 * [Installation](#installation)
 * [Examples](#examples)
+* [Documentation](#documentation)
 * [Significant Figure Definitions & Rules](#significant-figure-definitions-and-rules)
 * [Tools to pair with `tv`](#tools-to-pair-with-tv)
 * [Configuration Dotfile](#configuration-dotfile)
@@ -61,6 +62,24 @@ The instructions for all of the above are very similar with the following genera
 4. Find binary `tidy-viewer`
 
 After the above steps I would highly recommend you make an alias for `tidy-viewer` as shown for other builds.
+
+# Documentation
+
+📚 **Comprehensive documentation is available:**
+
+- **[📖 API Documentation](https://alexhallam.github.io/tv/)** - Rust API reference with examples
+- **[🏗️ Contributing Guide](CONTRIBUTING.md)** - Architecture overview and development guidelines
+- **[🐍 Python Documentation](tidy-viewer-py/README.md)** - Python bindings usage and examples
+
+## Architecture Overview
+
+Tidy-Viewer is organized as a **Cargo workspace** with three main components:
+
+- **`tidy-viewer-core`** - Shared core library with data type inference and formatting logic
+- **`tidy-viewer-cli`** - Command-line interface for direct file processing  
+- **`tidy-viewer-py`** - Python bindings using PyO3 for integration with Python workflows
+
+This architecture ensures consistent behavior across all interfaces while maintaining clean separation of concerns.
 
 ### Cargo
 

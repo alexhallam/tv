@@ -127,12 +127,17 @@ Tidy Viewer Py leverages Rust for exceptional performance:
 Requirements:
 - Python 3.8+
 - Rust 1.70+
-- maturin
+- uv (recommended) or pip
 
 ```bash
 git clone https://github.com/yourusername/tidy-viewer-py
 cd tidy-viewer-py
-maturin develop
+uv pip install .
+```
+
+Or for development:
+```bash
+uv run maturin develop
 ```
 
 ### Running Tests
@@ -152,4 +157,5 @@ at your option.
 ## Credits
 
 Inspired by the original [tidy-viewer](https://github.com/alexhallam/tv) project.
+
 

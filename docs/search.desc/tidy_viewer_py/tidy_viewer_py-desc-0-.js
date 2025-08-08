@@ -1,0 +1,1 @@
+searchState.loadedDescShard("tidy_viewer_py", 0, "Python class for formatting options\nFormat an Arrow file\nFormat a CSV file\nFormat tabular data from Python lists\nFormat a dictionary of lists\nFormat a list of dictionaries\nFormat a Parquet file\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nSet color theme")

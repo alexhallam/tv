@@ -1,39 +1,16 @@
-[package]
+[workspace]
+members = ["tidy-viewer-core", "tidy-viewer-cli", "tidy-viewer-py"]
+resolver = "2"
+
+[workspace.package]
+version = "1.8.0"
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
-categories = ["command-line-utilities"]
-description = "Head, but for CSV files and with color"
 edition = "2021"
-keywords = ["csv", "tv", "csv-viewer", "csv-pretty-print", "csv-cat"]
 license = "Unlicense OR MIT"
-name = "tidy-viewer"
-readme = "README.md"
 repository = "https://github.com/alexhallam/tv"
-version = "1.7.0"
+readme = "README.md"
 
-[package.metadata.deb]
-assets = [
-  [
-    "target/release/tidy-viewer",
-    "usr/bin/",
-    "755",
-  ],
-  [
-    "README.md",
-    "usr/share/doc/cargo-deb/README",
-    "644",
-  ],
-]
-depends = "$auto"
-extended-description = """\
-Tidy Viewer (tv) is a csv pretty printer that uses \
-column styling to maximize viewer enjoyment.
-"""
-license-file = ["UNLICENSE", "0"]
-maintainer = "Alex Hallam <alexhallam6.28@gmail.com>"
-priority = "optional"
-section = "utility"
-
-[dependencies]
+[workspace.dependencies]
 arrow = "56.0"
 arrow-ipc = { version = "56.0", features = ["lz4"] }
 atty = "0.2.14"
@@ -54,3 +31,4 @@ structopt = "0.3.21"
 toml = "0.5"
 unicode-truncate = "0.2.0"
 unicode-width = "0.1.11"
+thiserror = "1.0"

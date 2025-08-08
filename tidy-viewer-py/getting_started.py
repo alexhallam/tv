@@ -16,37 +16,6 @@ except ImportError as e:
     print("Make sure you've built the package with: uv run maturin develop")
     exit(1)
 
-def demo_basic_usage():
-    """Demonstrate basic usage with simple data structures."""
-    print("\n" + "="*60)
-    print("BASIC USAGE")
-    print("="*60)
-    
-    # Simple list of lists
-    data = [
-        ['Alice', 25, 'Engineer'],
-        ['Bob', 30, 'Designer'],
-        ['Charlie', 35, 'Manager']
-    ]
-    headers = ['Name', 'Age', 'Role']
-    
-    print("📊 Formatting a simple list of lists:")
-    result = tv.format_table(data, headers=headers)
-    print(result)
-    
-    # Dictionary of lists
-    data_dict = {
-        'Name': ['Alice', 'Bob', 'Charlie'],
-        'Age': [25, 30, 35],
-        'Role': ['Engineer', 'Designer', 'Manager']
-    }
-    
-    print("\n📊 Formatting a dictionary of lists:")
-    # Convert all values to strings to avoid type conversion issues
-    data_dict_str = {k: [str(v) for v in vals] for k, vals in data_dict.items()}
-    result = tv.format_table(data_dict_str)
-    print(result)
-
 def demo_csv_handling():
     """Demonstrate CSV file handling."""
     print("\n" + "="*60)

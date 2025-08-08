@@ -1,0 +1,57 @@
+[package]
+name = "tidy-viewer"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "Head, but for CSV files and with color"
+categories = ["command-line-utilities"]
+keywords = ["csv", "tv", "csv-viewer", "csv-pretty-print", "csv-cat"]
+
+[[bin]]
+name = "tidy-viewer"
+path = "src/main.rs"
+
+[package.metadata.deb]
+assets = [
+    [
+        "target/release/tidy-viewer",
+        "usr/bin/",
+        "755",
+    ],
+    [
+        "README.md",
+        "usr/share/doc/cargo-deb/README",
+        "644",
+    ],
+]
+depends = "$auto"
+extended-description = """\
+Tidy Viewer (tv) is a csv pretty printer that uses \
+column styling to maximize viewer enjoyment.
+"""
+license-file = ["UNLICENSE", "0"]
+maintainer = "Alex Hallam <alexhallam6.28@gmail.com>"
+priority = "optional"
+section = "utility"
+
+[dependencies]
+tidy-viewer-core = { path = "../tidy-viewer-core" }
+arrow = { workspace = true }
+arrow-ipc = { workspace = true }
+atty = { workspace = true }
+calm_io = { workspace = true }
+console = { workspace = true }
+crossterm = { workspace = true }
+csv = { workspace = true }
+directories = { workspace = true }
+itertools = { workspace = true }
+lz4 = { workspace = true }
+owo-colors = { workspace = true }
+parquet = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+structopt = { workspace = true }
+toml = { workspace = true }

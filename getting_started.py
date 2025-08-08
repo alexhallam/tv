@@ -9,16 +9,35 @@ tabular data from various sources including CSVs, pandas DataFrames, and Polars 
 import sys
 import os
 
-# Add the parent directory to the path so we can import tidy_viewer_py
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'tidy-viewer-py'))
-
+# Try to import tidy_viewer_py - works when package is installed
 try:
     import tidy_viewer_py as tv
     print("✅ Successfully imported tidy_viewer_py")
-except ImportError as e:
-    print(f"❌ Failed to import tidy_viewer_py: {e}")
-    print("Make sure you've built the package with: uv run maturin develop")
-    sys.exit(1)
+except ImportError:
+    # Fallback for development: try multiple possible paths
+    possible_paths = [
+        os.path.join(os.path.dirname(__file__), 'tidy-viewer-py'),  # From root
+        os.path.join(os.path.dirname(__file__), '..', 'tidy-viewer-py'),  # From tidy-viewer-py
+        os.path.join(os.path.dirname(__file__), '..', '..', 'tidy-viewer-py'),  # From subdir
+    ]
+    
+    imported = False
+    for path in possible_paths:
+        try:
+            if os.path.exists(path):
+                sys.path.insert(0, path)
+                import tidy_viewer_py as tv
+                print(f"✅ Successfully imported tidy_viewer_py (development mode from {path})")
+                imported = True
+                break
+        except ImportError:
+            continue
+    
+    if not imported:
+        print("❌ Failed to import tidy_viewer_py")
+        print("Make sure you've installed the package with: uv pip install .")
+        print("Or for development: uv run maturin develop")
+        sys.exit(1)
 
 def demo_basic_usage():
     """Demonstrate basic usage with simple data structures."""
@@ -193,15 +212,11 @@ def demo_advanced_features():
     result = tv_instance.format_table(data, headers=headers)
     print(result)
     
-    # Custom color scheme
-    print("\n📊 Custom color scheme:")
+    # Custom color scheme (using built-in themes)
+    print("\n📊 Custom color scheme (gruvbox theme):")
     options = tv.FormatOptions(
         use_color=True,
-        colors=tv.ColorScheme(
-            header_color=(255, 255, 0),  # Yellow headers
-            data_color=(0, 255, 0),      # Green data
-            meta_color=(255, 0, 255)     # Magenta meta info
-        )
+        color_theme="gruvbox"
     )
     result = tv.format_table(data, headers=headers, options=options)
     print(result)

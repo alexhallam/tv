@@ -1,0 +1,16 @@
+[package]
+name = "tidy-viewer-core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "Core formatting logic for tidy-viewer"
+
+[dependencies]
+lazy_static = { workspace = true }
+regex = { workspace = true }
+unicode-truncate = { workspace = true }
+unicode-width = { workspace = true }
+itertools = { workspace = true }

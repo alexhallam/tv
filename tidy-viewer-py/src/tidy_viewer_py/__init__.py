@@ -148,11 +148,13 @@ def format_table(
     
     # Handle different input types
     if isinstance(data, dict):
-        # Dict of lists
-        return _format_dict_of_lists(data, opts)
+        # Dict of lists - convert all values to strings
+        str_data = {k: [str(v) for v in v_list] for k, v_list in data.items()}
+        return _format_dict_of_lists(str_data, opts)
     elif data and isinstance(data[0], dict):
-        # List of dicts
-        return _format_list_of_dicts(data, opts)
+        # List of dicts - convert all values to strings
+        str_data = [{k: str(v) for k, v in d.items()} for d in data]
+        return _format_list_of_dicts(str_data, opts)
     else:
         # List of lists
         str_data = [[str(cell) for cell in row] for row in data]

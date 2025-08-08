@@ -2,7 +2,9 @@ use pyo3::prelude::*;
 use pyo3::types::{PyModule, PyAny};
 use std::collections::HashMap;
 
-mod datatype;
+// Import from core library
+use tidy_viewer_core::format_strings;
+
 mod formatting;
 mod types;
 

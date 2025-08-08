@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["format_arrow","format_csv","format_data","format_dict_of_lists","format_list_of_dicts","format_parquet"],"struct":["PyFormatOptions"]};
