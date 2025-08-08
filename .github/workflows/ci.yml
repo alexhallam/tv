@@ -118,6 +118,7 @@ jobs:
           echo "target flag is: ${{ env.TARGET_FLAGS }}"
 
       - name: Build tidy-viewer and all crates
+        shell: bash
         run: |
           if [ "${{ matrix.target }}" = "x86_64-unknown-linux-musl" ]; then
             # Skip Python crate for musl builds since it doesn't support cdylib
