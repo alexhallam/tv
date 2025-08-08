@@ -8,7 +8,7 @@ tabular data from various sources including CSVs, pandas DataFrames, and Polars 
 
 import sys
 import os
-from io import StringIO
+import tempfile
 
 # Try to import tidy_viewer_py - works when package is installed
 try:
@@ -69,13 +69,95 @@ def demo_basic_usage():
     result = tv.format_table(data_dict)
     print(result)
 
-def demo_csv_handling():
-    """Demonstrate CSV file handling using StringIO."""
+def demo_csv_with_pandas():
+    """Demonstrate reading CSV with pandas then formatting."""
     print("\n" + "="*60)
-    print("CSV HANDLING")
+    print("CSV WITH PANDAS")
     print("="*60)
     
-    # Create sample CSV data using StringIO
+    try:
+        import pandas as pd
+        
+        # Create sample CSV data
+        csv_data = """Name,Age,City,Salary
+Alice,25,New York,75000
+Bob,30,Los Angeles,85000
+Charlie,35,Chicago,95000
+Diana,28,Boston,80000
+Eve,32,Seattle,90000"""
+        
+        # Create temporary CSV file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+            f.write(csv_data)
+            temp_csv_path = f.name
+        
+        try:
+            # Read with pandas
+            print("📁 Reading CSV with pandas:")
+            df = pd.read_csv(temp_csv_path)
+            print("Pandas DataFrame:")
+            print(df)
+            
+            # Format with tidy-viewer
+            print("\n📊 Formatted with tidy-viewer:")
+            result = tv.format_dataframe(df)
+            print(result)
+            
+        finally:
+            # Clean up temp file
+            os.unlink(temp_csv_path)
+            
+    except ImportError:
+        print("⚠️  pandas not available. Install with: uv add pandas")
+
+def demo_csv_with_polars():
+    """Demonstrate reading CSV with polars then formatting."""
+    print("\n" + "="*60)
+    print("CSV WITH POLARS")
+    print("="*60)
+    
+    try:
+        import polars as pl
+        
+        # Create sample CSV data
+        csv_data = """Name,Age,City,Salary
+Alice,25,New York,75000
+Bob,30,Los Angeles,85000
+Charlie,35,Chicago,95000
+Diana,28,Boston,80000
+Eve,32,Seattle,90000"""
+        
+        # Create temporary CSV file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+            f.write(csv_data)
+            temp_csv_path = f.name
+        
+        try:
+            # Read with polars
+            print("📁 Reading CSV with polars:")
+            df = pl.read_csv(temp_csv_path)
+            print("Polars DataFrame:")
+            print(df)
+            
+            # Format with tidy-viewer
+            print("\n📊 Formatted with tidy-viewer:")
+            result = tv.format_polars_dataframe(df)
+            print(result)
+            
+        finally:
+            # Clean up temp file
+            os.unlink(temp_csv_path)
+            
+    except ImportError:
+        print("⚠️  polars not available. Install with: uv add polars")
+
+def demo_csv_direct():
+    """Demonstrate reading CSV directly with tidy-viewer."""
+    print("\n" + "="*60)
+    print("CSV DIRECT WITH TIDY-VIEWER")
+    print("="*60)
+    
+    # Create sample CSV data
     csv_data = """Name,Age,City,Salary
 Alice,25,New York,75000
 Bob,30,Los Angeles,85000
@@ -83,107 +165,186 @@ Charlie,35,Chicago,95000
 Diana,28,Boston,80000
 Eve,32,Seattle,90000"""
     
-    # Write to a temporary file-like object
-    csv_file = StringIO(csv_data)
+    # Create temporary CSV file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        f.write(csv_data)
+        temp_csv_path = f.name
     
-    print("📁 Reading CSV data from StringIO:")
-    print("CSV Content:")
-    print(csv_data)
-    print("\n📊 Formatted output:")
-    
-    # For demonstration, we'll create a temporary file
-    # In practice, you'd use tv.format_csv() with a file path
-    # Here we'll show the data formatting directly
-    lines = csv_data.strip().split('\n')
-    headers = lines[0].split(',')
-    data = [line.split(',') for line in lines[1:]]
-    
-    result = tv.format_table(data, headers=headers)
-    print(result)
-    
-    # Show different formatting options
-    print("\n📊 With custom options (no colors, no dimensions):")
-    options = tv.FormatOptions(
-        use_color=False,
-        no_dimensions=True,
-        no_row_numbering=True
-    )
-    result = tv.format_table(data, headers=headers, options=options)
-    print(result)
+    try:
+        print("📁 Reading CSV directly with tidy-viewer:")
+        result = tv.format_csv(temp_csv_path)
+        print(result)
+        
+    finally:
+        # Clean up temp file
+        os.unlink(temp_csv_path)
 
-def demo_pandas_integration():
-    """Demonstrate pandas DataFrame integration."""
+def demo_parquet_with_pandas():
+    """Demonstrate reading Parquet with pandas then formatting."""
     print("\n" + "="*60)
-    print("PANDAS INTEGRATION")
+    print("PARQUET WITH PANDAS")
     print("="*60)
     
     try:
         import pandas as pd
-        import numpy as np
         
-        # Create sample pandas DataFrame
-        df = pd.DataFrame({
-            'Name': ['Alice', 'Bob', 'Charlie', 'Diana'],
-            'Age': [25, 30, 35, 28],
-            'Salary': [75000, 85000, 95000, 80000],
-            'Department': ['Engineering', 'Design', 'Management', 'Engineering'],
-            'Start_Date': pd.to_datetime(['2020-01-15', '2019-03-20', '2018-07-10', '2021-02-28'])
-        })
-        
-        print("📊 Formatting pandas DataFrame:")
-        result = tv.format_dataframe(df)
-        print(result)
-        
-        # Demonstrate with numeric data
-        numeric_df = pd.DataFrame({
-            'ID': range(1, 11),
-            'Value': np.random.randn(10) * 100,
-            'Percentage': np.random.rand(10) * 100,
-            'Integer': np.random.randint(1, 1000, 10)
-        })
-        
-        print("\n📊 Formatting numeric pandas DataFrame:")
-        result = tv.format_dataframe(numeric_df)
-        print(result)
-        
-    except ImportError:
-        print("⚠️  pandas not available. Install with: uv add pandas")
-
-def demo_polars_integration():
-    """Demonstrate Polars DataFrame integration."""
-    print("\n" + "="*60)
-    print("POLARS INTEGRATION")
-    print("="*60)
-    
-    try:
-        import polars as pl
-        
-        # Create sample Polars DataFrame
-        df = pl.DataFrame({
+        # Create sample data
+        data = {
             'Name': ['Alice', 'Bob', 'Charlie', 'Diana'],
             'Age': [25, 30, 35, 28],
             'Salary': [75000, 85000, 95000, 80000],
             'Department': ['Engineering', 'Design', 'Management', 'Engineering']
-        })
+        }
         
-        print("📊 Formatting Polars DataFrame:")
-        result = tv.format_polars_dataframe(df)
-        print(result)
+        # Create temporary parquet file
+        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+            temp_parquet_path = f.name
         
-        # Demonstrate with larger dataset
-        large_df = pl.DataFrame({
-            'ID': range(1, 21),
-            'Category': ['A', 'B', 'C', 'D'] * 5,
-            'Value': [i * 1.5 for i in range(1, 21)],
-            'Status': ['Active', 'Inactive'] * 10
-        })
-        
-        print("\n📊 Formatting larger Polars DataFrame:")
-        result = tv.format_polars_dataframe(large_df)
-        print(result)
-        
+        try:
+            # Create DataFrame and save as parquet
+            df = pd.DataFrame(data)
+            df.to_parquet(temp_parquet_path)
+            
+            # Read with pandas
+            print("📁 Reading Parquet with pandas:")
+            df_read = pd.read_parquet(temp_parquet_path)
+            print("Pandas DataFrame:")
+            print(df_read)
+            
+            # Format with tidy-viewer
+            print("\n📊 Formatted with tidy-viewer:")
+            result = tv.format_dataframe(df_read)
+            print(result)
+            
+        finally:
+            # Clean up temp file
+            os.unlink(temp_parquet_path)
+            
     except ImportError:
-        print("⚠️  polars not available. Install with: uv add polars")
+        print("⚠️  pandas not available. Install with: uv add pandas")
+
+def demo_parquet_direct():
+    """Demonstrate reading Parquet directly with tidy-viewer."""
+    print("\n" + "="*60)
+    print("PARQUET DIRECT WITH TIDY-VIEWER")
+    print("="*60)
+    
+    try:
+        import pandas as pd
+        
+        # Create sample data
+        data = {
+            'Name': ['Alice', 'Bob', 'Charlie', 'Diana'],
+            'Age': [25, 30, 35, 28],
+            'Salary': [75000, 85000, 95000, 80000],
+            'Department': ['Engineering', 'Design', 'Management', 'Engineering']
+        }
+        
+        # Create temporary parquet file
+        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+            temp_parquet_path = f.name
+        
+        try:
+            # Create DataFrame and save as parquet
+            df = pd.DataFrame(data)
+            df.to_parquet(temp_parquet_path)
+            
+            # Read directly with tidy-viewer
+            print("📁 Reading Parquet directly with tidy-viewer:")
+            result = tv.format_parquet(temp_parquet_path)
+            print(result)
+            
+        finally:
+            # Clean up temp file
+            os.unlink(temp_parquet_path)
+            
+    except ImportError:
+        print("⚠️  pandas not available for creating parquet. Install with: uv add pandas")
+
+def demo_feather_with_pandas():
+    """Demonstrate reading Feather with pandas then formatting."""
+    print("\n" + "="*60)
+    print("FEATHER WITH PANDAS")
+    print("="*60)
+    
+    try:
+        import pandas as pd
+        
+        # Create sample data
+        data = {
+            'Name': ['Alice', 'Bob', 'Charlie', 'Diana'],
+            'Age': [25, 30, 35, 28],
+            'Salary': [75000, 85000, 95000, 80000],
+            'Department': ['Engineering', 'Design', 'Management', 'Engineering']
+        }
+        
+        # Create temporary feather file
+        with tempfile.NamedTemporaryFile(suffix='.feather', delete=False) as f:
+            temp_feather_path = f.name
+        
+        try:
+            # Create DataFrame and save as feather
+            df = pd.DataFrame(data)
+            df.to_feather(temp_feather_path, compression=None)  # No compression
+            
+            # Read with pandas
+            print("📁 Reading Feather with pandas:")
+            df_read = pd.read_feather(temp_feather_path)
+            print("Pandas DataFrame:")
+            print(df_read)
+            
+            # Format with tidy-viewer
+            print("\n📊 Formatted with tidy-viewer:")
+            result = tv.format_dataframe(df_read)
+            print(result)
+            
+        finally:
+            # Clean up temp file
+            os.unlink(temp_feather_path)
+            
+    except ImportError:
+        print("⚠️  pandas not available. Install with: uv add pandas")
+
+def demo_feather_direct():
+    """Demonstrate reading Feather directly with tidy-viewer."""
+    print("\n" + "="*60)
+    print("FEATHER DIRECT WITH TIDY-VIEWER")
+    print("="*60)
+    
+    try:
+        import pandas as pd
+        
+        # Create sample data
+        data = {
+            'Name': ['Alice', 'Bob', 'Charlie', 'Diana'],
+            'Age': [25, 30, 35, 28],
+            'Salary': [75000, 85000, 95000, 80000],
+            'Department': ['Engineering', 'Design', 'Management', 'Engineering']
+        }
+        
+        # Create temporary feather file
+        with tempfile.NamedTemporaryFile(suffix='.feather', delete=False) as f:
+            temp_feather_path = f.name
+        
+        try:
+            # Create DataFrame and save as feather
+            df = pd.DataFrame(data)
+            df.to_feather(temp_feather_path, compression=None)  # No compression
+            
+            # Read directly with tidy-viewer
+            print("📁 Reading Feather directly with tidy-viewer:")
+            result = tv.format_arrow(temp_feather_path)
+            print(result)
+            
+        finally:
+            # Clean up temp file
+            os.unlink(temp_feather_path)
+            
+    except ImportError:
+        print("⚠️  pandas not available for creating feather. Install with: uv add pandas")
+    except Exception as e:
+        print(f"⚠️  Feather demo failed: {e}")
+        print("This might be due to compression settings or missing dependencies.")
 
 def demo_advanced_features():
     """Demonstrate advanced formatting features."""
@@ -229,32 +390,6 @@ def demo_advanced_features():
     result = tv.format_table(data, headers=headers, options=options)
     print(result)
 
-def demo_file_formats():
-    """Demonstrate different file format support."""
-    print("\n" + "="*60)
-    print("FILE FORMAT SUPPORT")
-    print("="*60)
-    
-    # Check for various file formats in the data directory
-    data_dir = "../data"
-    if os.path.exists(data_dir):
-        print(f"📁 Checking for files in {data_dir}:")
-        
-        for file in os.listdir(data_dir):
-            file_path = os.path.join(data_dir, file)
-            if file.endswith('.csv'):
-                print(f"\n📄 CSV file: {file}")
-                try:
-                    result = tv.format_csv(file_path)
-                    print(result[:500] + "..." if len(result) > 500 else result)
-                except Exception as e:
-                    print(f"❌ Error reading {file}: {e}")
-    
-    print("\n💡 Supported file formats:")
-    print("   • CSV files (.csv)")
-    print("   • Parquet files (.parquet)")
-    print("   • Arrow files (.arrow, .feather, .ipc)")
-
 def demo_numeric_formatting():
     """Demonstrate numeric formatting features."""
     print("\n" + "="*60)
@@ -293,12 +428,15 @@ def main():
     
     # Run all demos
     demo_basic_usage()
-    demo_csv_handling()
-    demo_pandas_integration()
-    demo_polars_integration()
+    demo_csv_with_pandas()
+    demo_csv_with_polars()
+    demo_csv_direct()
+    demo_parquet_with_pandas()
+    demo_parquet_direct()
+    demo_feather_with_pandas()
+    demo_feather_direct()
     demo_advanced_features()
     demo_numeric_formatting()
-    demo_file_formats()
     
     print("\n" + "="*60)
     print("✅ Getting Started Demo Complete!")
@@ -306,6 +444,8 @@ def main():
     print("\n📚 Key takeaways:")
     print("   • Use format_table() for basic data structures")
     print("   • Use format_csv() for CSV files")
+    print("   • Use format_parquet() for Parquet files")
+    print("   • Use format_arrow() for Arrow/Feather files")
     print("   • Use format_dataframe() for pandas DataFrames")
     print("   • Use format_polars_dataframe() for Polars DataFrames")
     print("   • Use FormatOptions for custom styling")
