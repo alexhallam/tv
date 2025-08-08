@@ -97,6 +97,12 @@ jobs:
         run: |
           ci/macos-install-packages
 
+      - name: Set up Python
+        if: matrix.os == 'ubuntu-22.04'
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
