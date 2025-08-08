@@ -134,6 +134,9 @@ Have some fun with the following datasets!
 # Download the diamonds data
 wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
 
+# Note Powershell wget would look like this
+# Invoke-WebRequest https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv -OutFile diamonds.csv
+
 # pipe to tv
 cat diamonds.csv | tv
 ```
