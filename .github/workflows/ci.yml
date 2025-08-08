@@ -118,7 +118,13 @@ jobs:
           echo "target flag is: ${{ env.TARGET_FLAGS }}"
 
       - name: Build tidy-viewer and all crates
-        run: ${{ env.CARGO }} build --verbose --workspace ${{ env.TARGET_FLAGS }}
+        run: |
+          if [ "${{ matrix.target }}" = "x86_64-unknown-linux-musl" ]; then
+            # Skip Python crate for musl builds since it doesn't support cdylib
+            ${{ env.CARGO }} build --verbose --workspace ${{ env.TARGET_FLAGS }} --exclude tidy-viewer-py
+          else
+            ${{ env.CARGO }} build --verbose --workspace ${{ env.TARGET_FLAGS }}
+          fi
 
       # This is useful for debugging problems when the expected build artifacts
       # (like shell completions and man pages) aren't generated.
