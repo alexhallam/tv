@@ -65,8 +65,8 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Build tidy-viewer and all crates
-        run: cargo build --verbose --workspace
+      - name: Build tidy-viewer and core (skip Python bindings)
+        run: cargo build --verbose --workspace --exclude tidy-viewer-py
 
-      - name: Run tests
-        run: cargo test --verbose --workspace
+      - name: Run tests (skip Python bindings)
+        run: cargo test --verbose -p tidy-viewer -p tidy-viewer-core

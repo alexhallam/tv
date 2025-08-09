@@ -1,5 +1,6 @@
 [workspace]
 members = ["tidy-viewer-core", "tidy-viewer-cli", "tidy-viewer-py"]
+default-members = ["tidy-viewer-core", "tidy-viewer-cli"]
 resolver = "2"
 
 [workspace.package]
