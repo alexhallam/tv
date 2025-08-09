@@ -1,3 +1,35 @@
+1.8.4 (2025-01-29)
+==================
+
+* **Bug Fix** **Documentation** - Fixed documentation test imports after inlining core functionality.
+
+  **Issues Fixed:**
+  - **Doc Test Imports**: Updated all documentation examples to use correct `tidy_viewer::` imports instead of deprecated `tidy_viewer_core::`
+  - **Example Code**: Fixed all module references in doc comments to point to the published package
+  - **Documentation Consistency**: Ensured all examples work correctly for end users of the published crate
+
+  **Benefits:**
+  - **Working Examples**: All documentation examples now compile and run successfully 
+  - **User Experience**: Clear, correct examples for all public functions and types
+  - **Complete Documentation**: Comprehensive doc test coverage validates all example code
+  - **Publishing Ready**: Documentation fully compatible with docs.rs automatic generation
+
+
+1.8.3 (2025-01-29)
+==================
+
+* **Bug Fix** **Test Compilation** - Fixed test compilation errors after inlining core functionality.
+
+  **Issues Fixed:**
+  - **Missing Import Functions**: Added missing imports for `is_logical`, `is_number`, and `format_if_num` functions used in tests
+  - **Test Coverage**: Ensured all test functions remain accessible after core library inlining
+  - **Function Visibility**: Removed unnecessary `#[allow(dead_code)]` attributes from test-used functions
+
+  **Benefits:**
+  - **All Tests Pass**: Test suite now compiles and runs successfully
+  - **Complete Coverage**: All existing functionality remains tested
+  - **Clean Codebase**: Proper function visibility without dead code warnings
+
 
 1.8.2 (2025-01-29)
 ==================

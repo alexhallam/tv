@@ -20,7 +20,7 @@
 //! ## Usage
 //!
 //! ```rust
-//! use tidy_viewer_core::{format_strings, calculate_column_width, is_na};
+//! use tidy_viewer::{format_strings, calculate_column_width, is_na};
 //!
 //! // Format a column of strings
 //! let data = vec!["123.456", "NA", "-42.1", "hello"];
@@ -54,7 +54,7 @@
 //! The library provides intelligent significant figure formatting through the `DecimalSplits` struct:
 //!
 //! ```rust
-//! use tidy_viewer_core::{DecimalSplits, get_final_string};
+//! use tidy_viewer::{DecimalSplits, get_final_string};
 //!
 //! // Create a DecimalSplits instance for formatting
 //! let splits = DecimalSplits {

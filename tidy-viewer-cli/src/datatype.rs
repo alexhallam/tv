@@ -14,7 +14,7 @@
 //! ## Usage Examples
 //!
 //! ```rust
-//! use tidy_viewer_core::datatype::{is_integer, is_double, format_strings, ValueType};
+//! use tidy_viewer::datatype::{is_integer, is_double, format_strings, ValueType};
 //!
 //! // Detect data types
 //! assert!(is_integer("123"));
@@ -25,7 +25,7 @@
 //! let formatted = format_strings(&data, 2, 20, 3, false, 13);
 //!
 //! // Infer column type
-//! let col_type = tidy_viewer_core::get_col_data_type(&data);
+//! let col_type = tidy_viewer::get_col_data_type(&data);
 //! ```
 
 use itertools::Itertools;
@@ -72,7 +72,7 @@ pub enum ValueType {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_logical;
+/// use tidy_viewer::datatype::is_logical;
 ///
 /// assert!(is_logical("true"));
 /// assert!(is_logical("FALSE"));
@@ -97,7 +97,7 @@ pub fn is_logical(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_integer;
+/// use tidy_viewer::datatype::is_integer;
 ///
 /// assert!(is_integer("123"));
 /// assert!(is_integer("-456"));
@@ -118,14 +118,13 @@ pub fn is_integer(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_number;
+/// use tidy_viewer::datatype::is_number;
 ///
 /// assert!(is_number("123"));
 /// assert!(is_number("123.45"));
 /// assert!(is_number("-456.78"));
 /// assert!(!is_number("abc"));
 /// ```
-#[allow(dead_code)]
 pub fn is_number(text: &str) -> bool {
     is_integer(text) || is_double(text)
 }
@@ -135,7 +134,7 @@ pub fn is_number(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_negative_number;
+/// use tidy_viewer::datatype::is_negative_number;
 ///
 /// assert!(is_negative_number("-123"));
 /// assert!(is_negative_number("-123.45"));
@@ -154,7 +153,7 @@ pub fn is_negative_number(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_double;
+/// use tidy_viewer::datatype::is_double;
 ///
 /// assert!(is_double("123.45"));
 /// assert!(is_double("-456.78"));
@@ -170,7 +169,7 @@ pub fn is_double(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_scientific_notation;
+/// use tidy_viewer::datatype::is_scientific_notation;
 ///
 /// assert!(is_scientific_notation("1.23e-4"));
 /// assert!(is_scientific_notation("1.23E+4"));
@@ -189,7 +188,7 @@ pub fn is_scientific_notation(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_time;
+/// use tidy_viewer::datatype::is_time;
 ///
 /// assert!(is_time("11:59:37"));
 /// assert!(is_time("23:45:12"));
@@ -211,7 +210,7 @@ pub fn is_time(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_date;
+/// use tidy_viewer::datatype::is_date;
 ///
 /// assert!(is_date("2020-10-09"));
 /// assert!(is_date("1999-12-31"));
@@ -230,7 +229,7 @@ pub fn is_date(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_date_time;
+/// use tidy_viewer::datatype::is_date_time;
 ///
 /// assert!(is_date_time("11:59:37"));
 /// assert!(is_date_time("23:45:12"));
@@ -257,7 +256,7 @@ pub fn is_date_time(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::is_na;
+/// use tidy_viewer::datatype::is_na;
 ///
 /// assert!(is_na(""));
 /// assert!(is_na("NA"));
@@ -296,7 +295,7 @@ pub fn is_na_string_padded(text: &str) -> bool {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::{infer_type_from_string, ValueType};
+/// use tidy_viewer::datatype::{infer_type_from_string, ValueType};
 ///
 /// assert_eq!(infer_type_from_string(""), ValueType::Na);
 /// assert_eq!(infer_type_from_string("true"), ValueType::Boolean);
@@ -348,7 +347,7 @@ pub fn infer_type_from_string(text: &str) -> ValueType {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::format_strings;
+/// use tidy_viewer::datatype::format_strings;
 ///
 /// let data = vec!["123.456", "NA", "-42.1", "hello"];
 /// let formatted = format_strings(&data, 2, 20, 3, false, 13);
@@ -537,7 +536,7 @@ pub fn parse_delimiter(src: &str) -> Result<u8, String> {
 /// # Examples
 ///
 /// ```rust
-/// use tidy_viewer_core::datatype::calculate_column_width;
+/// use tidy_viewer::datatype::calculate_column_width;
 ///
 /// let column = vec!["123".to_string(), "456.78".to_string(), "hello".to_string()];
 /// let width = calculate_column_width(&column, 2, 20);
