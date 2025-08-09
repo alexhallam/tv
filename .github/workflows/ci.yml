@@ -33,27 +33,27 @@ jobs:
             os: ubuntu-22.04
             rust: stable
           - build: macos-intel
-            os: macOS-13
+            os: macos-13
             rust: stable
           - build: macos-arm
-            os: macOS-14
+            os: macos-14
             rust: stable
           - build: win-msvc
             os: windows-2022
             rust: stable
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install packages (Ubuntu)
         if: matrix.os == 'ubuntu-22.04'
         run: |
-          ci/ubuntu-install-packages
+          bash ci/ubuntu-install-packages
 
       - name: Install packages (macOS)
-        if: matrix.os == 'macOS-13'
+        if: startsWith(matrix.os, 'macos-')
         run: |
-          ci/macos-install-packages
+          bash ci/macos-install-packages
 
       - name: Set up Python
         if: matrix.os == 'ubuntu-22.04'

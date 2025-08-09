@@ -28,6 +28,7 @@ jobs:
         with:
           toolchain: stable
           override: true
+          components: clippy
 
       - name: Cache dependencies
         uses: actions/cache@v3
