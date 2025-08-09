@@ -107,6 +107,145 @@ jobs:
 
           echo "✅ Documentation validation passed"
 
+  build-binaries:
+    name: Build Binary Releases
+    needs: validate
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO: cargo
+      TARGET_FLAGS: ""
+      TARGET_DIR: ./target
+      RUST_BACKTRACE: 1
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [linux, linux-arm, macos-intel, macos-arm, win-msvc, win32-msvc]
+        include:
+        - build: linux
+          os: ubuntu-22.04
+          rust: stable
+          target: x86_64-unknown-linux-musl
+        - build: linux-arm
+          os: ubuntu-22.04
+          rust: stable
+          target: arm-unknown-linux-gnueabihf
+        - build: macos-intel
+          os: macos-13
+          rust: stable
+          target: x86_64-apple-darwin
+        - build: macos-arm
+          os: macos-14
+          rust: stable
+          target: aarch64-apple-darwin
+        - build: win-msvc
+          os: windows-2022
+          rust: stable
+          target: x86_64-pc-windows-msvc
+        - build: win32-msvc
+          os: windows-2022
+          rust: stable
+          target: i686-pc-windows-msvc
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install packages (Ubuntu)
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        bash ci/ubuntu-install-packages
+
+    - name: Install packages (macOS)
+      if: startsWith(matrix.os, 'macos-')
+      run: |
+        bash ci/macos-install-packages
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ matrix.rust }}
+        targets: ${{ matrix.target }}
+
+    - name: Use Cross for Linux ARM
+      if: matrix.build == 'linux-arm'
+      run: |
+        cargo install cross
+        echo "CARGO=cross" >> $GITHUB_ENV
+        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+
+    - name: Use Cross for musl builds
+      if: matrix.build == 'linux'
+      run: |
+        cargo install cross
+        echo "CARGO=cross" >> $GITHUB_ENV
+        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+
+    - name: Set target flags for native builds
+      if: matrix.build == 'macos-intel' || matrix.build == 'macos-arm' || matrix.build == 'win-msvc' || matrix.build == 'win32-msvc'
+      run: |
+        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+
+    - name: Show command used for Cargo
+      run: |
+        echo "cargo command is: ${{ env.CARGO }}"
+        echo "target flag is: ${{ env.TARGET_FLAGS }}"
+        echo "target dir is: ${{ env.TARGET_DIR }}"
+
+    - name: Build release binary
+      run: ${{ env.CARGO }} build --verbose --release --package tidy-viewer ${{ env.TARGET_FLAGS }}
+
+    - name: Extract version from tag
+      id: version
+      shell: bash
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        VERSION=${VERSION#v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Extracted version: $VERSION"
+
+    - name: Strip release binary (linux and macos)
+      if: matrix.build == 'linux' || matrix.build == 'macos-intel' || matrix.build == 'macos-arm'
+      run: strip "target/${{ matrix.target }}/release/tidy-viewer"
+
+    - name: Strip release binary (arm)
+      if: matrix.build == 'linux-arm'
+      run: |
+        docker run --rm -v \
+          "$PWD/target:/target:Z" \
+          ghcr.io/cross-rs/cross:arm-unknown-linux-gnueabihf \
+          arm-linux-gnueabihf-strip \
+          /target/arm-unknown-linux-gnueabihf/release/tidy-viewer
+
+    - name: Build archive
+      shell: bash
+      run: |
+        staging="tv-${{ steps.version.outputs.version }}-${{ matrix.target }}"
+        mkdir -p "$staging"/{complete,doc}
+
+        cp {README.md,UNLICENSE} "$staging/"
+        cp CHANGELOG.md "$staging/doc/"
+
+        if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+          echo "Target is Windows Based"
+          cp "target/${{ matrix.target }}/release/tidy-viewer.exe" "$staging/"
+          7z a "$staging.zip" "$staging"
+          echo "ASSET=$staging.zip" >> $GITHUB_ENV
+        else
+          echo "Target is not Windows Based"
+          cp "target/${{ matrix.target }}/release/tidy-viewer" "$staging/"
+          tar czf "$staging.tar.gz" "$staging"
+          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+        fi
+
+    - name: Upload release archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: binary-${{ matrix.target }}
+        path: ${{ env.ASSET }}
+
   publish:
     name: Publish to Cargo
     needs: validate
@@ -247,8 +386,8 @@ jobs:
           gh pr create --title "tidy-viewer: update $VERSION bottle" --body "Update tidy-viewer to version $VERSION"
 
   post-release:
-    name: Post-Release Verification
-    needs: [publish, build-packages, homebrew-update]
+    name: Post-Release Verification and Asset Upload
+    needs: [publish, build-packages, homebrew-update, build-binaries]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -273,23 +412,19 @@ jobs:
           fi
           echo "✅ Version $VERSION published to crates.io"
 
-      - name: Download Debian artifact
+      - name: Download all binary artifacts
         uses: actions/download-artifact@v3
         with:
-          name: debian-package
-          path: ./artifacts/deb
+          path: ./artifacts
 
-      - name: Download RPM artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: rpm-package
-          path: ./artifacts/rpm
+      - name: List downloaded artifacts
+        run: find ./artifacts -type f -name "*" | head -20
 
-      - name: Create GitHub Release and upload assets
+      - name: Create GitHub Release and upload all assets
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
-          name: Release ${{ github.ref }}
+          name: Release ${{ steps.version.outputs.version }}
           body: |
             ## What's New in Version ${{ steps.version.outputs.version }}
 
@@ -297,18 +432,37 @@ jobs:
 
             ## Installation
 
+            ### Package Managers
             ```bash
+            # Via Cargo
             cargo install tidy-viewer
+
+            # Via Homebrew
+            brew install tidy-viewer
             ```
 
-            ## Downloads
+            ### Direct Downloads
 
-            Debian and RPM packages are attached as release assets below.
+            Download the appropriate binary for your platform from the assets below:
+
+            - **Linux (x86_64)**: `tv-${{ steps.version.outputs.version }}-x86_64-unknown-linux-musl.tar.gz`
+            - **Linux (ARM)**: `tv-${{ steps.version.outputs.version }}-arm-unknown-linux-gnueabihf.tar.gz`
+            - **macOS (Intel)**: `tv-${{ steps.version.outputs.version }}-x86_64-apple-darwin.tar.gz`
+            - **macOS (Apple Silicon)**: `tv-${{ steps.version.outputs.version }}-aarch64-apple-darwin.tar.gz`
+            - **Windows (64-bit)**: `tv-${{ steps.version.outputs.version }}-x86_64-pc-windows-msvc.zip`
+            - **Windows (32-bit)**: `tv-${{ steps.version.outputs.version }}-i686-pc-windows-msvc.zip`
+
+            Extract the downloaded archive and copy the `tidy-viewer` binary to your PATH.
+
+            ### Package Downloads
+            - **Debian/Ubuntu**: Download the `.deb` package
+            - **RHEL/CentOS/Fedora**: Download the `.rpm` package
           draft: false
           prerelease: false
           files: |
-            ./artifacts/deb/*.deb
-            ./artifacts/rpm/*.rpm
+            ./artifacts/binary-*/tv-*
+            ./artifacts/debian-package/*.deb
+            ./artifacts/rpm-package/*.rpm
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
@@ -318,10 +472,18 @@ jobs:
           echo "🎉 Release $VERSION completed successfully!"
           echo ""
           echo "✅ Published to crates.io"
+          echo "✅ Built cross-platform binaries for:"
+          echo "   - Linux (x86_64 musl)"
+          echo "   - Linux (ARM)"
+          echo "   - macOS (Intel)"
+          echo "   - macOS (Apple Silicon)"
+          echo "   - Windows (64-bit)"
+          echo "   - Windows (32-bit)"
           echo "✅ Built Debian and RPM packages"
           echo "✅ Updated Homebrew formulas"
-          echo "✅ Created GitHub release"
+          echo "✅ Created GitHub release with all assets"
           echo ""
-          echo "📦 Installation:"
+          echo "📦 Installation options:"
           echo "  cargo install tidy-viewer"
           echo "  brew install tidy-viewer"
+          echo "  Download binaries from: https://github.com/alexhallam/tv/releases/tag/v$VERSION"
