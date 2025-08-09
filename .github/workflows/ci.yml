@@ -35,7 +35,7 @@ jobs:
           #- nightly
           #- nightly-musl
           #- nightly-32
-          #- nightly-mips
+          - stable-mips
           #- nightly-arm
           - macos
           - win-msvc
@@ -61,9 +61,9 @@ jobs:
             os: ubuntu-22.04
             rust: nightly
             target: i686-unknown-linux-gnu
-          - build: nightly-mips
+          - build: stable-mips
             os: ubuntu-22.04
-            rust: nightly
+            rust: stable
             target: mips64-unknown-linux-gnuabi64
           - build: nightly-arm
             os: ubuntu-22.04
