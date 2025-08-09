@@ -102,10 +102,15 @@ jobs:
           uv pip install --python ./.venv/bin/python maturin
           ./.venv/bin/maturin --version
 
+      - name: Export Python lib dir to LD_LIBRARY_PATH
+        run: |
+          PY_LIBDIR=$('./.venv/bin/python' -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") or "")')
+          echo "LD_LIBRARY_PATH=$PY_LIBDIR:${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          echo "Detected Python LIBDIR: $PY_LIBDIR"
+
       - name: Build Python extension in dev mode (maturin develop)
         env:
           PYO3_PYTHON: ${{ github.workspace }}/.venv/bin/python
-          PYO3_PRINT_CONFIG: "1"
         run: |
           ./.venv/bin/maturin develop -m tidy-viewer-py/Cargo.toml
 
