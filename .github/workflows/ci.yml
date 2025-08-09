@@ -110,6 +110,10 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Add mips64 target
+        if: matrix.target == 'mips64-unknown-linux-gnuabi64'
+        run: rustup target add mips64-unknown-linux-gnuabi64
+
       - name: Use Cross
         if: matrix.target != ''
         run: |
