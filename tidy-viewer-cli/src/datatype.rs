@@ -125,22 +125,6 @@ pub fn is_integer(text: &str) -> bool {
 /// assert!(is_number("-456.78"));
 /// assert!(!is_number("abc"));
 /// ```
-pub fn is_number(text: &str) -> bool {
-    is_integer(text) || is_double(text)
-}
-
-/// Checks if a string represents a negative number.
-///
-/// # Examples
-///
-/// ```rust
-/// use tidy_viewer::datatype::is_negative_number;
-///
-/// assert!(is_negative_number("-123"));
-/// assert!(is_negative_number("-123.45"));
-/// assert!(!is_negative_number("123"));
-/// assert!(!is_negative_number("abc"));
-/// ```
 pub fn is_negative_number(text: &str) -> bool {
     lazy_static! {
         static ref R: Regex = Regex::new(r"^\s*-[0-9]*.?[0-9]*\s*$").unwrap();

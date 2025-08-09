@@ -16,8 +16,8 @@ mod datatype;
 
 // Import from inline modules (formerly tidy_viewer_core)
 use crate::datatype::{
-    format_if_num, format_strings, get_col_data_type, is_logical, is_na, is_negative_number,
-    is_number, parse_delimiter,
+    format_strings, get_col_data_type, is_na, is_negative_number,
+    parse_delimiter,
 };
 
 // Type aliases for complex return types to satisfy clippy

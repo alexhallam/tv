@@ -84,7 +84,6 @@ pub use datatype::is_logical;
 pub use datatype::is_na;
 pub use datatype::is_na_string_padded;
 pub use datatype::is_negative_number;
-pub use datatype::is_number;
 pub use datatype::is_scientific_notation;
 pub use datatype::is_time;
 pub use datatype::parse_delimiter;
