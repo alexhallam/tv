@@ -11,11 +11,18 @@ use std::io::{self, BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
-// Import from core library
-use tidy_viewer_core::{
-    format_if_num, format_strings, get_col_data_type, is_logical, is_na, is_negative_number,
-    is_number, parse_delimiter,
+// Inline modules (formerly tidy_viewer_core)
+mod datatype;
+
+// Import from inline modules (formerly tidy_viewer_core)
+use crate::datatype::{
+    format_strings, get_col_data_type, is_na, is_negative_number,
+    parse_delimiter,
 };
+
+// Type aliases for complex return types to satisfy clippy
+type FileProcessResult = Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>>;
+type SimpleFileResult = Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>>;
 
 use calm_io::stdout;
 use calm_io::stdoutln;
@@ -819,7 +826,7 @@ fn main() {
                 match read_arrow_file(file_path) {
                     Ok((_headers, records)) => (records, None, None),
                     Err(e) => {
-                        eprintln!("Failed to read Arrow file: {}", e);
+                        eprintln!("Failed to read Arrow file: {e}");
                         return;
                     }
                 }
@@ -839,7 +846,7 @@ fn main() {
 
                 // Get row count from Parquet metadata to decide if streaming is needed
                 let needs_streaming = match File::open(file_path).and_then(|f| {
-                    SerializedFileReader::new(f).map_err(|e| std::io::Error::other(e))
+                    SerializedFileReader::new(f).map_err(std::io::Error::other)
                 }) {
                     Ok(reader) => {
                         let total_rows = reader.metadata().file_metadata().num_rows() as usize;
@@ -961,7 +968,7 @@ fn main() {
                 } else {
                     let path = file_path.as_path();
                     if let Some(path) = path.to_str() {
-                        eprintln!("Failed to open file: {}", path);
+                        eprintln!("Failed to open file: {path}");
                     } else {
                         eprintln!("Failed to open file.")
                     }
@@ -1565,7 +1572,7 @@ fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
 
 fn read_parquet_file(
     file_path: &PathBuf,
-) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+) -> SimpleFileResult {
     let file = File::open(file_path)?;
     let reader = SerializedFileReader::new(file)?;
     let iter = reader.get_row_iter(None)?;
@@ -1624,7 +1631,7 @@ fn read_parquet_file(
 fn read_parquet_streaming(
     file_path: &PathBuf,
     max_rows: usize,
-) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
+) -> FileProcessResult {
     let file = File::open(file_path)?;
     let reader = SerializedFileReader::new(file)?;
 
@@ -1729,7 +1736,7 @@ fn read_parquet_streaming(
 
 fn read_arrow_file(
     file_path: &PathBuf,
-) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+) -> SimpleFileResult {
     let file = File::open(file_path)?;
 
     // Try to read as uncompressed first
@@ -1814,7 +1821,7 @@ fn read_arrow_file(
 
 fn read_arrow_file_with_lz4_decompression(
     file_path: &PathBuf,
-) -> Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>> {
+) -> SimpleFileResult {
     // Read the entire file into memory
     let mut compressed_data = Vec::new();
     let mut file = File::open(file_path)?;
@@ -1903,7 +1910,7 @@ fn read_arrow_file_with_lz4_decompression(
 fn read_arrow_streaming(
     file_path: &PathBuf,
     max_rows: usize,
-) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
+) -> FileProcessResult {
     let file = File::open(file_path)?;
     let reader = match ArrowFileReader::try_new(file, None) {
         Ok(reader) => reader,
@@ -2017,7 +2024,7 @@ fn read_arrow_streaming(
 fn read_arrow_streaming_with_lz4_decompression(
     file_path: &PathBuf,
     max_rows: usize,
-) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
+) -> FileProcessResult {
     // Read the entire file into memory
     let mut compressed_data = Vec::new();
     let mut file = File::open(file_path)?;
@@ -2209,7 +2216,7 @@ fn estimate_csv_rows(file_path: &PathBuf) -> Result<usize, std::io::Error> {
 fn read_csv_streaming(
     file_path: &PathBuf,
     max_rows: usize,
-) -> Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>> {
+) -> FileProcessResult {
     let file = File::open(file_path)?;
     let mut reader = csv::Reader::from_reader(file);
 

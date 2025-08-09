@@ -1504,7 +1504,7 @@ dependencies = [
 
 [[package]]
 name = "tidy-viewer"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "arrow",
  "arrow-ipc",
@@ -1515,19 +1515,22 @@ dependencies = [
  "csv",
  "directories",
  "itertools",
+ "lazy_static",
  "lz4",
  "owo-colors",
  "parquet",
+ "regex",
  "serde",
  "serde_json",
  "structopt",
- "tidy-viewer-core",
  "toml",
+ "unicode-truncate",
+ "unicode-width 0.1.14",
 ]
 
 [[package]]
 name = "tidy-viewer-core"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "itertools",
  "lazy_static",
@@ -1538,7 +1541,7 @@ dependencies = [
 
 [[package]]
 name = "tidy-viewer-py"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "anyhow",
  "arrow",

@@ -38,7 +38,7 @@ priority = "optional"
 section = "utility"
 
 [dependencies]
-tidy-viewer-core = { workspace = true }
+# tidy-viewer-core functionality is now inline
 arrow = { workspace = true }
 arrow-ipc = { workspace = true }
 atty = { workspace = true }
@@ -48,10 +48,14 @@ crossterm = { workspace = true }
 csv = { workspace = true }
 directories = { workspace = true }
 itertools = { workspace = true }
+lazy_static = { workspace = true }
 lz4 = { workspace = true }
 owo-colors = { workspace = true }
 parquet = { workspace = true }
+regex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 structopt = { workspace = true }
 toml = { workspace = true }
+unicode-truncate = { workspace = true }
+unicode-width = { workspace = true }
