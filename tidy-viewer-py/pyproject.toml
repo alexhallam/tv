@@ -1,9 +1,9 @@
 [project]
 name = "tidy-viewer-py"
 version = "0.2.0"
-description = "Beautiful terminal table formatting powered by Rust"
+description = "A cross-platform data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, Parquet, Pandas, and Polars DataFrames."
 readme = "README.md"
-authors = [{ name = "Your Name", email = "your.email@example.com" }]
+authors = [{ name = "Alex Hallam", email = "alexhallam6.28@gmail.com" }]
 license = { text = "MIT OR Apache-2.0" }
 requires-python = ">=3.8"
 classifiers = [

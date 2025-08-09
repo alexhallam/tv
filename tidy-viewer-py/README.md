@@ -20,35 +20,34 @@ pip install tidy-viewer-py
 
 ## Quick Start
 
+### CSV File Pretty Printing
 
 ```python
 import tidy_viewer_py as tv
-
-# Print a CSV file
-tv.print_csv("data.csv")
-
-# With custom options
-options = tv.FormatOptions(
-    max_rows=50,
-    color_theme="gruvbox",
-    significant_figures=4
-)
-tv.print_csv("data.csv", options)
+import pandas as pd
+url = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv"
+pd.read_csv(url).to_csv("iris.csv", index=False)  # Save to csv for demo
+filename = "iris.csv"
+tv.print_csv(filename)
 ```
 
-### Pandas DataFrames
+### Pandas DataFrames Pretty Printing
 
 ```python
 import pandas as pd
 import tidy_viewer_py as tv
-
-df = pd.read_csv("large_dataset.csv")
-
-# Pretty print with automatic truncation
+df = pd.read_csv(filename)
 tv.print_dataframe(df)
+```
 
-# Or with custom settings
-tv.print_dataframe(df, tv.FormatOptions(max_rows=100))
+### Polars DataFrames Pretty Printing
+
+```python
+
+import polars as pl
+
+df_pl = pl.read_csv(filename)
+tv.print_polars_dataframe(df_pl)
 ```
 
 ### Method Chaining API
@@ -56,23 +55,7 @@ tv.print_dataframe(df, tv.FormatOptions(max_rows=100))
 ```python
 import tidy_viewer_py as tv
 
-# Fluent interface for quick formatting
-tv.tv().color_theme("dracula").max_rows(50).print_csv("data.csv")
-
-# One-liner with multiple options
-tv.tv().no_dimensions().no_row_numbers().title("Sales Report").print_table(data, headers)
-```
-
-### Format to String
-
-```python
-# Get formatted output as string instead of printing
-output = tv.format_table(data, headers)
-print(f"Formatted output:\n{output}")
-
-# Save to file
-with open("report.txt", "w") as f:
-    f.write(tv.format_csv("data.csv", tv.FormatOptions(use_color=False)))
+tv.tv().color_theme("gruvbox").max_rows(10).print_dataframe(df)
 ```
 
 ## Configuration Options
@@ -111,16 +94,6 @@ Available themes:
 - `one_dark` - Atom One Dark inspired
 - `solarized_light` - Precision colors for readability
 
-## Performance
-
-Tidy Viewer Py leverages Rust for exceptional performance:
-
-- 10-100x faster than pure Python implementations
-- Handles large datasets efficiently
-- Minimal memory overhead
-- Streaming support for huge files (coming soon)
-
-## Development
 
 ### Building from Source
 
@@ -134,28 +107,3 @@ git clone https://github.com/yourusername/tidy-viewer-py
 cd tidy-viewer-py
 uv pip install .
 ```
-
-Or for development:
-```bash
-uv run maturin develop
-```
-
-### Running Tests
-
-```bash
-pytest tests/
-```
-
-## License
-
-Licensed under either of:
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
-- MIT license ([LICENSE-MIT](LICENSE-MIT))
-
-at your option.
-
-## Credits
-
-Inspired by the original [tidy-viewer](https://github.com/alexhallam/tv) project.
-
-
