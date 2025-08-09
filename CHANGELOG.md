@@ -1,4 +1,21 @@
 
+1.8.1 (2025-01-29)
+==================
+
+* **Documentation** **Project Maintenance** - Updated project documentation and CI workflows for better maintainability.
+
+  **Changes Made:**
+  - **CI Badge Cleanup**: Removed outdated Rust workflow badge from README to maintain clean documentation
+  - **Python Documentation**: Enhanced Python bindings documentation for better user experience
+  - **Workflow Updates**: Updated GitHub Actions workflows with improved cross-platform build support
+  - **Version Synchronization**: Aligned all package versions for consistent release management
+
+  **Benefits:**
+  - **Cleaner Documentation**: Streamlined README without outdated CI status indicators
+  - **Better Python Experience**: Improved documentation for Python users
+  - **Reliable CI/CD**: Updated workflows ensure consistent builds across platforms
+  - **Version Consistency**: All packages now follow synchronized versioning
+
 
 1.6.6 (2025-01-28)
 ==================

@@ -1,4 +1,3 @@
-[![Rust](https://github.com/alexhallam/tv/actions/workflows/rust.yml/badge.svg)](https://github.com/alexhallam/tv/actions/workflows/rust.yml)
 [![Crate](https://img.shields.io/crates/v/tidy-viewer.svg)](https://crates.io/crates/tidy-viewer)
 ![Crates.io](https://img.shields.io/crates/d/tidy-viewer?label=creates.io%20downloads)
 ![GitHub all releases](https://img.shields.io/github/downloads/alexhallam/tv/total?label=github%20release%20downloads)
@@ -27,15 +26,15 @@
 
 # Features
 
-1. **Multi-format support**: CSV, TSV, PSV, and **Parquet files** 🎉
-2. **Intelligent streaming**: Automatic memory-efficient loading for large files (>5MB) 🚀
-3. Nice colors out of the box
-4. Significant digit printing (no more decimal dust taking valuable terminal space)
-5. NA comprehension and coloring (no more misaligned data cells due to missing data)
-6. Dimensions printed first (no more guessing how many rows and columns are in the data)
-7. Column overflow logic (no more misalignment due to terminal dimensions)
-8. Long string/Unicode truncation (no more long strings pushing other data around)
-9. Customizable with a dotfile config (bring your own theme)
+1. **Multi-format support**: `csv`, `parquet`, `feather`, `ipc`
+2. **Automatic large file streaming**: Automatic memory-efficient loading for large files (>5MB) 🚀
+3. **Colors**: Nice colors out of the box
+4. **Significant digit printing**: No more decimal dust taking valuable terminal space
+5. **NA comprehension & coloring**: Missing data is clearly marked as `NA` for easy identification. No more misaligned data cells due to missing data.
+6. **Dimensions printed first**: No more guessing how many rows and columns are in the data
+7. **Column overflow logic**: No more misalignment due to terminal dimensions
+8. **Long string/Unicode truncation**: No more long strings pushing other data around
+9. **Customizable with a dotfile config**: Bring your own theme.
 
 # Installation
 
@@ -176,7 +175,7 @@ wget https://github.com/apache/arrow/raw/main/python/pyarrow/tests/data/v0.7.1.p
 tv v0.7.1.parquet
 ```
 
-### Create Your Own Parquet Files
+### Create A Parquet Files
 ```python
 # Python example to create a parquet file
 import pandas as pd
@@ -194,7 +193,7 @@ df = pd.DataFrame({
 df.to_parquet('sample_data.parquet')
 ```
 
-### View Your Parquet Data
+### View A Parquet File
 ```sh
 # Same great tv experience with parquet files!
 tv sample_data.parquet
@@ -205,11 +204,10 @@ tv sample_data.parquet -n 100 -e | less -S
 ```
 
 **Benefits of Parquet with tv:**
-- ✅ Automatic file format detection
-- ✅ Column headers from schema metadata  
-- ✅ Memory-efficient reading of large files
-- ✅ Same great formatting and colors as CSV
-- ✅ All existing tv features work seamlessly
+- Automatic file format detection
+- Column headers from schema metadata
+- Memory-efficient reading of large files
+- Same great formatting and colors as csv
 
 ## Large File Streaming Examples 🚀
 
