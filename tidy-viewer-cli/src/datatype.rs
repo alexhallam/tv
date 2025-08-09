@@ -113,18 +113,6 @@ pub fn is_integer(text: &str) -> bool {
     R.is_match(text)
 }
 
-/// Checks if a string represents any numeric value (integer or double).
-///
-/// # Examples
-///
-/// ```rust
-/// use tidy_viewer::datatype::is_number;
-///
-/// assert!(is_number("123"));
-/// assert!(is_number("123.45"));
-/// assert!(is_number("-456.78"));
-/// assert!(!is_number("abc"));
-/// ```
 pub fn is_negative_number(text: &str) -> bool {
     lazy_static! {
         static ref R: Regex = Regex::new(r"^\s*-[0-9]*.?[0-9]*\s*$").unwrap();
