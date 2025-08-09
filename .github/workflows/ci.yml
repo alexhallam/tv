@@ -19,6 +19,8 @@ jobs:
       TARGET_DIR: ./target
       # Emit backtraces on panics.
       RUST_BACKTRACE: 1
+      # Ensure pyo3 finds the configured Python
+      PYO3_PYTHON: python
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -56,20 +58,67 @@ jobs:
           bash ci/macos-install-packages
 
       - name: Set up Python
-        if: matrix.os == 'ubuntu-22.04'
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build tidy-viewer and core (skip Python bindings)
+        run: cargo build --verbose --workspace --exclude tidy-viewer-py
+
+      - name: Run tests (skip Python bindings)
+        run: cargo test --verbose
+
+  python-bindings:
+    name: python-bindings
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          toolchain: ${{ matrix.rust }}
-          profile: minimal
-          override: true
+          python-version: "3.11"
 
-      - name: Build tidy-viewer and all crates
-        run: cargo build --verbose --workspace
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Run tests
-        run: cargo test --verbose --workspace
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "${HOME}/.local/bin" >> $GITHUB_PATH
+
+      - name: Create virtual environment with uv
+        run: |
+          uv venv .venv --python="$(python -c 'import sys; print(sys.executable)')"
+          . ./.venv/bin/activate
+          python -V
+
+      - name: Install maturin into venv with uv
+        run: |
+          uv pip install --python ./.venv/bin/python maturin
+          ./.venv/bin/maturin --version
+
+      - name: Export Python lib dir to LD_LIBRARY_PATH
+        run: |
+          PY_LIBDIR=$('./.venv/bin/python' -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") or "")')
+          echo "LD_LIBRARY_PATH=$PY_LIBDIR:${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          echo "Detected Python LIBDIR: $PY_LIBDIR"
+
+      - name: Build Python extension in dev mode (maturin develop)
+        env:
+          PYO3_PYTHON: ${{ github.workspace }}/.venv/bin/python
+        run: |
+          ./.venv/bin/maturin develop -m tidy-viewer-py/Cargo.toml
+
+      - name: Sanity check import in venv
+        run: |
+          ./.venv/bin/python - << 'PY'
+          import sys
+          print(sys.executable)
+          import tidy_viewer_py._core as core
+          print("Imported:", core.__name__)
+          PY

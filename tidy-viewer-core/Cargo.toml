@@ -7,6 +7,7 @@ license = "Unlicense OR MIT"
 repository = "https://github.com/alexhallam/tv"
 readme = "README.md"
 description = "Core formatting logic for tidy-viewer"
+publish = false
 
 [dependencies]
 lazy_static = { workspace = true }

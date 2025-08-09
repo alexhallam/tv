@@ -1521,26 +1521,13 @@ dependencies = [
  "serde",
  "serde_json",
  "structopt",
- "tidy-viewer-core 1.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tidy-viewer-core",
  "toml",
 ]
 
 [[package]]
 name = "tidy-viewer-core"
 version = "1.8.0"
-dependencies = [
- "itertools",
- "lazy_static",
- "regex",
- "unicode-truncate",
- "unicode-width 0.1.14",
-]
-
-[[package]]
-name = "tidy-viewer-core"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3409418b506d8dcda21863e68566c9495e0a97c5f245c3795633a5d60a57240f"
 dependencies = [
  "itertools",
  "lazy_static",
@@ -1563,7 +1550,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
- "tidy-viewer-core 1.8.0",
+ "tidy-viewer-core",
  "unicode-truncate",
  "unicode-width 0.1.14",
 ]
