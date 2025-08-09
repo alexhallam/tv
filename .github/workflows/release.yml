@@ -163,6 +163,113 @@ jobs:
           name: rpm-package
           path: ./target/*.rpm
 
+  build-binaries-windows:
+    name: Build Windows Binaries
+    needs: validate
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        target: [i686-pc-windows-msvc, x86_64-pc-windows-msvc]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build (release)
+        shell: bash
+        run: |
+          cargo build --package tidy-viewer --release --target ${{ matrix.target }}
+
+      - name: Package zip
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $target = "${{ matrix.target }}"
+          $out = "tidy-viewer-$version-$target.zip"
+          Compress-Archive -Path "target/$target/release/tidy-viewer.exe" -DestinationPath $out
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-${{ matrix.target }}
+          path: tidy-viewer-${{ steps.version.outputs.version }}-${{ matrix.target }}.zip
+
+  build-binaries-macos:
+    name: Build macOS (x86_64) Binary
+    needs: validate
+    runs-on: macos-13
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build (release)
+        run: cargo build --package tidy-viewer --release
+
+      - name: Package tar.gz
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          tar -C target/release -czf tidy-viewer-$VERSION-x86_64-apple-darwin.tar.gz tidy-viewer
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-x86_64-apple-darwin
+          path: tidy-viewer-${{ steps.version.outputs.version }}-x86_64-apple-darwin.tar.gz
+
+  build-binaries-linux:
+    name: Build Linux (tgz) Binary
+    needs: validate
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build (release)
+        run: cargo build --package tidy-viewer --release
+
+      - name: Package tgz
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          tar -C target/release -czf tidy-viewer-$VERSION.tgz tidy-viewer
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-tgz
+          path: tidy-viewer-${{ steps.version.outputs.version }}.tgz
+
   homebrew-update:
     name: Update Homebrew Formulas
     needs: [validate, publish]
@@ -248,7 +355,7 @@ jobs:
 
   post-release:
     name: Post-Release Verification
-    needs: [publish, build-packages, homebrew-update]
+    needs: [publish, build-packages, homebrew-update, build-binaries-windows, build-binaries-macos, build-binaries-linux]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -285,6 +392,30 @@ jobs:
           name: rpm-package
           path: ./artifacts/rpm
 
+      - name: Download Windows x86 (i686) artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-i686-pc-windows-msvc
+          path: ./artifacts/windows/i686
+
+      - name: Download Windows x64 (x86_64) artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-x86_64-pc-windows-msvc
+          path: ./artifacts/windows/x86_64
+
+      - name: Download macOS (x86_64) artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-x86_64-apple-darwin
+          path: ./artifacts/macos
+
+      - name: Download Linux tgz artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-tgz
+          path: ./artifacts/linux
+
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v1
         with:
@@ -303,12 +434,16 @@ jobs:
 
             ## Downloads
 
-            Debian and RPM packages are attached as release assets below.
+            Debian, RPM, and platform-specific archives are attached as release assets below.
           draft: false
           prerelease: false
           files: |
             ./artifacts/deb/*.deb
             ./artifacts/rpm/*.rpm
+            ./artifacts/windows/i686/*.zip
+            ./artifacts/windows/x86_64/*.zip
+            ./artifacts/macos/*.tar.gz
+            ./artifacts/linux/*.tgz
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
@@ -319,6 +454,7 @@ jobs:
           echo ""
           echo "✅ Published to crates.io"
           echo "✅ Built Debian and RPM packages"
+          echo "✅ Built Windows, macOS, and Linux binary archives"
           echo "✅ Updated Homebrew formulas"
           echo "✅ Created GitHub release"
           echo ""
