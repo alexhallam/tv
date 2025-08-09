@@ -69,7 +69,7 @@ jobs:
         run: cargo build --verbose --workspace --exclude tidy-viewer-py
 
       - name: Run tests (skip Python bindings)
-        run: cargo test --verbose -p tidy-viewer -p tidy-viewer-core
+        run: cargo test --verbose
 
   python-bindings:
     name: python-bindings
