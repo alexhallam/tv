@@ -33,3 +33,8 @@ toml = "0.5"
 unicode-truncate = "0.2.0"
 unicode-width = "0.1.11"
 thiserror = "1.0"
+# Ensure workspace members inherit the local core crate
+ tidy-viewer-core = { path = "tidy-viewer-core" }
+
+[patch.crates-io]
+tidy-viewer-core = { path = "tidy-viewer-core" }
