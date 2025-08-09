@@ -29,7 +29,7 @@ jobs:
           components: clippy
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -137,13 +137,13 @@ jobs:
           mv *.rpm ./target/
 
       - name: Upload Debian package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: debian-package
           path: ./target/debian/*.deb
 
       - name: Upload RPM package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rpm-package
           path: ./target/*.rpm
@@ -186,7 +186,7 @@ jobs:
           Compress-Archive -Path "target/$target/release/tidy-viewer.exe" -DestinationPath $out
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.target }}
           path: tidy-viewer-${{ steps.version.outputs.version }}-${{ matrix.target }}.zip
@@ -218,7 +218,7 @@ jobs:
           tar -C target/release -czf tidy-viewer-$VERSION-x86_64-apple-darwin.tar.gz tidy-viewer
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macos-x86_64-apple-darwin
           path: tidy-viewer-${{ steps.version.outputs.version }}-x86_64-apple-darwin.tar.gz
@@ -250,7 +250,7 @@ jobs:
           tar -C target/release -czf tidy-viewer-$VERSION.tgz tidy-viewer
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-tgz
           path: tidy-viewer-${{ steps.version.outputs.version }}.tgz
@@ -340,7 +340,15 @@ jobs:
 
   post-release:
     name: Post-Release Verification
-    needs: [publish, build-packages, homebrew-update, build-binaries-windows, build-binaries-macos, build-binaries-linux]
+    needs:
+      [
+        publish,
+        build-packages,
+        homebrew-update,
+        build-binaries-windows,
+        build-binaries-macos,
+        build-binaries-linux,
+      ]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -366,37 +374,37 @@ jobs:
           echo "✅ Version $VERSION published to crates.io"
 
       - name: Download Debian artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: debian-package
           path: ./artifacts/deb
 
       - name: Download RPM artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: rpm-package
           path: ./artifacts/rpm
 
       - name: Download Windows x86 (i686) artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows-i686-pc-windows-msvc
           path: ./artifacts/windows/i686
 
       - name: Download Windows x64 (x86_64) artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows-x86_64-pc-windows-msvc
           path: ./artifacts/windows/x86_64
 
       - name: Download macOS (x86_64) artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: macos-x86_64-apple-darwin
           path: ./artifacts/macos
 
       - name: Download Linux tgz artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: linux-tgz
           path: ./artifacts/linux
