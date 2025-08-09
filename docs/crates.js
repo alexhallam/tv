@@ -1,2 +1,0 @@
-window.ALL_CRATES = ["aho_corasick","either","itertools","lazy_static","memchr","regex","regex_automata","regex_syntax","tidy_viewer","tidy_viewer_core","tidy_viewer_py","unicode_truncate","unicode_width"];
-//{"start":21,"fragment_lengths":[14,9,12,14,9,8,17,15,14,19,17,19,16]}

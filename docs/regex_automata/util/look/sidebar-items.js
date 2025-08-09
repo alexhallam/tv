@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Look"],"struct":["LookMatcher","LookSet","LookSetIter","UnicodeWordBoundaryError"]};

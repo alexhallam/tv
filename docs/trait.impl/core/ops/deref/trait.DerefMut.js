@@ -1,9 +1,0 @@
-(function() {
-    var implementors = Object.fromEntries([["either",[["impl&lt;L, R&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/ops/deref/trait.DerefMut.html\" title=\"trait core::ops::deref::DerefMut\">DerefMut</a> for <a class=\"enum\" href=\"either/enum.Either.html\" title=\"enum either::Either\">Either</a>&lt;L, R&gt;<div class=\"where\">where\n    L: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/ops/deref/trait.DerefMut.html\" title=\"trait core::ops::deref::DerefMut\">DerefMut</a>,\n    R: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/ops/deref/trait.DerefMut.html\" title=\"trait core::ops::deref::DerefMut\">DerefMut</a>&lt;Target = L::<a class=\"associatedtype\" href=\"https://doc.rust-lang.org/1.88.0/core/ops/deref/trait.Deref.html#associatedtype.Target\" title=\"type core::ops::deref::Deref::Target\">Target</a>&gt;,</div>"]]],["regex_automata",[["impl&lt;'a, T: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a>, F: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/ops/function/trait.Fn.html\" title=\"trait core::ops::function::Fn\">Fn</a>() -&gt; T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/ops/deref/trait.DerefMut.html\" title=\"trait core::ops::deref::DerefMut\">DerefMut</a> for <a class=\"struct\" href=\"regex_automata/util/pool/struct.PoolGuard.html\" title=\"struct regex_automata::util::pool::PoolGuard\">PoolGuard</a>&lt;'a, T, F&gt;"]]]]);
-    if (window.register_implementors) {
-        window.register_implementors(implementors);
-    } else {
-        window.pending_implementors = implementors;
-    }
-})()
-//{"start":57,"fragment_lengths":[848,648]}

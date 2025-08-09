@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ValueType"],"fn":["calculate_column_width","format_if_na","format_if_num","format_strings","get_col_data_type","infer_type_from_string","is_date","is_date_time","is_double","is_integer","is_logical","is_na","is_na_string_padded","is_negative_number","is_number","is_scientific_notation","is_time","parse_delimiter"],"mod":["sigfig"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Captures","CapturesPatternIter","GroupInfo","GroupInfoAllNames","GroupInfoError","GroupInfoPatternNames"]};

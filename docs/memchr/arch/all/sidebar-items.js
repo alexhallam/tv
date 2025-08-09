@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["is_equal","is_equal_raw","is_prefix","is_suffix"],"mod":["memchr","packedpair","rabinkarp","shiftor","twoway"]};

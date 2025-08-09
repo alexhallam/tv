@@ -1,4 +1,23 @@
 
+1.8.2 (2025-01-29)
+==================
+
+* **Bug Fix** **Release Pipeline** - Fixed GitHub Actions workflow issues for successful automated releases.
+
+  **Issues Fixed:**
+  - **Documentation Validation**: Removed dependency on docs directory that was causing workflow failures
+  - **Deprecated Actions**: Updated from deprecated actions-rs/cargo to direct cargo commands
+  - **Package Publishing**: Fixed cargo publish command to target correct package directory
+  - **README Paths**: Corrected README paths for all workspace packages
+  - **Debian Packaging**: Fixed cargo deb command to target correct package manifest
+
+  **Benefits:**
+  - **Automated Releases**: GitHub Actions workflow now completes successfully
+  - **Cross-platform Builds**: Windows, macOS, and Linux binaries build correctly
+  - **Package Distribution**: Debian and RPM packages generate without errors
+  - **Reliable CI/CD**: All validation steps pass consistently
+
+
 1.8.1 (2025-01-29)
 ==================
 

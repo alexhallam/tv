@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Either"],"macro":["try_left","try_right"]};

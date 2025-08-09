@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Utf8Sequence"],"struct":["Utf8Range","Utf8Sequences"]};

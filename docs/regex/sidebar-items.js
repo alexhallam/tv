@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["escape"],"mod":["bytes"],"struct":["CaptureLocations","CaptureMatches","CaptureNames","Captures","Match","Matches","NoExpand","Regex","RegexBuilder","RegexSet","RegexSetBuilder","ReplacerRef","SetMatches","SetMatchesIntoIter","SetMatchesIter","Split","SplitN","SubCaptureMatches"],"trait":["Replacer"]};

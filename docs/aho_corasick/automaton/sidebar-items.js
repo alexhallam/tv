@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Candidate"],"struct":["FindIter","FindOverlappingIter","OverlappingState","Prefilter","StateID","StateIDError","StreamFindIter"],"trait":["Automaton"]};
