@@ -6,6 +6,10 @@ on:
       - 'py-v*'
   workflow_dispatch:
 
+concurrency:
+  group: pypi-publish-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -40,19 +44,19 @@ jobs:
       - name: List wheel artifacts (Unix)
         if: runner.os != 'Windows'
         run: |
-          ls -l tidy-viewer-py/target/wheels/ || true
+          ls -l target/wheels/ || true
 
       - name: List wheel artifacts (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          if (Test-Path 'tidy-viewer-py/target/wheels') { Get-ChildItem -Force 'tidy-viewer-py/target/wheels' | Format-List } else { Write-Host 'No wheels directory yet' }
+          if (Test-Path 'target/wheels') { Get-ChildItem -Force 'target/wheels' | Format-List } else { Write-Host 'No wheels directory yet' }
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: tidy-viewer-py/target/wheels/*.whl
+          path: target/wheels/*.whl
           if-no-files-found: error
 
   build-sdist:
@@ -80,13 +84,13 @@ jobs:
 
       - name: List sdist artifacts
         run: |
-          ls -l tidy-viewer-py/target/wheels/ || true
+          ls -l target/wheels/ || true
 
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
           name: sdist
-          path: tidy-viewer-py/target/wheels/*.tar.gz
+          path: target/wheels/*.tar.gz
           if-no-files-found: error
 
   publish:
@@ -97,6 +101,7 @@ jobs:
       url: https://pypi.org/p/tidy-viewer-py
     permissions:
       id-token: write
+      contents: read
     steps:
       - name: Download wheel artifacts
         uses: actions/download-artifact@v4
@@ -117,3 +122,5 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
