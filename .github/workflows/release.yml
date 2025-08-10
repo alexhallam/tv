@@ -341,8 +341,14 @@ jobs:
           git commit -m "tidy-viewer: update $VERSION bottle"
           git push origin tidy-viewer-$VERSION
 
-          # Create PR using gh
-          gh pr create --title "tidy-viewer: update $VERSION bottle" --body "Update tidy-viewer to version $VERSION"
+          # Try to create PR using gh, but don't fail if it doesn't work
+          echo "Attempting to create Homebrew Core PR..."
+          if gh pr create --repo Homebrew/homebrew-core --title "tidy-viewer: update $VERSION bottle" --body "Update tidy-viewer to version $VERSION"; then
+            echo "✅ Homebrew Core PR created successfully"
+          else
+            echo "⚠️  Homebrew Core PR creation failed, but continuing..."
+            echo "You may need to manually create a PR from the branch: tidy-viewer-$VERSION"
+          fi
 
   post-release:
     name: Post-Release Verification
