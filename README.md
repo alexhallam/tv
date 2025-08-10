@@ -4,7 +4,7 @@
 [![tidy-viewer](https://snapcraft.io/tidy-viewer/badge.svg)](https://snapcraft.io/tidy-viewer)
 
 <h1 align="center">Tidy Viewer (tv)</h1>
-<p align="center">Tidy Viewer (tv) is a cross-platform data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, TSV, PSV, and Parquet files with intelligent streaming for large datasets.</p>
+<p align="center">Tidy Viewer (tv) is a cross-platform data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, TSV, PSV, and Parquet files with streaming for large datasets.</p>
 
 ![logo](img/TVBlue.png)
 
