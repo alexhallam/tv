@@ -274,8 +274,8 @@ jobs:
         id: sha256
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          wget https://github.com/alexhallam/tv/archive/refs/tags/v$VERSION.tar.gz
-          SHA256=$(sha256sum v$VERSION.tar.gz | cut -d' ' -f1)
+          wget https://github.com/alexhallam/tv/archive/refs/tags/$VERSION.tar.gz
+          SHA256=$(sha256sum $VERSION.tar.gz | cut -d' ' -f1)
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
           echo "SHA256: $SHA256"
