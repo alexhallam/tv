@@ -290,13 +290,15 @@ jobs:
           git clone https://x-access-token:${{ env.HOMEBREW_TOKEN }}@github.com/alexhallam/homebrew-tidy-viewer.git
           cd homebrew-tidy-viewer
 
+          # Set up Git user identity
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           # Update formula
           sed -i "s/version \"[^\"]*\"/version \"$VERSION\"/" tidy-viewer.rb
           sed -i "s/sha256 \"[^\"]*\"/sha256 \"$SHA256\"/" tidy-viewer.rb
 
           # Commit and push
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
           git add tidy-viewer.rb
           git commit -m "Update tidy-viewer to version $VERSION"
           git push origin main
@@ -318,6 +320,10 @@ jobs:
           # Clone personal homebrew-core fork with token
           git clone https://x-access-token:${{ env.HOMEBREW_TOKEN }}@github.com/alexhallam/homebrew-core.git
           cd homebrew-core
+
+          # Set up Git user identity
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Fetch upstream
           git remote add upstream https://github.com/Homebrew/homebrew-core.git
