@@ -12,7 +12,7 @@ permissions:
 
 env:
   CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
   HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
 
 jobs:
@@ -419,7 +419,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v2
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ env.GH_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
