@@ -303,52 +303,8 @@ jobs:
           git commit -m "Update tidy-viewer to version $VERSION"
           git push origin main
 
-      - name: Create Homebrew Core PR
-        if: env.HOMEBREW_TOKEN != ''
-        env:
-          GH_TOKEN: ${{ env.HOMEBREW_TOKEN }}
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          SHA256="${{ steps.sha256.outputs.sha256 }}"
-
-          # Install gh if missing
-          if ! command -v gh >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y gh
-          fi
-
-          # Clone personal homebrew-core fork with token
-          git clone https://x-access-token:${{ env.HOMEBREW_TOKEN }}@github.com/alexhallam/homebrew-core.git
-          cd homebrew-core
-
-          # Set up Git user identity
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Fetch upstream
-          git remote add upstream https://github.com/Homebrew/homebrew-core.git
-          git fetch upstream
-          git checkout main
-          git merge upstream/main
-
-          # Update formula
-          sed -i "s/version \"[^\"]*\"/version \"$VERSION\"/" Formula/t/tidy-viewer.rb
-          sed -i "s/sha256 \"[^\"]*\"/sha256 \"$SHA256\"/" Formula/t/tidy-viewer.rb
-
-          # Create branch and push
-          git checkout -b tidy-viewer-$VERSION
-          git add Formula/t/tidy-viewer.rb
-          git commit -m "tidy-viewer: update $VERSION bottle"
-          git push origin tidy-viewer-$VERSION
-
-          # Try to create PR using gh, but don't fail if it doesn't work
-          echo "Attempting to create Homebrew Core PR..."
-          if gh pr create --repo Homebrew/homebrew-core --title "tidy-viewer: update $VERSION bottle" --body "Update tidy-viewer to version $VERSION"; then
-            echo "✅ Homebrew Core PR created successfully"
-          else
-            echo "⚠️  Homebrew Core PR creation failed, but continuing..."
-            echo "You may need to manually create a PR from the branch: tidy-viewer-$VERSION"
-          fi
+      # Homebrew Core PR creation removed - user requested to skip this step
+      # as it keeps breaking and they don't have time to fix it
 
   post-release:
     name: Post-Release Verification
@@ -461,7 +417,7 @@ jobs:
           echo "✅ Published to crates.io"
           echo "✅ Built Debian and RPM packages"
           echo "✅ Built Windows, macOS, and Linux binary archives"
-          echo "✅ Updated Homebrew formulas"
+          echo "✅ Updated personal Homebrew tap"
           echo "✅ Created GitHub release"
           echo ""
           echo "📦 Installation:"
