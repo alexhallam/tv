@@ -1,17 +1,17 @@
-1.8.8 (2025-01-29)
+1.8.9 (2025-01-29)
 ==================
 
-* **Version Bump** **Release Preparation** - Updated version to 1.8.8 for next release cycle.
+ * **Version Bump** **Release Preparation** - Updated version to 1.8.9 for next release cycle.
 
   **Changes Made:**
-  - **Version Update**: Bumped all package versions from 1.8.7 to 1.8.8
-  - **Python Package**: Updated Python package version from 0.2.7 to 0.2.8
-  - **Changelog**: Added entry for version 1.8.8 release preparation
+     - **Version Update**: Bumped all package versions from 1.8.8 to 1.8.9
+   - **Python Package**: Updated Python package version from 0.2.8 to 0.2.9
+   - **Changelog**: Added entry for version 1.8.9 release preparation
   - **Documentation**: Ensured all version references are consistent across the codebase
   - **GitHub Actions**: Updated release workflow to use modern action versions (v2)
 
   **Benefits:**
-  - **Release Ready**: All packages now ready for 1.8.8 release
+     - **Release Ready**: All packages now ready for 1.8.9 release
   - **Version Consistency**: Synchronized versioning across workspace packages
   - **Clean State**: Fresh version for next development cycle
   - **Modern Workflow**: Updated to use latest GitHub Actions for better reliability
