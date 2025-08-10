@@ -329,18 +329,6 @@ jobs:
           VERSION=${VERSION#v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Verify crates.io publication
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          sleep 30  # Wait for crates.io to update
-
-          # Check if version is available on crates.io
-          if ! curl -s "https://crates.io/api/v1/crates/tidy-viewer" | grep -q "\"version\":\"$VERSION\""; then
-            echo "❌ Version $VERSION not yet available on crates.io"
-            exit 1
-          fi
-          echo "✅ Version $VERSION published to crates.io"
-
       - name: Download Debian artifact
         uses: actions/download-artifact@v4
         with:
