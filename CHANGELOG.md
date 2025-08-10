@@ -1,3 +1,20 @@
+1.8.5 (2025-01-29)
+==================
+
+* **Version Bump** **Release Preparation** - Updated version to 1.8.5 for next release cycle.
+
+  **Changes Made:**
+  - **Version Update**: Bumped all package versions from 1.8.4 to 1.8.5
+  - **Python Package**: Updated Python package version from 0.2.4 to 0.2.5
+  - **Changelog**: Added entry for version 1.8.5 release preparation
+  - **Documentation**: Ensured all version references are consistent across the codebase
+
+  **Benefits:**
+  - **Release Ready**: All packages now ready for 1.8.5 release
+  - **Version Consistency**: Synchronized versioning across workspace packages
+  - **Clean State**: Fresh version for next development cycle
+
+
 1.8.4 (2025-01-29)
 ==================
 
