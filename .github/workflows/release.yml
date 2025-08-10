@@ -415,11 +415,14 @@ jobs:
           name: linux-tgz
           path: ./artifacts/linux
 
-      - name: Create GitHub Release and upload assets
-        uses: softprops/action-gh-release@v1
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          name: Release ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
           body: |
             ## What's New in Version ${{ steps.version.outputs.version }}
 
@@ -443,8 +446,6 @@ jobs:
             ./artifacts/windows/x86_64/*.zip
             ./artifacts/macos/*.tar.gz
             ./artifacts/linux/*.tgz
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
       - name: Success Summary
         run: |

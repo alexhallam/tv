@@ -1,20 +1,20 @@
-1.8.6 (2025-01-29)
+1.8.7 (2025-01-29)
 ==================
 
-* **Version Bump** **Release Preparation** - Updated version to 1.8.6 for next release cycle.
+* **Version Bump** **Release Preparation** - Updated version to 1.8.7 for next release cycle.
 
   **Changes Made:**
-  - **Version Update**: Bumped all package versions from 1.8.5 to 1.8.6
-  - **Python Package**: Updated Python package version from 0.2.5 to 0.2.6
-  - **Changelog**: Added entry for version 1.8.6 release preparation
+  - **Version Update**: Bumped all package versions from 1.8.6 to 1.8.7
+  - **Python Package**: Updated Python package version from 0.2.6 to 0.2.7
+  - **Changelog**: Added entry for version 1.8.7 release preparation
   - **Documentation**: Ensured all version references are consistent across the codebase
-  - **Workflow Fix**: Fixed Git identity configuration in GitHub Actions release workflow
+  - **GitHub Actions**: Updated release workflow to use modern action versions (v2)
 
   **Benefits:**
-  - **Release Ready**: All packages now ready for 1.8.6 release
+  - **Release Ready**: All packages now ready for 1.8.7 release
   - **Version Consistency**: Synchronized versioning across workspace packages
   - **Clean State**: Fresh version for next development cycle
-  - **Fixed CI/CD**: Resolved Git identity errors in automated release process
+  - **Modern Workflow**: Updated to use latest GitHub Actions for better reliability
 
 
 1.8.4 (2025-01-29)
