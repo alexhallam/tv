@@ -4,7 +4,7 @@ default-members = ["tidy-viewer-core", "tidy-viewer-cli"]
 resolver = "2"
 
 [workspace.package]
-version = "1.8.9"
+version = "1.8.91"
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
 edition = "2021"
 license = "Unlicense OR MIT"
