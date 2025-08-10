@@ -1,6 +1,6 @@
 [package]
 name = "tidy-viewer-py"
-version = "1.8.7"
+version = "1.8.8"
 authors = ["alexhallam <alexhallam6.28@gmail.com>"]
 edition = "2021"
 license = "Unlicense OR MIT"
