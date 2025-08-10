@@ -35,13 +35,25 @@ jobs:
       - name: Build wheel
         working-directory: tidy-viewer-py
         run: |
-          maturin build --release --strip --interpreter python${{ matrix.python-version }}
+          maturin build --release --strip
+
+      - name: List wheel artifacts (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          ls -l tidy-viewer-py/target/wheels/ || true
+
+      - name: List wheel artifacts (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (Test-Path 'tidy-viewer-py/target/wheels') { Get-ChildItem -Force 'tidy-viewer-py/target/wheels' | Format-List } else { Write-Host 'No wheels directory yet' }
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
           path: tidy-viewer-py/target/wheels/*.whl
+          if-no-files-found: error
 
   build-sdist:
     runs-on: ubuntu-latest
@@ -66,11 +78,16 @@ jobs:
         run: |
           maturin sdist
 
+      - name: List sdist artifacts
+        run: |
+          ls -l tidy-viewer-py/target/wheels/ || true
+
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: sdist
           path: tidy-viewer-py/target/wheels/*.tar.gz
+          if-no-files-found: error
 
   publish:
     needs: [build-wheels, build-sdist]
@@ -81,11 +98,22 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Download all artifacts
+      - name: Download wheel artifacts
         uses: actions/download-artifact@v4
         with:
-          name: wheels
+          pattern: wheels-*
+          merge-multiple: true
           path: dist
+
+      - name: Download sdist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+
+      - name: List dist contents
+        run: |
+          ls -l dist
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
