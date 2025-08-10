@@ -1,6 +1,6 @@
 [project]
 name = "tidy-viewer-py"
-version = "0.2.91"
+version = "0.2.92"
 description = "A cross-platform data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, Parquet, Pandas, and Polars DataFrames."
 readme = "README.md"
 authors = [{ name = "Alex Hallam", email = "alexhallam6.28@gmail.com" }]
