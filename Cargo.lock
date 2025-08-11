@@ -1504,7 +1504,7 @@ dependencies = [
 
 [[package]]
 name = "tidy-viewer"
-version = "1.8.92"
+version = "1.8.93"
 dependencies = [
  "arrow",
  "arrow-ipc",
@@ -1530,7 +1530,7 @@ dependencies = [
 
 [[package]]
 name = "tidy-viewer-core"
-version = "1.8.92"
+version = "1.8.93"
 dependencies = [
  "itertools",
  "lazy_static",
@@ -1541,7 +1541,7 @@ dependencies = [
 
 [[package]]
 name = "tidy-viewer-py"
-version = "1.8.92"
+version = "1.8.93"
 dependencies = [
  "anyhow",
  "arrow",

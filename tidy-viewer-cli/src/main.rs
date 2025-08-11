@@ -16,12 +16,13 @@ mod datatype;
 
 // Import from inline modules (formerly tidy_viewer_core)
 use crate::datatype::{
-    format_strings, get_col_data_type, is_na, is_negative_number,
+    format_strings, get_col_data_type, is_na, is_na_string_padded, is_negative_number,
     parse_delimiter,
 };
 
 // Type aliases for complex return types to satisfy clippy
-type FileProcessResult = Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>>;
+type FileProcessResult =
+    Result<(Vec<String>, Vec<StringRecord>, Option<usize>, bool), Box<dyn std::error::Error>>;
 type SimpleFileResult = Result<(Vec<String>, Vec<StringRecord>), Box<dyn std::error::Error>>;
 
 use calm_io::stdout;
@@ -690,31 +691,31 @@ fn main() {
     let meta_color = match (&config.meta_color, &is_color_defined) {
         (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => meta_color,
-        (None, false) => nord_meta_color,
+        (None, false) => meta_color,
         (None, true) => meta_color,
     };
     let header_color = match (&config.header_color, &is_color_defined) {
         (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => header_color,
-        (None, false) => nord_header_color,
+        (None, false) => header_color,
         (None, true) => header_color,
     };
     let std_color = match (&config.std_color, &is_color_defined) {
         (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => std_color,
-        (None, false) => nord_std_color,
+        (None, false) => std_color,
         (None, true) => std_color,
     };
     let na_color = match (&config.na_color, &is_color_defined) {
         (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => na_color,
-        (None, false) => nord_na_color,
+        (None, false) => na_color,
         (None, true) => na_color,
     };
     let neg_num_color = match (&config.neg_num_color, &is_color_defined) {
         (Some(x), false) => get_color_from_config(&x.clone()),
         (Some(_x), true) => neg_num_color,
-        (None, false) => nord_neg_num_color,
+        (None, false) => neg_num_color,
         (None, true) => neg_num_color,
     };
     // let meta_color = match (&config, is_color_defined) {
@@ -845,9 +846,9 @@ fn main() {
                 let max_rows = calculate_sample_size(file_path).unwrap_or(1000);
 
                 // Get row count from Parquet metadata to decide if streaming is needed
-                let needs_streaming = match File::open(file_path).and_then(|f| {
-                    SerializedFileReader::new(f).map_err(std::io::Error::other)
-                }) {
+                let needs_streaming = match File::open(file_path)
+                    .and_then(|f| SerializedFileReader::new(f).map_err(std::io::Error::other))
+                {
                     Ok(reader) => {
                         let total_rows = reader.metadata().file_metadata().num_rows() as usize;
                         total_rows > max_rows
@@ -1317,7 +1318,7 @@ fn main() {
                 if is_tty || is_force_color {
                     let _ = match stdout!(
                         "{}",
-                        if is_na(col) {
+                        if is_na_string_padded(col) {
                             col.truecolor(na_color[0], na_color[1], na_color[2])
                         } else if is_negative_number(col) {
                             col.truecolor(neg_num_color[0], neg_num_color[1], neg_num_color[2])
@@ -1570,9 +1571,7 @@ fn build_reader(opt: &Cli) -> Result<Reader<Box<dyn Read>>, std::io::Error> {
     Ok(reader)
 }
 
-fn read_parquet_file(
-    file_path: &PathBuf,
-) -> SimpleFileResult {
+fn read_parquet_file(file_path: &PathBuf) -> SimpleFileResult {
     let file = File::open(file_path)?;
     let reader = SerializedFileReader::new(file)?;
     let iter = reader.get_row_iter(None)?;
@@ -1628,10 +1627,7 @@ fn read_parquet_file(
     Ok((headers, records))
 }
 
-fn read_parquet_streaming(
-    file_path: &PathBuf,
-    max_rows: usize,
-) -> FileProcessResult {
+fn read_parquet_streaming(file_path: &PathBuf, max_rows: usize) -> FileProcessResult {
     let file = File::open(file_path)?;
     let reader = SerializedFileReader::new(file)?;
 
@@ -1734,9 +1730,7 @@ fn read_parquet_streaming(
     Ok((headers, records, Some(remaining), true))
 }
 
-fn read_arrow_file(
-    file_path: &PathBuf,
-) -> SimpleFileResult {
+fn read_arrow_file(file_path: &PathBuf) -> SimpleFileResult {
     let file = File::open(file_path)?;
 
     // Try to read as uncompressed first
@@ -1819,9 +1813,7 @@ fn read_arrow_file(
     Ok((headers, records))
 }
 
-fn read_arrow_file_with_lz4_decompression(
-    file_path: &PathBuf,
-) -> SimpleFileResult {
+fn read_arrow_file_with_lz4_decompression(file_path: &PathBuf) -> SimpleFileResult {
     // Read the entire file into memory
     let mut compressed_data = Vec::new();
     let mut file = File::open(file_path)?;
@@ -1907,10 +1899,7 @@ fn read_arrow_file_with_lz4_decompression(
     Ok((headers, records))
 }
 
-fn read_arrow_streaming(
-    file_path: &PathBuf,
-    max_rows: usize,
-) -> FileProcessResult {
+fn read_arrow_streaming(file_path: &PathBuf, max_rows: usize) -> FileProcessResult {
     let file = File::open(file_path)?;
     let reader = match ArrowFileReader::try_new(file, None) {
         Ok(reader) => reader,
@@ -2213,10 +2202,7 @@ fn estimate_csv_rows(file_path: &PathBuf) -> Result<usize, std::io::Error> {
     Ok(reader.lines().count())
 }
 
-fn read_csv_streaming(
-    file_path: &PathBuf,
-    max_rows: usize,
-) -> FileProcessResult {
+fn read_csv_streaming(file_path: &PathBuf, max_rows: usize) -> FileProcessResult {
     let file = File::open(file_path)?;
     let mut reader = csv::Reader::from_reader(file);
 
@@ -2534,7 +2520,6 @@ mod tests {
     //     assert_eq!(is_number("text123"), false);
     //     assert_eq!(is_number("123.123.123"), false);
     // }
-
     #[test]
     fn test_is_negative_number() {
         assert_eq!(is_negative_number("-12345"), true);
@@ -2706,7 +2691,6 @@ mod tests {
     //     let auto_converted = format_if_num("0.0000785", 3, false, 8);
     //     assert!(auto_converted.contains("e-"));
     // }
-
     #[test]
     fn test_arrow_file_detection() {
         // Test Arrow file detection with different extensions
