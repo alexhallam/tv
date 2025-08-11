@@ -6,7 +6,7 @@ use std::io::BufReader;
 use unicode_width::UnicodeWidthStr;
 
 use crate::types::{ColorScheme, FormatOptions};
-use tidy_viewer_core::{calculate_column_width, format_strings, is_na, is_negative_number};
+use tidy_viewer_core::{calculate_column_width, format_strings, is_na, is_negative_number, is_na_string_padded};
 
 /// Main entry point for formatting tabular data
 pub fn format_table(
@@ -402,7 +402,7 @@ fn format_data_row_from_columns(
                 // Header row - use header color
                 let [r, g, b] = options.colors.header_color;
                 padded.truecolor(r, g, b).to_string()
-            } else if is_na(cell) {
+            } else if is_na_string_padded(cell) {
                 let [r, g, b] = options.colors.na_color;
                 padded.truecolor(r, g, b).to_string()
             } else if is_negative_number(cell) {
