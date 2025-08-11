@@ -1545,6 +1545,7 @@ version = "1.8.93"
 dependencies = [
  "anyhow",
  "arrow",
+ "crossterm",
  "csv",
  "lazy_static",
  "owo-colors",
