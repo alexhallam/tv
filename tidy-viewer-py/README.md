@@ -1,17 +1,5 @@
 # Tidy Viewer Py
 
-Beautiful terminal table formatting powered by Rust. A Python package that provides fast, feature-rich table pretty-printing with automatic column width optimization, data type detection, and gorgeous color themes.
-
-## Features
-
-- 🚀 **Blazing fast** - Rust-powered performance
-- 🎨 **Beautiful themes** - Nord, Gruvbox, Dracula, One Dark, and more
-- 📊 **Smart formatting** - Automatic column width optimization
-- 🔢 **Type detection** - Intelligent handling of numbers, dates, and missing values
-- 📁 **Multiple formats** - CSV, Parquet, and pandas DataFrames
-- 🌈 **Colored output** - Customizable color themes
-- 📏 **Configurable** - Fine-tune every aspect of the output
-
 ## Installation
 
 ```bash
