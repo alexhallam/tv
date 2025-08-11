@@ -3,6 +3,7 @@ use owo_colors::OwoColorize;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
+use crossterm::terminal::size as term_size;
 
 use crate::types::{ColorScheme, FormatOptions};
 use tidy_viewer_core::{format_strings, is_na_string_padded, is_negative_number};
@@ -82,6 +83,33 @@ pub fn format_table(
         })
         .collect();
 
+    // Determine how many columns fit on the current terminal width (like CLI)
+    let term_width: usize = term_size().map(|(w, _)| w as usize).unwrap_or(80);
+    let mut calc_width = String::new();
+    if !options.no_row_numbering {
+        calc_width.push_str(&format!("{: >6}  ", ""));
+    }
+    let mut num_cols_to_print = 0usize;
+    for col in 0..cols {
+        // header row if present, else the first data row (index 0)
+        let top_row_idx = 0usize;
+        let cell = formatted_columns
+            .get(col)
+            .and_then(|c| c.get(top_row_idx))
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        calc_width.push_str(cell);
+        let total_width = calc_width.chars().count();
+        if total_width > term_width {
+            break;
+        }
+        num_cols_to_print = col + 1;
+    }
+    // If nothing fit (very narrow terminal), still show at least one column if possible
+    if num_cols_to_print == 0 && cols > 0 {
+        num_cols_to_print = 1;
+    }
+
     // Helper to append a pre-formatted row at row_idx
     let mut push_formatted_row = |row_idx: usize, row_num: usize| {
         if !options.no_row_numbering {
@@ -100,6 +128,9 @@ pub fn format_table(
         }
 
         for (col_idx, col) in formatted_columns.iter().enumerate() {
+            if col_idx >= num_cols_to_print {
+                break;
+            }
             // Safe access (columns are uniform post-format)
             let cell = col.get(row_idx).map(|s| s.as_str()).unwrap_or("NA");
 
@@ -121,9 +152,6 @@ pub fn format_table(
             } else {
                 output.push_str(cell);
             }
-
-            // Respect terminal width like CLI by relying on pre-formatted trailing space
-            let _ = col_idx; // silence unused var warning in case of future changes
         }
 
         output.push('\n');
@@ -142,12 +170,56 @@ pub fn format_table(
     }
 
     // Add "more rows" indicator if truncated (placed before footer, like the CLI)
+    let mut appended_meta_line = false;
     if display_rows < rows {
-        let remaining = rows - display_rows;
         if !options.no_row_numbering {
             output.push_str("        ");
         }
+        let remaining = rows - display_rows;
         output.push_str(&format!("… with {} more rows", remaining));
+        appended_meta_line = true;
+    }
+
+    // Add "and N more variables: …" if columns are truncated
+    if num_cols_to_print < cols {
+        if !appended_meta_line {
+            if !options.no_row_numbering {
+                output.push_str("        ");
+            }
+            // start the meta line even if rows are not truncated
+            output.push_str("…");
+            appended_meta_line = true;
+        }
+        let remainder_cols = cols - num_cols_to_print;
+        if options.use_color {
+            let [r, g, b] = options.colors.meta_color;
+            output.push_str(&format!(
+                " and {} more variables:",
+                remainder_cols.truecolor(r, g, b)
+            ));
+        } else {
+            output.push_str(&format!(" and {} more variables:", remainder_cols));
+        }
+        if let Some(ref hdrs) = headers {
+            for (i, name) in hdrs.iter().enumerate().skip(num_cols_to_print) {
+                if options.use_color {
+                    let [r, g, b] = options.colors.meta_color;
+                    output.push_str(" ");
+                    output.push_str(&name.truecolor(r, g, b).to_string());
+                } else {
+                    output.push_str(" ");
+                    output.push_str(name);
+                }
+                if i + 1 < cols {
+                    if options.use_color {
+                        let [r, g, b] = options.colors.meta_color;
+                        output.push_str(&",".truecolor(r, g, b).to_string());
+                    } else {
+                        output.push_str(",");
+                    }
+                }
+            }
+        }
     }
 
     // Footer
