@@ -870,7 +870,7 @@ wheels = [
 
 [[package]]
 name = "tidy-viewer-py"
-version = "0.2.0"
+version = "0.2.93"
 source = { editable = "." }
 dependencies = [
     { name = "maturin" },
