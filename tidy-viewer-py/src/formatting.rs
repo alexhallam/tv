@@ -51,8 +51,15 @@ pub fn format_table(
         rows
     };
 
-    // Transpose data for column-wise operations
+    // Build columns including header (if provided) followed by data rows
     let mut columns: Vec<Vec<&str>> = vec![vec![]; cols];
+
+    if let Some(ref hdrs) = headers {
+        for (col_idx, header) in hdrs.iter().enumerate().take(cols) {
+            columns[col_idx].push(header.as_str());
+        }
+    }
+
     for row in data.iter().take(display_rows) {
         for (col_idx, cell) in row.iter().enumerate() {
             if col_idx < cols {
@@ -61,7 +68,7 @@ pub fn format_table(
         }
     }
 
-    // Format columns
+    // Format columns using core format_strings (ensures uniform widths across header+data)
     let formatted_columns: Vec<Vec<String>> = columns
         .iter()
         .map(|col| {
@@ -76,87 +83,90 @@ pub fn format_table(
         })
         .collect();
 
-    // Calculate column widths
-    let column_widths: Vec<usize> = formatted_columns
-        .iter()
-        .enumerate()
-        .map(|(idx, col)| {
-            let header_width = if let Some(ref h) = headers {
-                h.get(idx)
-                    .map(|s| UnicodeWidthStr::width(s.as_str()))
-                    .unwrap_or(0)
+    // Helper to append a pre-formatted row at row_idx
+    let mut push_formatted_row = |row_idx: usize, row_num: usize| {
+        if !options.no_row_numbering {
+            if row_num > 0 {
+                let row_num_str = format!("{: >6}  ", row_num);
+                if options.use_color {
+                    let [r, g, b] = options.colors.meta_color;
+                    output.push_str(&row_num_str.truecolor(r, g, b).to_string());
+                } else {
+                    output.push_str(&row_num_str);
+                }
             } else {
-                0
-            };
-            let content_width =
-                calculate_column_width(col, options.min_col_width, options.max_col_width);
-            header_width.max(content_width)
-        })
-        .collect();
+                // header spacing
+                output.push_str("        ");
+            }
+        }
 
-    // Add row numbers column if enabled
-    let _total_width = if !options.no_row_numbering {
-        let row_num_width = format!("{}", display_rows).len() + 1;
-        column_widths.iter().sum::<usize>() + column_widths.len() * 3 + row_num_width
-    } else {
-        column_widths.iter().sum::<usize>() + column_widths.len() * 3
+        for (col_idx, col) in formatted_columns.iter().enumerate() {
+            // Safe access (columns are uniform post-format)
+            let cell = col.get(row_idx).map(|s| s.as_str()).unwrap_or("NA");
+
+            if options.use_color {
+                let colored = if row_num == 0 {
+                    let [r, g, b] = options.colors.header_color;
+                    cell.truecolor(r, g, b).to_string()
+                } else if is_na_string_padded(cell) {
+                    let [r, g, b] = options.colors.na_color;
+                    cell.truecolor(r, g, b).to_string()
+                } else if is_negative_number(cell) {
+                    let [r, g, b] = options.colors.neg_num_color;
+                    cell.truecolor(r, g, b).to_string()
+                } else {
+                    let [r, g, b] = options.colors.std_color;
+                    cell.truecolor(r, g, b).to_string()
+                };
+                output.push_str(&colored);
+            } else {
+                output.push_str(cell);
+            }
+
+            // Respect terminal width like CLI by relying on pre-formatted trailing space
+            let _ = col_idx; // silence unused var warning in case of future changes
+        }
+
+        output.push('\n');
     };
 
-    // Format header using the same logic as data rows
-    if let Some(ref headers) = headers {
-        // Format headers using the same logic as data
-        let header_cols: Vec<Vec<&str>> = headers.iter().map(|h| vec![h.as_str()]).collect();
-        let formatted_headers: Vec<Vec<String>> = header_cols
-            .iter()
-            .map(|col| {
-                format_strings(
-                    col,
-                    options.min_col_width,
-                    options.max_col_width,
-                    options.significant_figures as i64,
-                    options.preserve_scientific,
-                    options.max_decimal_width,
-                )
-            })
-            .collect();
-
-        let header_row = format_data_row_from_columns(
-            &formatted_headers,
-            0, // First (and only) row
-            0, // No row number for header
-            &column_widths,
-            options,
-        );
-        output.push_str(&header_row);
-        output.push('\n');
+    // Header row (only if headers were provided)
+    if headers.is_some() {
+        push_formatted_row(0, 0);
     }
 
-    // Format data rows using the pre-formatted columns
-    for row_idx in 0..display_rows {
-        let formatted_row = format_data_row_from_columns(
-            &formatted_columns,
-            row_idx,
-            row_idx + 1,
-            &column_widths,
-            options,
-        );
-        output.push_str(&formatted_row);
-        output.push('\n');
+    // Data rows: start after header if present
+    let data_start_idx = if headers.is_some() { 1 } else { 0 };
+    let data_end_idx = data_start_idx + display_rows;
+    for (row_idx, row_num) in (data_start_idx..data_end_idx).zip(1..) {
+        push_formatted_row(row_idx, row_num);
     }
 
-    // Add footer if provided
-    if let Some(ref footer) = options.footer {
-        output.push_str(&format!("\n{}", footer));
-    }
-
-    // Add "more rows" indicator if truncated
-    if display_rows < rows {
-        let remaining = rows - display_rows;
-        output.push_str(&format!("… with {} more rows", remaining));
-    }
-
-    Ok(output)
-}
+        // Add "more rows" indicator if truncated (placed before footer, like the CLI)
+     if display_rows < rows {
+         let remaining = rows - display_rows;
+         if !options.no_row_numbering {
+             output.push_str("        ");
+         }
+         output.push_str(&format!("… with {} more rows", remaining));
+     }
+ 
+     // Footer
+     if let Some(ref footer) = options.footer {
+         if !options.no_row_numbering {
+             output.push_str("        ");
+         }
+         if options.use_color {
+             let [r, g, b] = options.colors.meta_color;
+             output.push_str(&footer.truecolor(r, g, b).to_string());
+         } else {
+             output.push_str(footer);
+         }
+         output.push('\n');
+     }
+ 
+     Ok(output)
+ }
 
 /// Format CSV file from path
 pub fn format_csv_file(file_path: &str, options: &FormatOptions) -> Result<String, Box<dyn Error>> {
@@ -393,28 +403,25 @@ fn format_data_row_from_columns(
             "NA" // Default value for missing cells
         };
 
-        let width = widths.get(col_idx).unwrap_or(&0);
-
-        let padded = format!("{:<width$}", cell, width = width);
-
+        // Use pre-formatted cell directly (already has correct width + trailing space)
         if options.use_color {
             let colored = if row_num == 0 {
                 // Header row - use header color
                 let [r, g, b] = options.colors.header_color;
-                padded.truecolor(r, g, b).to_string()
+                cell.truecolor(r, g, b).to_string()
             } else if is_na_string_padded(cell) {
                 let [r, g, b] = options.colors.na_color;
-                padded.truecolor(r, g, b).to_string()
+                cell.truecolor(r, g, b).to_string()
             } else if is_negative_number(cell) {
                 let [r, g, b] = options.colors.neg_num_color;
-                padded.truecolor(r, g, b).to_string()
+                cell.truecolor(r, g, b).to_string()
             } else {
                 let [r, g, b] = options.colors.std_color;
-                padded.truecolor(r, g, b).to_string()
+                cell.truecolor(r, g, b).to_string()
             };
             output.push_str(&colored);
         } else {
-            output.push_str(&padded);
+            output.push_str(cell);
         }
     }
 
