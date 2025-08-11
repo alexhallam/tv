@@ -16,7 +16,7 @@ mod datatype;
 
 // Import from inline modules (formerly tidy_viewer_core)
 use crate::datatype::{
-    format_strings, get_col_data_type, is_na, is_negative_number,
+    format_strings, get_col_data_type, is_na, is_na_string_padded, is_negative_number,
     parse_delimiter,
 };
 
@@ -1179,7 +1179,7 @@ fn main() {
     }
 
     // title
-    if !is_na(&title_option.clone()) {
+    if !is_na_string_padded(&title_option.clone()) {
         let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
@@ -1317,7 +1317,7 @@ fn main() {
                 if is_tty || is_force_color {
                     let _ = match stdout!(
                         "{}",
-                        if is_na(col) {
+                        if is_na_string_padded(col) {
                             col.truecolor(na_color[0], na_color[1], na_color[2])
                         } else if is_negative_number(col) {
                             col.truecolor(neg_num_color[0], neg_num_color[1], neg_num_color[2])
@@ -1466,7 +1466,7 @@ fn main() {
     }
 
     // footer
-    if !is_na(&footer_option.clone()) {
+    if !is_na_string_padded(&footer_option.clone()) {
         let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
