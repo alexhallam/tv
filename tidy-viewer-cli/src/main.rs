@@ -1180,7 +1180,7 @@ fn main() {
     }
 
     // title
-    if !is_na(&title_option.clone()) {
+    if !is_na_string_padded(&title_option.clone()) {
         let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
@@ -1467,7 +1467,7 @@ fn main() {
     }
 
     // footer
-    if !is_na(&footer_option.clone()) {
+    if !is_na_string_padded(&footer_option.clone()) {
         let _ = match stdout!("{: >6}  ", "") {
             Ok(_) => Ok(()),
             Err(e) => match e.kind() {
