@@ -1,3 +1,26 @@
+1.8.93 (2025-01-29)
+===================
+
+* **Bug Fix** **NA Value Coloring** - Fixed NA values not being colored correctly in formatted output.
+
+  **Issues Fixed:**
+  - **NA Detection**: Updated NA detection logic to use `is_na_string_padded()` instead of `is_na()` for formatted strings
+  - **CLI Coloring**: Fixed NA value coloring in the command-line interface
+  - **Python Bindings**: Fixed NA value coloring in Python bindings for consistency
+  - **Color Palettes**: NA values now properly use the selected color palette across all interfaces
+
+  **Technical Details:**
+  - The issue was that formatted strings have padding spaces for alignment, but `is_na()` doesn't handle whitespace
+  - `is_na_string_padded()` correctly handles whitespace and detects NA values in formatted strings
+  - Both CLI and Python bindings now use the correct function for consistent behavior
+
+  **Benefits:**
+  - **Proper NA Coloring**: NA values now appear in the correct color for the selected palette
+  - **Consistent Behavior**: Both CLI and Python interfaces handle NA values identically
+  - **All Color Palettes**: Works correctly with nord (default), one_dark, gruvbox, dracula, and solarized palettes
+  - **No Regressions**: All existing functionality preserved
+
+
 1.8.92 (2025-01-29)
 ===================
 
