@@ -74,6 +74,9 @@ venv.bak/
 .uv/
 .python-version
 
+# Copied tidy-viewer-core (created during build)
+tidy-viewer-core/
+
 
 
 

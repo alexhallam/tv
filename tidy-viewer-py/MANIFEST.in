@@ -1,0 +1,11 @@
+include Cargo.toml
+include pyproject.toml
+include README.md
+include LICENSE
+include UNLICENSE
+recursive-include src *.rs *.py *.pyi
+recursive-include tidy-viewer-core *.rs *.toml
+recursive-include tests *.py
+exclude .gitignore
+exclude uv.lock
+prune .github
