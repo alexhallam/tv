@@ -1,0 +1,20 @@
+# Include all Rust source files
+include src/*.rs
+recursive-include src *.rs
+
+# Include Cargo configuration
+include Cargo.toml
+include Cargo.lock
+
+# Include the vendored tidy-viewer-core dependency
+recursive-include tidy-viewer-core *.rs
+include tidy-viewer-core/Cargo.toml
+
+# Include README and license files
+include README.md
+include LICENSE
+include UNLICENSE
+
+# Include Python source files (should be automatic but being explicit)
+recursive-include src/tidy_viewer_py *.py
+include src/tidy_viewer_py/__init__.py

@@ -1,0 +1,17 @@
+[package]
+name = "tidy-viewer-core"
+version = "1.8.93"
+authors = ["alexhallam <alexhallam6.28@gmail.com>"]
+edition = "2021"
+license = "Unlicense OR MIT"
+repository = "https://github.com/alexhallam/tv"
+readme = "../README.md"
+description = "Core formatting logic for tidy-viewer"
+publish = false
+
+[dependencies]
+lazy_static = "1.4.0"
+regex = "1.5.4"
+unicode-truncate = "0.2.0"
+unicode-width = "0.1.11"
+itertools = "0.10.0"
