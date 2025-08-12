@@ -29,7 +29,7 @@ except ImportError as e:
     RUST_AVAILABLE = False
     _import_error = e
 
-__version__ = "0.2.94"
+__version__ = "1.8.94"
 __all__ = [
     "print_table", "print_csv", "print_parquet", "print_arrow", "print_dataframe", 
     "format_table", "format_csv", "format_parquet", "format_arrow", "format_dataframe",

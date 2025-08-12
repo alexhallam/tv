@@ -1,6 +1,6 @@
 [project]
 name = "tidy-viewer-py"
-version = "0.2.94"
+version = "1.8.94"
 description = "A cross-platform data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, Parquet, Pandas, and Polars DataFrames."
 readme = "README.md"
 authors = [{ name = "Alex Hallam", email = "alexhallam6.28@gmail.com" }]
@@ -25,7 +25,6 @@ classifiers = [
 ]
 keywords = ["table", "formatting", "terminal", "pretty-print", "csv", "parquet"]
 dependencies = [
-    "maturin>=1.9.3",
     "pandas>=2.0.3",
     "polars>=1.8.2",
     "pyarrow>=17.0.0",
@@ -55,6 +54,7 @@ build-backend = "maturin"
 python-source = "src"
 module-name = "tidy_viewer_py._core"
 features = ["pyo3/extension-module"]
+manylinux = "2_17"
 
 [tool.ruff]
 line-length = 100
