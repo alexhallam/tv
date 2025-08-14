@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "conformal-regress"
+version = "0.1.0"
+description = "Beginner-friendly, fast conformal regression with formula syntax and JAX acceleration."
+readme = "README.md"
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = [
+  "numpy>=1.22",
+  "pandas>=1.3",
+  "formulaic>=0.5.2",
+  "jax>=0.4.28",
+  "jaxlib>=0.4.28",
+]
+keywords = ["conformal", "regression", "jax", "formula", "timeseries"]
+
+[project.urls]
+Homepage = "https://example.com/conformal-regress"
+Repository = "https://example.com/conformal-regress.git"
+
+[project.optional-dependencies]
+view = ["tidy-viewer-py>=0.2.0"]
+rand = ["randlapack>=0.1.0"]
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["conformal_regress*"]
