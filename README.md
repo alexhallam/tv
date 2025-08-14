@@ -1,511 +1,270 @@
-[![Crate](https://img.shields.io/crates/v/tidy-viewer.svg)](https://crates.io/crates/tidy-viewer)
-![Crates.io](https://img.shields.io/crates/d/tidy-viewer?label=creates.io%20downloads)
-![GitHub all releases](https://img.shields.io/github/downloads/alexhallam/tv/total?label=github%20release%20downloads)
-[![tidy-viewer](https://snapcraft.io/tidy-viewer/badge.svg)](https://snapcraft.io/tidy-viewer)
+# Conformal Regress
 
-<h1 align="center">Tidy Viewer (tv)</h1>
-<p align="center">Tidy Viewer (tv) is a cross-platform data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, TSV, PSV, and Parquet files with streaming for large datasets.</p>
+A beginner-friendly, speed-first conformal regression package with R-like ergonomics.
 
-![logo](img/TVBlue.png)
+## 🎯 Core Philosophy
 
-# Pretty Printing
+- **Beginner-friendly formulas**: Clear documentation with examples, gentle learning curve
+- **Speed-first**: Optimize training and conformal calibration time above all
+- **Minimal dependencies**: JAX + NumPy + LAPACK core, avoid heavy ecosystems
+- **R-like ergonomics**: Familiar outputs and workflows for R users transitioning to Python
+- **Default to Data Thinning**: Use generalized data thinning when possible to avoid data splitting
 
-![example](img/starwars.png)
+## 🚀 Quick Start
 
-# Contents
-* [Features](#features)
-* [Installation](#installation)
-* [Examples](#examples)
-* [Documentation](#documentation)
-* [Significant Figure Definitions & Rules](#significant-figure-definitions-and-rules)
-* [Tools to pair with `tv`](#tools-to-pair-with-tv)
-* [Configuration Dotfile](#configuration-dotfile)
-* [FAQ](#faq)
-* [Help](#help)
-* [Inspiration](#inspiration)
+```python
+import conformal_regress as cr
+import pandas as pd
 
-# Features
+# Create sample data
+df = pd.DataFrame({
+    'sales': [100, 120, 140, 160, 180],
+    'price': [10, 12, 14, 16, 18],
+    'advertising': [5, 6, 7, 8, 9]
+})
 
-1. **Multi-format support**: `csv`, `parquet`, `feather`, `ipc`
-2. **Automatic large file streaming**: Automatic memory-efficient loading for large files (>5MB) 🚀
-3. **Colors**: Nice colors out of the box
-4. **Significant digit printing**: No more decimal dust taking valuable terminal space
-5. **NA comprehension & coloring**: Missing data is clearly marked as `NA` for easy identification. No more misaligned data cells due to missing data.
-6. **Dimensions printed first**: No more guessing how many rows and columns are in the data
-7. **Column overflow logic**: No more misalignment due to terminal dimensions
-8. **Long string/Unicode truncation**: No more long strings pushing other data around
-9. **Customizable with a dotfile config**: Bring your own theme.
+# Fit model with conformal prediction
+model = cr.regress("sales ~ price + advertising", data=df)
+print(model)  # R-like summary
 
-# Installation
-
-The following install options are available via package managers:
-
-* [Cargo](#cargo)
-* [Debian](#debian)
-* [AUR](#aur)
-* [Snap](#snap)
-* [Homebrew](#homebrew)
-
-We currently cut releases for the following architectures. Download from the [release page](https://github.com/alexhallam/tv/releases).
-
-* **MacOS**
-* **ARM**
-* **Windows**
-* **Build from source (Most general)**
-
-The instructions for all of the above are very similar with the following general steps.
-
-1. Download your desired release from the [release page](https://github.com/alexhallam/tv/releases)
-2. `tar -xvzf <RELEASE_FILE_NAME>`
-3. `cd` into uncompressed folder
-4. Find binary `tidy-viewer`
-
-After the above steps I would highly recommend you make an alias for `tidy-viewer` as shown for other builds.
-
-# Documentation
-
-📚 **Comprehensive documentation is available:**
-
-- **[📖 API Documentation](https://docs.rs/tidy-viewer-core)** - Rust API reference with examples
-- **[🏗️ Contributing Guide](CONTRIBUTING.md)** - Architecture overview and development guidelines
-- **[🐍 Python Documentation](tidy-viewer-py/README.md)** - Python bindings usage and examples
-
-## Architecture Overview
-
-Tidy-Viewer is organized as a **Cargo workspace** with three main components:
-
-- **`tidy-viewer-core`** - Shared core library with data type inference and formatting logic
-- **`tidy-viewer-cli`** - Command-line interface for direct file processing  
-- **`tidy-viewer-py`** - Python bindings using PyO3 for integration with Python workflows
-
-This architecture ensures consistent behavior across all interfaces while maintaining clean separation of concerns.
-
-### Cargo
-
-The following will install from the [crates.io](https://crates.io/crates/tidy-viewer) source. For convenience add the alas `alias tv='tidy-viewer'` to `.bashrc`.
-
-```sh
-cargo install tidy-viewer
-sudo cp /home/$USER/.cargo/bin/tidy-viewer /usr/local/bin/.
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
+# Make predictions with uncertainty
+new_data = pd.DataFrame({
+    'price': [15, 17],
+    'advertising': [7.5, 8.5]
+})
+predictions = model.predict(new_data)
+cr.view(predictions)  # Beautiful display
 ```
 
-### Debian
-
-The below instructions work with the most recent release `<VERSION>` found here [release page](https://github.com/alexhallam/tv/releases).
-
-```sh
-wget https://github.com/alexhallam/tv/releases/download/<VERSION>/tidy-viewer_<VERSION>_amd64.deb
-sudo dpkg -i tidy-viewer_<VERSION>_amd64.deb
-echo "alias tv='tidy-viewer'" >> ~/.bashrc
-source ~/.bashrc
-```
-
-### AUR
-
-Kindly maintained by @yigitsever
-
-```sh
-paru -S tidy-viewer
-```
-
-### Snap
-
-```
-sudo snap install --edge tidy-viewer
-```
-
-### Homebrew
-
-```
-brew install tidy-viewer
-```
-
-# Examples
-
-Have some fun with the following datasets!
-
-## CSV Data Examples
-
-### Diamonds
-```sh
-# Download the diamonds data
-wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
-
-# Note Powershell wget would look like this
-# Invoke-WebRequest https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv -OutFile diamonds.csv
-
-# pipe to tv
-cat diamonds.csv | tv
-```
-
-### Starwars
-```sh
-wget https://raw.githubusercontent.com/tidyverse/dplyr/master/data-raw/starwars.csv
-
-# Pass as argument
-tv starwars.csv
-```
-
-### Pigeon Racing
-```sh
-wget https://raw.githubusercontent.com/joanby/python-ml-course/master/datasets/pigeon-race/pigeon-racing.csv
-cat pigeon-racing.csv | tv
-```
-
-### Titanic
-```sh
-wget https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv
-# send to pager with color
-# less 
-tv titanic.csv -ea | less -R
-# bat
-tv titanic.csv -a -n 1000 | bat -p
-```
-
-## Parquet Data Examples
-
-`tv` now supports Apache Parquet files!
-
-### NYC Taxi Data (Parquet)
-```sh
-# Download NYC taxi parquet data (small sample)
-wget https://github.com/apache/arrow/raw/main/python/pyarrow/tests/data/v0.7.1.parquet
-tv v0.7.1.parquet
-```
-
-# Significant Figure Definitions And Rules
-
-![example](img/sigs.png)
-
-![example](img/long_double.png)
-
-> The first three digits represent > 99.9% the value of a number. -- GNU-R Pillar
-
-Choosing the sigfigs amounts to how much of the value of a number is desired. The table below shows an example calculation with variable sigfigs.
-
-| sigfigs | value  | sigfiged_value | %value_of_the_number_explained_by_sigfiged_vale |
-| ------- | ------ | -------------- | :---------------------------------------------: |
-| 1       | 0.1119 | 0.1            |                      >89%                       |
-| 2       | 0.1119 | 0.11           |                      >98%                       |
-| 3       | 0.1119 | 0.111          |                      >99%                       |
-
-`tv` uses the same significant figure (sigfig) rules that the R package `pillar` uses.
-
-The purpose of the sigfig rules in `tv` is to guide the eye to the most important information in a number. This section defines terms and the decision tree used in the calculation of the final value displayed.
-
-## Definitions
-
-```text
-     ┌─────┐      ┌─────┐     ─┐
-     │     │      │     │      │
-     │     │      │     │      │
-     │     │      │     │      │
-     │     │      │     │      │
-     │     │  ┌┐  │     │      │
-     └─────┘  └┘  └─────┘    ──┴─
-   │        │    │                │
-   └────────┘  ▲ └────────────────┘
-left hand side │  right hand side
-     (lhs)     │       (rhs)
-
-            decimal
-```
-
-**left hand side (lhs)**: digits on the left hand side of the decimal.
-
-**right hand side (rhs)**: digits on the right hand side of the decimal.
-
-```text
-
- ┌─────┐      ┌─────┐     ─┐     ┌─────┐
- │     │      │     │      │     │     │
- │     │      │     │      │     │     │
- │     │      │     │      │     │     │
- │     │      │     │      │     │     │
- │     │  ┌┐  │     │      │     │     │
- └─────┘  └┘  └─────┘    ──┴─    └─────┘
-
-│                     │         │       │
-└─────────────────────┘         └───────┘
-       leading 0s              trailing 0s
-```
-**leading 0s**: 0s to the left of a non-zero.
-
-**trailing 0s**: 0s to the right of a non-zero. The zeros in 500m are trailing as well as the 0s in 0.500km. 
-
-
-```text
- ─┐     ┌─────┐       ─┐
-  │     │     │        │
-  │     │     │        │
-  │     │     │        │
-  │     │     │        │
-  │     │     │  ┌┐    │
-──┴─    └─────┘  └┘  ──┴─
-
-                   │        │
-                   └────────┘
-              fractional digit(s)
-```
-
-**fractional digits**: Digits on the rhs of the decimal. The represent the non-integer part of a number.
-
-## Rules
-
-There are only 4 outputs possible. The significant figures to display are set by the user. Assume `sigfig = 3`:
-
-1. **lhs only (`12345.0 -> 12345`)**: If no fractional digits are present and lhs >= sigfig then return lhs
-2. **lhs + point (`1234.5 -> 1234.`)**: If fractional digits are present and lhs >= sigfig then return lhs with point. This is to let the user know that some decimal dust is beyond the main mass of the number.
-3. **lhs + point + rhs (`1.2345 -> 1.23`)**: If fractional digits are present and lhs < sigfig return the first three digits of the number.
-4. **long rhs (`0.00001 -> 0.00001`)**: This is reserved for values with leading 0s in the rhs.
-
-
-
-```text
-# Pseudo Code: Sigfig logic assuming sigfig = 3
-if lhs == 0:
-    n = ((floor(log10(abs(x))) + 1 - sigfig)
-    r =(10^n) * round(x / (10^n))
-    return r
-    // (0.12345 -> 0.123)
-else:
-    if log10(lhs) + 1 > sigfig:
-        if rhs > 0:
-            //concatenate:
-            //(lhs)
-            //(point)
-            //(123.45 -> 123.)
-        else:
-            //concatenate:
-            //(lhs)
-            //(1234.0 -> 1234)
-            //(100.0 -> 100)
-    else:
-        //concatenate:
-        //(lhs)
-        //(point)
-        //sigfig - log10(lhs) from rhs
-        //(12.345 -> 12.3)
-        //(1.2345 -> 1.23)
-```
-
-# Tools to pair with tv
-
-`tv` is a good complement to command line data manipulation tools. I have listed some tools that I like to use with tv.
-
-[qsv](https://github.com/jqnatividad/qsv) - Fork of `xsv`. Has more commands/subcommands and allows users to evaluate lua/python on data. [Rust | CLI]
-
-[xsv](https://github.com/BurntSushi/xsv) - Command line csv data manipulation. [Rust | CLI]
-
-[SQLite](https://www.sqlite.org/index.html) - Database engine with CLU, shell, and library interfaces . [C | CLI/shell/lib]
-
-[DuckDB](https://duckdb.org/) - Database engine with CLU, shell, and library interfaces . [C++ | CLI/shell/lib]
-
-[csvtk](https://bioinf.shenwei.me/csvtk/) - Command line csv data manipulation. [Go | CLI]
-
-[tsv-utils](https://github.com/eBay/tsv-utils) - Command line csv data manipulation toolkit. [D | CLI]
-
-[q](https://github.com/harelba/q) - Command line csv data manipulation query-like. [Python | CLI]
-
-[miller](https://github.com/johnkerl/miller) - Command line data manipulation, statistics, and more. [C | CLI]
-
-[VisiData](https://www.visidata.org/) - An interactive terminal user interface that is built to explore and wrangle data. [Python | TUI]
-
-# Tools similar to tv
-
-`column` Comes standard with Linux. To get similar functionality run `column file.csv -ts,`
-
-Though `column` is similar I do think there are some reasons `tv` is a better tool.
-
-## 1. NA comprehension
-
-`NA` values are very important! Viewers should have their attention drawn to these empty cells. In the image below `NA` values are not only invisible, but it seems to be causing incorrect alignment in other columns.
-
-![na_comp](img/na_comprehension.png)
-
-There are many ways that programs will designate missing values. Some use `none`, others use `NaN`, and many more `""`, `NA`, `null`, `n/a` etc. `tv` searches for these strings and replaces them with `NA`. This is similar in spirit to the significant digit calculations and the truncation of columns with long strings. The purpose of `tv` is not to show the complete literal value, but to guide the eye.
-
-![na_comp](img/na_cases.png)
-
-## 2. Column Overflow Logic
-
-In cases where the terminal width can't fit all of the columns in a dataframe, `column` will try to smush data on the rows below. This results in an unpleasant viewing experience. 
-
-`tv` can automatically tell when there will be too many columns to print. When this occurs it will only print the columns that fit in the terminal and mention the extras in the footer below the table.
-
-![overflow](img/pigeon-racing.png)
-
-# Configuration Dotfile
-
-For information on dotfile configuration see `tv --help`. This allows users to set their own color palette, rows to print, max column width, etc.
-
-# FAQ
-
-* Does `tv` have a light theme?
-
-> Yes, solorized light is added out of the box. This was added in version `1.4.6`. You may also define your own themes in the config.
-
-* The `~/.config/tv.toml` file is having no effect on the output. What am I doing wrong?
-
-> Every key/value pair must exist or the toml will not be read. If even one key/value is missing then the config will not work.
-
-* It would be nice to be able to scroll vertically/horizontally through tall/wide csv file. Does `tv` allow for this functionality?
-
-> Yes, pipe the output to `less` or `bat`. `tv` allows for this with the `-e` flag. 
-> To extend to the full csv width and length and keep color try the following `tv diamonds.csv -ea | less -SR`
-> To extend to the full csv width and length and remove all color try the following `tv diamonds.csv -e | less -S`
-
-# Help
-
-`tv --help`
-
-```txt
-tv 1.6.1
-Tidy Viewer (tv) is a csv pretty printer that uses column styling to maximize viewer enjoyment.✨✨📺✨✨
-
-    Example Usage:
-    wget https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv
-    cat diamonds.csv | head -n 35 | tv
-    tv diamonds.csv
-
-    Configuration File Support:
-    An example config is printed to make it easy to copy/paste to `tv.toml`.
-    Check the parameters you have changed with `tv --config-details`.
-    The config (tv.toml) location is dependent on OS:
-        * Linux: $XDG_CONFIG_HOME or $HOME/.config/tv.toml
-        * macOS: $HOME/Library/Application Support/tv.toml
-        * Windows: {FOLDERID_RoamingAppData}\tv.toml
-
-        ## ==Tidy-Viewer Config Example==
-        ## Remove the first column of comments for valid toml file
-        ## All fields must be defined. Partial files will not be read.
-        ## The delimiter separating the columns. [default: ,]
-        #delimiter = ","
-        ## Add a title to your tv. Example 'Test Data' [default: NA ("")]
-        #title = ""
-        ## Add a footer to your tv. Example 'footer info' [default: NA ("")]
-        #footer = ""
-        ## The upper (maximum) width of columns. [default: 20]
-        #upper_column_width = 20
-        ## The minimum width of columns. Must be 2 or larger. [default: 2]
-        #lower_column_width = 2
-        ## head number of rows to output <row-display> [default: 25]
-        #number = 35
-        ## extend width and length in terms of the number of rows and columns displayed beyond term width [default: false]
-        # extend_width_length = true
-        ## meta_color = [R,G,B] color for row index and "tv dim: rows x cols"
-        #meta_color = [64, 179, 162]
-        ## header_color = [R,G,B] color for column headers
-        #header_color = [232, 168, 124]
-        ## std_color = [R,G,B] color for standard cell data values
-        #std_color = [133, 205, 202]
-        ## na_color = [R,G,B] color for NA values
-        #na_color = [226, 125, 95]
-        ## neg_num_color = [R,G,B] color for negative values
-        #neg_num_color = [226, 125, 95]
-
-USAGE:
-    tv [FLAGS] [OPTIONS] [FILE]
-
-FLAGS:
-    -C, --config-details                Show the current config details
-    -d, --debug-mode                    Print object details to make it easier for the maintainer to find and resolve
-                                        bugs.
-    -e, --extend-width-and-length       Extended width beyond term width (do not truncate). Useful with `less -S`.
-    -f, --force-all-rows                Print all rows in file. May be piped to 'less -S'. Example `tidy-viewer
-                                        data/diamonds.csv -f -a | less -R`
-    -a, --color-always                  Always force color output. Example `tv -a starwars.csv | less -R` or `tv -a
-                                        starwars.csv | bat -p`. The `less` cli has the `-R` flag to parse colored
-                                        output.
-    -h, --help                          Prints help information
-    -D, --no-dimensions                 Turns off dimensions of the data
-        --preserve-scientific           Preserve scientific notation in numeric values (e.g., 1.23e-4)
-    -R, --no-row-numbering              Turns off row numbering
-    -V, --version                       Prints version information
-
-OPTIONS:
-    -c, --color <color>
-            There are 5 preconfigured color palettes (Defaults to nord):
-                            (1)nord
-                            (2)one_dark
-                            (3)gruvbox
-                            (4)dracula
-                            (5)solarized light [default: 0]
-
-    -s, --delimiter <delimiter>                      The delimiter separating the columns.
-    -F, --footer <footer>                            Add a footer to your tv. Example 'footer info' [default: NA]
-    -l, --lower-column-width <lower-column-width>
-            The lower (minimum) width of columns. Must be 2 or larger. [default: 2]
-
-        --max-decimal-width <max-decimal-width>
-            Maximum decimal width before converting to scientific notation (when preserve-scientific is false)
-            [default: 8]
-
-    -n, --number-of-rows-to-output <row-display>     Show how many rows to display. [default: 25]
-    -g, --sigfig <sigfig>                            Significant Digits. Default 3. Max is 7 [default: 3]
-    -t, --title <title>                              Add a title to your tv. Example 'Test Data' [default: NA]
-    -u, --upper-column-width <upper-column-width>    The upper (maximum) width of columns. [default: 20]
-
-ARGS:
-    <FILE>    File to process
-```
-
-# Use With Database Engines
-
-Here I show how to use `tv` with a couple of database engines (SQLite, DuckDB).
-
-## Use With SQLite
-
-[Sqlite](https://www.sqlite.org/index.html) is a fantastic program! If it is not the most deployed software it is probably close to it. For more info on SQLite see their [Executive Summary](https://www.sqlite.org/about.html)
-
-For this example you will need to download and uncompress taxi data
+## 📦 Installation
 
 ```bash
-wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
-7z x taxi.csv.7z
-cd testdata
-ls -l --block-size=M # the data is farily large at 192MB
+pip install conformal-regress
 ```
 
-### SQLite One-liner
+For development:
 ```bash
-sqlite3 :memory: -csv -header -cmd '.import taxi.csv taxi' 'SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi GROUP BY passenger_count' | tv
+git clone https://github.com/conformal-regress/conformal-regress.git
+cd conformal-regress
+pip install -e .
 ```
 
-The above one-liner queries a csv as an in-memory database. It is also possible to query an *existing* `sqlite` database and pipe the output as a csv for `tv` to pick up. A one-liner is shown below.
+## 🎨 Features
 
-```bash 
-sqlite3 -csv -header <file_name.sqlite> 'select * from <table>;' | tv
+### Formula Syntax
+
+**R-compatible basics:**
+```python
+# Linear terms
+cr.regress("y ~ x1 + x2", data=df)
+
+# Interactions
+cr.regress("y ~ x1 * x2", data=df)  # Expands to x1 + x2 + x1:x2
+
+# Transformations
+cr.regress("y ~ I(x^2) + log(z)", data=df)
+
+# GLM-style family specification
+cr.regress("y ~ x1 + x2", data=df, family="gaussian")
+cr.regress("y ~ x1 + x2", data=df, family="poisson")
 ```
 
-## Use With DuckDB
+### Model Types
 
-[DuckDB](https://duckdb.org/why_duckdb) has a lot in common with SQLite. As personal anecdotes I do like that fewer CLI flags are needed to run on csvs. I also like the speed. Though it is not as universal as SQLite I think that it is a good fit for command line data manipulation.
+**Core models (all using LAPACK):**
+```python
+# Linear regression (default)
+cr.regress("y ~ x1 + x2", data=df)
 
-For this example you will need to download and uncompress taxi data
+# Quantile regression 
+cr.regress("y ~ x1 + x2", data=df, method="quantile", tau=0.9)
+
+# Robust regression
+cr.regress("y ~ x1 + x2", data=df, method="robust", loss="huber")
+
+# Regularized (Lasso/Ridge)
+cr.regress("y ~ x1 + x2", data=df, method="lasso", alpha=0.1)
+cr.regress("y ~ x1 + x2", data=df, method="ridge", alpha=0.1)
+```
+
+### Conformal Prediction
+
+**Automatic detection:**
+```python
+# Auto-detect if data thinning applicable
+cr.regress("y ~ x1 + x2", data=df, 
+          uncertainty="conformal",  # Auto-chooses thinning vs splitting
+          family="gaussian")        # Helps with detection
+
+# Manual override
+cr.regress("y ~ x1 + x2", data=df,
+          uncertainty="conformal_thinning")  # Force thinning
+cr.regress("y ~ x1 + x2", data=df, 
+          uncertainty="conformal_split")     # Force traditional split
+```
+
+**Fallback Strategy:**
+1. Try data thinning if residuals are convolution-closed
+2. Fall back to efficient train/calibration split (80/20)
+3. For small samples (<100), use cross-conformal (slower but better coverage)
+
+### Time Series Handling
+
+```python
+# User provides data with date column
+df = pd.DataFrame({
+    'date': pd.date_range('2020-01-01', periods=100),
+    'sales': [...],
+    'price': [...] 
+})
+
+# Package handles temporal ordering internally
+model = cr.regress("sales ~ price", data=df, date_col="date")
+
+# Rolling origin validation with data thinning
+model = cr.regress("sales ~ price", data=df, 
+                  date_col="date",
+                  uncertainty="conformal_temporal",
+                  cv_method="rolling_origin")
+
+# Forecast with uncertainty
+forecasts = model.forecast(horizon=30)
+```
+
+## 📊 Output Format
+
+### Prediction Output
+
+```python
+predictions = model.predict(new_data)
+# Returns DataFrame:
+# | prediction | lower_90 | upper_90 | lower_95 | upper_95 | samples |
+# |    12.5    |   10.2   |   14.8   |    9.8   |   15.2   | [12.1,12.3,12.7,...] |
+```
+
+### Model Summary (R-style)
+
+```python
+print(model)
+# Output:
+# Formula: sales ~ price + advertising
+# 
+# Coefficients:
+#              Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)   100.234      5.123  19.561  < 2e-16 ***
+# price          -0.521      0.089  -5.854 1.23e-07 ***
+# advertising     2.345      0.234  10.021  < 2e-16 ***
+# 
+# Conformal Coverage: 95% (method: data_thinning)
+# Residual standard error: 12.34 on 97 degrees of freedom
+```
+
+### Easy Access
+
+```python
+model.coefficients  # DataFrame with coef info
+model.formula      # Original formula string  
+model.coverage     # Actual coverage achieved
+model.method       # "data_thinning" or "split" etc.
+```
+
+## 🎯 Example Workflows
+
+### Beginner
+
+```python
+import conformal_regress as cr
+
+# Simple prediction with uncertainty
+model = cr.regress("price ~ bedrooms + sqft", data=housing)
+print(model)  # See R-like summary
+
+# Make predictions  
+predictions = model.predict(new_houses)
+cr.view(predictions)  # Uses tidy-viewer-py
+```
+
+### Time Series
+
+```python
+# Time series with conformal bands
+model = cr.regress("sales ~ price + advertising", 
+                   data=ts_data, 
+                   date_col="date",
+                   uncertainty="conformal_temporal")
+
+# Forecast with uncertainty
+forecasts = model.forecast(horizon=30)
+```
+
+### Advanced
+
+```python
+# Robust quantile regression with manual conformal
+model = cr.regress("y ~ x1 + x2", 
+                   data=df,
+                   method="quantile", 
+                   tau=0.9,
+                   uncertainty="conformal_thinning",
+                   family="gamma")
+```
+
+## 🔧 Performance Optimizations
+
+**Speed Targets:**
+- Linear regression: Sub-second for 10k samples
+- Conformal calibration: <10% overhead vs base model
+- Memory: Lazy evaluation where possible
+
+**JAX Integration:**
+- JIT compile prediction functions
+- Vectorized conformal score computation
+- GPU support for large datasets (optional)
+
+## 📚 Documentation
+
+For detailed documentation, visit: [docs.conformal-regress.org](https://docs.conformal-regress.org)
+
+### Key Concepts
+
+**Data Thinning vs Data Splitting:**
+- **Data Thinning**: Uses the full dataset when residuals are convolution-closed
+- **Data Splitting**: Traditional train/calibration split when thinning not applicable
+
+**Convolution-Closed Distributions:**
+- Gaussian, Student's t, Cauchy, and other location-scale families
+- Allows for more efficient conformal prediction without data splitting
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
 
 ```bash
-wget https://github.com/multiprocessio/dsq/blob/43e72ff1d2c871082fed0ae401dd59e2ff9f6cfe/testdata/taxi.csv.7z?raw=true -O taxi.csv.7z
-7z x taxi.csv.7z
-cd testdata
-ls -l --block-size=M # the data is fairly large at 192MB
+git clone https://github.com/conformal-regress/conformal-regress.git
+cd conformal-regress
+pip install -e ".[dev]"
+pytest  # Run tests
 ```
 
-## Fun With `tv`
+## 📄 License
 
-Using `duckdb` with `tv` and `less` to manipulate data with SQL grammar and view results in a scrolling window.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-```sh
-duckdb --csv -c "select norm1 from norms.csv" | ../target/release/tidy-viewer -f -a | less -R
-```
+## 🙏 Acknowledgments
 
-### DuckDB One-liner
-```bash
-duckdb --csv -c "SELECT passenger_count, COUNT(*), AVG(total_amount) FROM taxi.csv GROUP BY passenger_count ORDER BY passenger_count" | tv
-```
+- Inspired by R's `lm()` and `glm()` functions
+- Data thinning approach based on Daniella Witten's research
+- Built with JAX for speed and GPU support
+- Formula parsing powered by `formulaic`
 
-# Inspiration
+## 📞 Support
 
-[pillar](https://pillar.r-lib.org/dev/articles/digits.html#trailing-dot-1) - R's tibble like formatting. Fantastic original work by [Kirill Müller](https://github.com/krlmlr) and [Hadley Wickham](http://hadley.nz/). `tv` makes an attempt to port their ideas to the terminal.
+- 📧 Email: team@conformal-regress.org
+- 💬 Discussions: [GitHub Discussions](https://github.com/conformal-regress/conformal-regress/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/conformal-regress/conformal-regress/issues)
+
+---
+
+**Made with ❤️ for the Python data science community**
