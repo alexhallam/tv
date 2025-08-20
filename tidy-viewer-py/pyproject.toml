@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "A cross-platform data pretty printer that uses column styling to maximize viewer enjoyment. Supports CSV, Parquet, Pandas, and Polars DataFrames with automatic data type detection and display."
 readme = "README.md"
 authors = [{ name = "Alex Hallam", email = "alexhallam6.28@gmail.com" }]
-license = { text = "MIT OR Apache-2.0" }
+license = { file = "LICENSE" }
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -69,3 +69,6 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+
+[dependency-groups]
+dev = ["build>=1.2.2.post1", "twine>=6.1.0"]
