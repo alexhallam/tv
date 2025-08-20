@@ -1,9 +1,9 @@
+use crossterm::terminal::size as term_size;
 use csv::ReaderBuilder;
 use owo_colors::OwoColorize;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use crossterm::terminal::size as term_size;
 
 use crate::types::{ColorScheme, FormatOptions};
 use tidy_viewer_core::{format_strings, is_na_string_padded, is_negative_number};
@@ -12,10 +12,23 @@ use tidy_viewer_core::{format_strings, is_na_string_padded, is_negative_number};
 pub fn format_table(
     data: Vec<Vec<String>>,
     headers: Option<Vec<String>>,
+    data_types: Option<Vec<String>>,
     options: &FormatOptions,
 ) -> Result<String, Box<dyn Error>> {
     if data.is_empty() {
         return Ok("No data to display".to_string());
+    }
+
+    // Validate data_types length matches headers if both are provided
+    if let (Some(ref hdrs), Some(ref types)) = (&headers, &data_types) {
+        if hdrs.len() != types.len() {
+            return Err(format!(
+                "Data types length ({}) does not match headers length ({})",
+                types.len(),
+                hdrs.len()
+            )
+            .into());
+        }
     }
 
     let mut output = String::new();
@@ -51,12 +64,19 @@ pub fn format_table(
         rows
     };
 
-    // Build columns including header (if provided) followed by data rows
+    // Build columns including header (if provided) and data types (if provided) followed by data rows
     let mut columns: Vec<Vec<&str>> = vec![vec![]; cols];
 
     if let Some(ref hdrs) = headers {
         for (col_idx, header) in hdrs.iter().enumerate().take(cols) {
             columns[col_idx].push(header.as_str());
+        }
+    }
+
+    // Add data types row if provided
+    if let Some(ref types) = data_types {
+        for (col_idx, data_type) in types.iter().enumerate().take(cols) {
+            columns[col_idx].push(data_type.as_str());
         }
     }
 
@@ -68,7 +88,7 @@ pub fn format_table(
         }
     }
 
-    // Format columns using core format_strings (ensures uniform widths across header+data)
+    // Format columns using core format_strings (ensures uniform widths across header+data_types+data)
     let formatted_columns: Vec<Vec<String>> = columns
         .iter()
         .map(|col| {
@@ -109,11 +129,12 @@ pub fn format_table(
     if num_cols_to_print == 0 && cols > 0 {
         num_cols_to_print = 1;
     }
-    
-
 
     // Helper to append a pre-formatted row at row_idx
     let mut push_formatted_row = |row_idx: usize, row_num: usize| {
+        // Determine if this is a data types row
+        let is_data_types_row = data_types.is_some()
+            && ((headers.is_some() && row_idx == 1) || (headers.is_none() && row_idx == 0));
         if !options.no_row_numbering {
             if row_num > 0 {
                 let row_num_str = format!("{: >6}  ", row_num);
@@ -137,9 +158,17 @@ pub fn format_table(
             let cell = col.get(row_idx).map(|s| s.as_str()).unwrap_or("NA");
 
             if options.use_color {
-                let colored = if row_num == 0 {
+                let colored = if row_num == 0 && !is_data_types_row {
                     let [r, g, b] = options.colors.header_color;
                     cell.truecolor(r, g, b).to_string()
+                } else if is_data_types_row {
+                    // Data types row - slightly off-color relative to header
+                    let [r, g, b] = options.colors.header_color;
+                    // Make it slightly dimmer by reducing intensity
+                    let dimmed_r = (r as f32 * 0.8) as u8;
+                    let dimmed_g = (g as f32 * 0.8) as u8;
+                    let dimmed_b = (b as f32 * 0.8) as u8;
+                    cell.truecolor(dimmed_r, dimmed_g, dimmed_b).to_string()
                 } else if is_na_string_padded(cell) {
                     let [r, g, b] = options.colors.na_color;
                     cell.truecolor(r, g, b).to_string()
@@ -164,10 +193,30 @@ pub fn format_table(
         push_formatted_row(0, 0);
     }
 
-    // Data rows: start after header if present
-    let data_start_idx = if headers.is_some() { 1 } else { 0 };
+    // Data types row (only if data_types were provided)
+    if data_types.is_some() {
+        let data_types_row_idx = if headers.is_some() { 1 } else { 0 };
+        push_formatted_row(data_types_row_idx, 0); // Always row number 0 (no visible number)
+    }
+
+    // Data rows: start after header and data_types if present
+    let data_start_idx = if headers.is_some() {
+        if data_types.is_some() {
+            2
+        } else {
+            1
+        }
+    } else {
+        if data_types.is_some() {
+            1
+        } else {
+            0
+        }
+    };
     let data_end_idx = data_start_idx + display_rows;
-    for (row_idx, row_num) in (data_start_idx..data_end_idx).zip(1..) {
+    // Data rows should always start at row number 1 (headers and data types are not counted)
+    let data_row_start_num = 1;
+    for (row_idx, row_num) in (data_start_idx..data_end_idx).zip(data_row_start_num..) {
         push_formatted_row(row_idx, row_num);
     }
 
@@ -267,7 +316,7 @@ pub fn format_csv_file(file_path: &str, options: &FormatOptions) -> Result<Strin
         data.push(row);
     }
 
-    format_table(data, Some(headers), options)
+    format_table(data, Some(headers), None, options)
 }
 
 /// Format Parquet file from path
@@ -326,7 +375,7 @@ pub fn format_parquet_file(
         data.push(record_fields);
     }
 
-    format_table(data, Some(headers), options)
+    format_table(data, Some(headers), None, options)
 }
 
 /// Format Arrow file from path
@@ -414,7 +463,7 @@ pub fn format_arrow_file(
         }
     }
 
-    format_table(data, Some(headers), options)
+    format_table(data, Some(headers), None, options)
 }
 
 fn format_dimensions_colored(rows: usize, cols: usize, colors: &ColorScheme) -> String {
@@ -425,9 +474,3 @@ fn format_dimensions_colored(rows: usize, cols: usize, colors: &ColorScheme) -> 
         cols.truecolor(r, g, b)
     )
 }
-
-
-
-
-
-

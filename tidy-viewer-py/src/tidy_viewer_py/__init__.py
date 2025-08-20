@@ -3,11 +3,12 @@ Tidy Viewer Py - Beautiful terminal table formatting powered by Rust
 
 This package provides fast, beautiful table formatting with features like:
 - Automatic column width optimization
-- Intelligent data type detection
+- Intelligent data type detection and display
 - Color themes (nord, gruvbox, dracula, etc.)
 - Support for CSV, Parquet, and pandas DataFrames
 - Significant figures formatting for numbers
 - NA/missing value handling
+- Data type mapping from pandas, polars, and arrow
 """
 
 from typing import List, Optional, Union, Any, Dict
@@ -29,11 +30,25 @@ except ImportError as e:
     RUST_AVAILABLE = False
     _import_error = e
 
-__version__ = "0.2.94"
+# Import data type mapping utilities
+try:
+    from .dtype_mapping import (
+        map_dtype, map_dtypes, auto_map_dtypes, 
+        detect_library_from_dtypes,
+        PANDAS_DTYPE_MAPPING, POLARS_DTYPE_MAPPING, ARROW_DTYPE_MAPPING
+    )
+    DTYPE_MAPPING_AVAILABLE = True
+except ImportError as e:
+    DTYPE_MAPPING_AVAILABLE = False
+    _dtype_mapping_error = e
+
+__version__ = "0.3.0"
 __all__ = [
     "print_table", "print_csv", "print_parquet", "print_arrow", "print_dataframe", 
     "format_table", "format_csv", "format_parquet", "format_arrow", "format_dataframe",
-    "FormatOptions", "TV", "tv"
+    "FormatOptions", "TV", "tv",
+    "map_dtype", "map_dtypes", "auto_map_dtypes", "detect_library_from_dtypes",
+    "PANDAS_DTYPE_MAPPING", "POLARS_DTYPE_MAPPING", "ARROW_DTYPE_MAPPING"
 ]
 
 
@@ -116,6 +131,7 @@ class FormatOptions:
 def format_table(
     data: Union[List[List[Any]], Dict[str, List[Any]], List[Dict[str, Any]]], 
     headers: Optional[List[str]] = None,
+    data_types: Optional[List[str]] = None,
     options: Optional[FormatOptions] = None,
 ) -> str:
     """
@@ -124,6 +140,7 @@ def format_table(
     Args:
         data: List of lists, dict of lists, or list of dicts containing table data
         headers: Optional list of column headers (only used with list of lists)
+        data_types: Optional list of data type abbreviations (e.g., ['<str>', '<i64>', '<f64>'])
         options: Formatting options
     
     Returns:
@@ -132,6 +149,10 @@ def format_table(
     Examples:
         >>> data = [["Alice", 25], ["Bob", 30]]
         >>> print(format_table(data, headers=["Name", "Age"]))
+        
+        >>> # With data types
+        >>> data = [["Alice", 25], ["Bob", 30]]
+        >>> print(format_table(data, headers=["Name", "Age"], data_types=["<str>", "<i64>"]))
         
         >>> # Dict of lists
         >>> data = {"Name": ["Alice", "Bob"], "Age": [25, 30]}
@@ -159,7 +180,8 @@ def format_table(
         # List of lists
         str_data = [[str(cell) for cell in row] for row in data]
         str_headers = [str(h) for h in headers] if headers else None
-        return _format_data(str_data, str_headers, opts)
+        str_data_types = [str(dt) for dt in data_types] if data_types else None
+        return _format_data(str_data, str_headers, str_data_types, opts)
 
 
 def format_csv(
@@ -237,6 +259,7 @@ def format_arrow(
 def format_dataframe(
     df,
     options: Optional[FormatOptions] = None,
+    show_dtypes: bool = True,
 ) -> str:
     """
     Format a pandas DataFrame as a string.
@@ -244,6 +267,7 @@ def format_dataframe(
     Args:
         df: pandas DataFrame
         options: Formatting options
+        show_dtypes: Whether to show data types (default: True)
     
     Returns:
         Formatted table as a string
@@ -259,8 +283,18 @@ def format_dataframe(
     headers = [str(col) for col in df.columns]
     data = [[str(cell) for cell in row] for row in df.values]
     
+    # Extract and map data types if requested
+    data_types = None
+    if show_dtypes and DTYPE_MAPPING_AVAILABLE:
+        try:
+            dtypes = [str(dtype) for dtype in df.dtypes]
+            data_types = auto_map_dtypes(dtypes)
+        except Exception:
+            # Fallback if dtype mapping fails
+            pass
+    
     opts = options._options if options else None
-    return _format_data(data, headers, opts)
+    return _format_data(data, headers, data_types, opts)
 
 
 def format_numpy_array(
@@ -298,6 +332,7 @@ def format_numpy_array(
 def format_polars_dataframe(
     df,
     options: Optional[FormatOptions] = None,
+    show_dtypes: bool = True,
 ) -> str:
     """
     Format a polars DataFrame as a string.
@@ -305,6 +340,7 @@ def format_polars_dataframe(
     Args:
         df: polars DataFrame
         options: Formatting options
+        show_dtypes: Whether to show data types (default: True)
     
     Returns:
         Formatted table as a string
@@ -320,13 +356,24 @@ def format_polars_dataframe(
     headers = [str(col) for col in df.columns]
     data = [[str(cell) for cell in row] for row in df.to_numpy().tolist()]
     
+    # Extract and map data types if requested
+    data_types = None
+    if show_dtypes and DTYPE_MAPPING_AVAILABLE:
+        try:
+            dtypes = [str(dtype) for dtype in df.schema.values()]
+            data_types = auto_map_dtypes(dtypes)
+        except Exception:
+            # Fallback if dtype mapping fails
+            pass
+    
     opts = options._options if options else None
-    return _format_data(data, headers, opts)
+    return _format_data(data, headers, data_types, opts)
 
 
 def print_table(
     data: Union[List[List[Any]], Dict[str, List[Any]], List[Dict[str, Any]]], 
     headers: Optional[List[str]] = None,
+    data_types: Optional[List[str]] = None,
     options: Optional[FormatOptions] = None,
     file=None
 ) -> None:
@@ -336,6 +383,7 @@ def print_table(
     Args:
         data: List of lists, dict of lists, or list of dicts containing table data
         headers: Optional list of column headers (only used with list of lists)
+        data_types: Optional list of data type abbreviations (e.g., ['<str>', '<i64>', '<f64>'])
         options: Formatting options
         file: Output file (if None, prints to stdout)
     
@@ -344,11 +392,17 @@ def print_table(
         >>> headers = ["Name", "Age", "Role"]
         >>> print_table(data, headers)
         
+        >>> # With data types
+        >>> data = [["Alice", 25, "Engineer"], ["Bob", 30, "Designer"]]
+        >>> headers = ["Name", "Age", "Role"]
+        >>> data_types = ["<str>", "<i64>", "<str>"]
+        >>> print_table(data, headers, data_types)
+        
         >>> # Dict of lists
         >>> data = {"Name": ["Alice", "Bob"], "Age": [25, 30]}
         >>> print_table(data)
     """
-    result = format_table(data, headers, options)
+    result = format_table(data, headers, data_types, options)
     print(result, file=file)
 
 
@@ -406,6 +460,7 @@ def print_arrow(
 def print_dataframe(
     df,
     options: Optional[FormatOptions] = None,
+    show_dtypes: bool = True,
     file=None
 ) -> None:
     """
@@ -414,9 +469,10 @@ def print_dataframe(
     Args:
         df: pandas DataFrame
         options: Formatting options
+        show_dtypes: Whether to show data types (default: True)
         file: Output file (if None, prints to stdout)
     """
-    result = format_dataframe(df, options)
+    result = format_dataframe(df, options, show_dtypes)
     print(result, file=file)
 
 
@@ -440,6 +496,7 @@ def print_numpy_array(
 def print_polars_dataframe(
     df,
     options: Optional[FormatOptions] = None,
+    show_dtypes: bool = True,
     file=None
 ) -> None:
     """
@@ -448,9 +505,10 @@ def print_polars_dataframe(
     Args:
         df: polars DataFrame
         options: Formatting options
+        show_dtypes: Whether to show data types (default: True)
         file: Output file (if None, prints to stdout)
     """
-    result = format_polars_dataframe(df, options)
+    result = format_polars_dataframe(df, options, show_dtypes)
     print(result, file=file)
 
 
@@ -546,9 +604,9 @@ class TV:
         self._significant_figures = figures
         return self
     
-    def print_table(self, data: Union[List[List[Any]], Dict[str, List[Any]], List[Dict[str, Any]]], headers: Optional[List[str]] = None, file=None):
+    def print_table(self, data: Union[List[List[Any]], Dict[str, List[Any]], List[Dict[str, Any]]], headers: Optional[List[str]] = None, data_types: Optional[List[str]] = None, file=None):
         """Print table with current options."""
-        print_table(data, headers, self._build_options(), file)
+        print_table(data, headers, data_types, self._build_options(), file)
     
     def print_csv(self, file_path: str, file=None):
         """Print CSV with current options."""
@@ -562,21 +620,21 @@ class TV:
         """Print Arrow with current options."""
         print_arrow(file_path, self._build_options(), file)
     
-    def print_dataframe(self, df, file=None):
+    def print_dataframe(self, df, show_dtypes=True, file=None):
         """Print DataFrame with current options."""
-        print_dataframe(df, self._build_options(), file)
+        print_dataframe(df, self._build_options(), show_dtypes, file)
     
     def print_numpy_array(self, arr, file=None):
         """Print numpy array with current options."""
         print_numpy_array(arr, self._build_options(), file)
     
-    def print_polars_dataframe(self, df, file=None):
+    def print_polars_dataframe(self, df, show_dtypes=True, file=None):
         """Print polars DataFrame with current options."""
-        print_polars_dataframe(df, self._build_options(), file)
+        print_polars_dataframe(df, self._build_options(), show_dtypes, file)
     
-    def format_table(self, data: Union[List[List[Any]], Dict[str, List[Any]], List[Dict[str, Any]]], headers: Optional[List[str]] = None) -> str:
+    def format_table(self, data: Union[List[List[Any]], Dict[str, List[Any]], List[Dict[str, Any]]], headers: Optional[List[str]] = None, data_types: Optional[List[str]] = None) -> str:
         """Format table with current options."""
-        return format_table(data, headers, self._build_options())
+        return format_table(data, headers, data_types, self._build_options())
     
     def format_csv(self, file_path: str) -> str:
         """Format CSV with current options."""
@@ -590,17 +648,17 @@ class TV:
         """Format Arrow with current options."""
         return format_arrow(file_path, self._build_options())
     
-    def format_dataframe(self, df) -> str:
+    def format_dataframe(self, df, show_dtypes=True) -> str:
         """Format DataFrame with current options."""
-        return format_dataframe(df, self._build_options())
+        return format_dataframe(df, self._build_options(), show_dtypes)
     
     def format_numpy_array(self, arr) -> str:
         """Format numpy array with current options."""
         return format_numpy_array(arr, self._build_options())
     
-    def format_polars_dataframe(self, df) -> str:
+    def format_polars_dataframe(self, df, show_dtypes=True) -> str:
         """Format polars DataFrame with current options."""
-        return format_polars_dataframe(df, self._build_options())
+        return format_polars_dataframe(df, self._build_options(), show_dtypes)
 
 
 # Convenience function for quick access

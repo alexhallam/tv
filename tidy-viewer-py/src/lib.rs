@@ -102,10 +102,11 @@ impl PyFormatOptions {
 
 /// Format tabular data from Python lists
 #[pyfunction]
-#[pyo3(signature = (data, headers=None, options=None))]
+#[pyo3(signature = (data, headers=None, data_types=None, options=None))]
 pub fn format_data(
     data: Vec<Vec<String>>,
     headers: Option<Vec<String>>,
+    data_types: Option<Vec<String>>,
     options: Option<&PyFormatOptions>,
 ) -> PyResult<String> {
     let format_options = if let Some(opts) = options {
@@ -114,7 +115,7 @@ pub fn format_data(
         &FormatOptions::default()
     };
 
-    format_table(data, headers, format_options)
+    format_table(data, headers, data_types, format_options)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
 }
 
@@ -192,7 +193,7 @@ pub fn format_dict_of_lists(
         data.push(row);
     }
 
-    format_data(data, Some(headers), options)
+    format_data(data, Some(headers), None, options)
 }
 
 /// Format a list of dictionaries
@@ -228,7 +229,7 @@ pub fn format_list_of_dicts(
         data.push(row);
     }
 
-    format_data(data, Some(headers), options)
+    format_data(data, Some(headers), None, options)
 }
 
 /// Module initialization

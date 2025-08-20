@@ -6,6 +6,8 @@ import tempfile
 import csv
 import os
 import tidy_viewer_py as tv
+from tidy_viewer_py import format_table, FormatOptions
+
 
 def strip_ansi_codes(text):
     """Remove ANSI color codes from text for testing."""
@@ -149,4 +151,91 @@ class TestEdgeCases:
         
         assert "中文" in clean_result
         assert "Unicode" in clean_result
+
+
+def test_basic_formatting():
+    data = [
+        ["Alice", "25", "Engineer"],
+        ["Bob", "30", "Designer"],
+        ["Charlie", "35", "Manager"]
+    ]
+    headers = ["Name", "Age", "Role"]
+    
+    result = format_table(data, headers)
+    assert "Alice" in result
+    assert "Bob" in result
+    assert "Charlie" in result
+    assert "Name" in result
+    assert "Age" in result
+    assert "Role" in result
+
+
+def test_formatting_with_data_types():
+    data = [
+        ["Alice", "25", "Engineer"],
+        ["Bob", "30", "Designer"],
+        ["Charlie", "35", "Manager"]
+    ]
+    headers = ["Name", "Age", "Role"]
+    data_types = ["<str>", "<i64>", "<str>"]
+    
+    result = format_table(data, headers, data_types)
+    assert "Alice" in result
+    assert "Bob" in result
+    assert "Charlie" in result
+    assert "Name" in result
+    assert "Age" in result
+    assert "Role" in result
+    assert "<str>" in result
+    assert "<i64>" in result
+
+
+def test_data_types_validation():
+    data = [
+        ["Alice", "25", "Engineer"],
+        ["Bob", "30", "Designer"],
+    ]
+    headers = ["Name", "Age", "Role"]
+    data_types = ["<str>", "<i64>"]  # Wrong length - should be 3, not 2
+    
+    with pytest.raises(Exception) as exc_info:
+        format_table(data, headers, data_types)
+    assert "Data types length (2) does not match headers length (3)" in str(exc_info.value)
+
+
+def test_data_types_without_headers():
+    data = [
+        ["Alice", "25", "Engineer"],
+        ["Bob", "30", "Designer"],
+    ]
+    data_types = ["<str>", "<i64>", "<str>"]
+    
+    # Should work fine - data_types without headers is valid
+    result = format_table(data, None, data_types)
+    assert "Alice" in result
+    assert "Bob" in result
+    assert "<str>" in result
+    assert "<i64>" in result
+
+
+def test_formatting_with_options():
+    data = [
+        ["Alice", "25", "Engineer"],
+        ["Bob", "30", "Designer"],
+    ]
+    headers = ["Name", "Age", "Role"]
+    data_types = ["<str>", "<i64>", "<str>"]
+    
+    options = FormatOptions(
+        max_rows=1,
+        use_color=False,
+        no_row_numbering=True
+    )
+    
+    result = format_table(data, headers, data_types, options)
+    assert "Alice" in result
+    assert "Bob" not in result  # Should be limited to 1 row
+    assert "Name" in result
+    assert "<str>" in result
+    assert "<i64>" in result
 
