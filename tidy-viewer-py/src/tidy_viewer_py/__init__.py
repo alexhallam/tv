@@ -42,7 +42,7 @@ except ImportError as e:
     DTYPE_MAPPING_AVAILABLE = False
     _dtype_mapping_error = e
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __all__ = [
     "print_table", "print_csv", "print_parquet", "print_arrow", "print_dataframe", 
     "format_table", "format_csv", "format_parquet", "format_arrow", "format_dataframe",
