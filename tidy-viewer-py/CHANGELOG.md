@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.1] - 2024-08-20
+0.3.1 (2024-08-20)
 
 ### Added
 - **Comprehensive DataFrame Examples**: Added 12 detailed examples to `demo_polars_dtypes.py` covering all major Polars data types
@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Library Detection**: Enhanced auto-detection logic for Polars vs Arrow vs Pandas data types
 - **Complex Type Handling**: Improved regex patterns for parsing complex Polars type strings
 
-## [0.3.0] - 2024-08-20
+0.3.0 (2024-08-20)
 
 ### Added
 - **Data Type Display**: New optional `data_type` argument to `format_table` function
@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation**: Comprehensive README updates with mapping tables and examples
 - **Testing**: Added extensive test coverage for new functionality
 
-## [0.2.94] - 2024-08-19
+0.2.94 (2024-08-19)
 
 ### Added
 - Initial release with basic table formatting functionality
