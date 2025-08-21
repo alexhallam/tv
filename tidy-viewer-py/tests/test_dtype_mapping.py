@@ -96,7 +96,7 @@ class TestDtypeMapping:
         assert detect_library_from_dtypes(polars_dtypes) == 'polars'
         
         # Arrow patterns
-        arrow_dtypes = ['Utf8', 'Int64', 'Float64', 'Boolean']
+        arrow_dtypes = ['Utf8', 'LargeString', 'Date32', 'Time32']
         assert detect_library_from_dtypes(arrow_dtypes) == 'arrow'
         
         # Unknown patterns

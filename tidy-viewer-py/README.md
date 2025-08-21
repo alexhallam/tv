@@ -123,15 +123,27 @@ The library automatically maps data types from different dataframe libraries to 
 | `complex128` | `<cplx>` |
 
 #### Polars Data Types
-| Polars Type | Abbreviated |
-|-------------|-------------|
-| `String` | `<str>` |
-| `Int64` | `<i64>` |
-| `Float64` | `<f64>` |
-| `Boolean` | `<bool>` |
-| `Datetime` | `<dt>` |
-| `Categorical` | `<cat>` |
-| `List<Int64>` | `<list<i64>>` |
+Based on the [official Polars documentation](https://docs.pola.rs/api/python/stable/reference/datatypes.html):
+
+| Polars Type | Abbreviated | Description |
+|-------------|-------------|-------------|
+| `String`, `Utf8` | `<str>` | UTF-8 encoded string type |
+| `Int8`, `Int16`, `Int32`, `Int64`, `Int128` | `<i8>`, `<i16>`, `<i32>`, `<i64>`, `<i128>` | Signed integer types |
+| `UInt8`, `UInt16`, `UInt32`, `UInt64` | `<u8>`, `<u16>`, `<u32>`, `<u64>` | Unsigned integer types |
+| `Float32`, `Float64` | `<f32>`, `<f64>` | Floating point types |
+| `Boolean`, `Bool` | `<bool>` | Boolean type |
+| `Date` | `<date>` | Calendar date |
+| `Datetime<ns>`, `Datetime<us>`, `Datetime<ms>` | `<dt>` | Date and time with timezone support |
+| `Time` | `<time>` | Time of day |
+| `Duration<ns>`, `Duration<us>`, `Duration<ms>` | `<td>` | Time duration |
+| `Categorical`, `Enum` | `<cat>`, `<enum>` | String encoding types |
+| `List<Type>` | `<list<type>>` | Variable length list |
+| `Array<Type, size>` | `<arr<type,size>>` | Fixed length array |
+| `Struct<field1: Type1, field2: Type2>` | `<struct>` | Struct composite type |
+| `Decimal(precision, scale)` | `<dec>` | Decimal with precision |
+| `Binary` | `<bin>` | Binary data |
+| `Object` | `<obj>` | Arbitrary Python objects |
+| `Null`, `Unknown` | `<null>`, `<unk>` | Null and unknown types |
 
 #### Arrow Data Types
 | Arrow Type | Abbreviated |
@@ -149,12 +161,19 @@ The library automatically maps data types from different dataframe libraries to 
 Complex data types are automatically simplified:
 
 ```python
-# These complex types are simplified:
+# Polars complex types:
 # List<Int64> → <list<i64>>
-# Struct<field1: String, field2: Int64> → <struct>
+# Array<Float64, 3> → <arr<f64,3>>
+# Struct<name: String, age: Int32> → <struct>
+# Datetime<ns, UTC> → <dt>
+# Duration<us> → <td>
+# Decimal(10, 2) → <dec>
+# Int64? → <i64> (nullable types)
+
+# Pandas/Arrow complex types:
 # Map<String, Int64> → <map>
 # Union<Int64, String> → <union>
-# Int64? → <i64> (nullable types)
+# Dictionary<Int8, String> → <dict>
 ```
 
 ### Data Type Utilities

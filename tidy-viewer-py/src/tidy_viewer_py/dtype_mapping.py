@@ -49,37 +49,49 @@ PANDAS_DTYPE_MAPPING = {
 }
 
 POLARS_DTYPE_MAPPING = {
-    # Basic types
+    # String types
     'String': '<str>',
     'Utf8': '<str>',
-    'Int64': '<i64>',
-    'Int32': '<i32>',
-    'Int16': '<i16>',
+    
+    # Numeric types
     'Int8': '<i8>',
-    'UInt64': '<u64>',
-    'UInt32': '<u32>',
-    'UInt16': '<u16>',
+    'Int16': '<i16>',
+    'Int32': '<i32>',
+    'Int64': '<i64>',
+    'Int128': '<i128>',
     'UInt8': '<u8>',
-    'Float64': '<f64>',
+    'UInt16': '<u16>',
+    'UInt32': '<u32>',
+    'UInt64': '<u64>',
     'Float32': '<f32>',
+    'Float64': '<f64>',
+    'Decimal': '<dec>',
+    
+    # Boolean types
     'Boolean': '<bool>',
     'Bool': '<bool>',
-    'Datetime': '<dt>',
+    
+    # Temporal types
     'Date': '<date>',
+    'Datetime': '<dt>',
     'Time': '<time>',
     'Duration': '<td>',
+    
+    # String encoding types
     'Categorical': '<cat>',
     'Enum': '<enum>',
+    
+    # Nested types
+    'List': '<list>',
+    'Array': '<arr>',
+    'Struct': '<struct>',
+    'Field': '<field>',
+    
+    # Other types
     'Binary': '<bin>',
     'Object': '<obj>',
     'Null': '<null>',
     'Unknown': '<unk>',
-    'List': '<list>',
-    'Array': '<arr>',
-    'Struct': '<struct>',
-    'Map': '<map>',
-    'Decimal': '<dec>',
-    'Function': '<func>',
 }
 
 ARROW_DTYPE_MAPPING = {
@@ -153,6 +165,13 @@ def simplify_complex_type(dtype_str: str) -> str:
         # Use map_dtype to properly handle the base type
         return map_dtype(base_type)
     
+    # Handle Polars Array with fixed size (e.g., "Array<Float64, 3>")
+    array_fixed_match = re.match(r'Array<(.+),\s*(\d+)>', dtype_str, re.IGNORECASE)
+    if array_fixed_match:
+        inner_type = map_dtype(array_fixed_match.group(1))
+        size = array_fixed_match.group(2)
+        return f'<arr<{inner_type[1:-1]},{size}>>'
+    
     # Handle List types (e.g., "List<Int64>", "Array<Float64>")
     list_match = re.match(r'List<(.+)>', dtype_str, re.IGNORECASE)
     if list_match:
@@ -189,20 +208,32 @@ def simplify_complex_type(dtype_str: str) -> str:
     if fixed_match:
         return f'<fixed_{fixed_match.group(1).lower()}>'
     
-    # Handle Timestamp with timezone (e.g., "Timestamp<ns, UTC>")
-    timestamp_match = re.match(r'Timestamp<(.+)>', dtype_str, re.IGNORECASE)
-    if timestamp_match:
+    # Handle Polars Datetime with timezone (e.g., "Datetime<ns, UTC>", "Datetime<us>")
+    datetime_match = re.match(r'Datetime<(.+)>', dtype_str, re.IGNORECASE)
+    if datetime_match:
         return '<dt>'
     
-    # Handle Duration with unit (e.g., "Duration<ns>")
+    # Handle Polars Duration with unit (e.g., "Duration<ns>", "Duration<us>")
     duration_match = re.match(r'Duration<(.+)>', dtype_str, re.IGNORECASE)
     if duration_match:
         return '<td>'
     
-    # Handle Decimal with precision (e.g., "Decimal128(10, 2)")
-    decimal_match = re.match(r'Decimal\d*\((.+)\)', dtype_str, re.IGNORECASE)
+    # Handle Polars Decimal with precision (e.g., "Decimal(10, 2)")
+    decimal_match = re.match(r'Decimal\((.+)\)', dtype_str, re.IGNORECASE)
     if decimal_match:
         return '<dec>'
+    
+    # Handle Arrow Decimal with precision (e.g., "Decimal128(10, 2)")
+    decimal_arrow_match = re.match(r'Decimal\d*\((.+)\)', dtype_str, re.IGNORECASE)
+    if decimal_arrow_match:
+        return '<dec>'
+    
+
+    
+    # Handle Arrow Timestamp with timezone (e.g., "Timestamp<ns, UTC>")
+    timestamp_match = re.match(r'Timestamp<(.+)>', dtype_str, re.IGNORECASE)
+    if timestamp_match:
+        return '<dt>'
     
     return dtype_str
 
@@ -280,20 +311,20 @@ def detect_library_from_dtypes(dtypes: List[Union[str, object]]) -> Optional[str
     
     dtype_strs = [str(dtype).strip() for dtype in dtypes]
     
-    # Check for pandas patterns
-    pandas_patterns = ['object', 'int64', 'float64', 'bool', 'datetime64', 'category']
-    if any(pattern in dtype_str for dtype_str in dtype_strs for pattern in pandas_patterns):
-        return 'pandas'
-    
-    # Check for arrow patterns first (more specific to avoid conflicts)
-    arrow_patterns = ['LargeString', 'Timestamp', 'Date32', 'Date64', 'Time32', 'Time64', 'LargeList', 'FixedSizeList', 'LargeBinary', 'FixedSizeBinary', 'Utf8']
+    # Check for arrow patterns first (most specific to avoid conflicts)
+    arrow_patterns = ['LargeString', 'LargeList', 'FixedSizeList', 'LargeBinary', 'FixedSizeBinary', 'Date32', 'Date64', 'Time32', 'Time64', 'Dictionary', 'Union', 'DenseUnion', 'SparseUnion', 'Utf8']
     if any(pattern in dtype_str for dtype_str in dtype_strs for pattern in arrow_patterns):
         return 'arrow'
     
-    # Check for polars patterns
-    polars_patterns = ['String', 'Int64', 'Float64', 'Boolean', 'Datetime', 'Categorical']
+    # Check for polars patterns (more specific than pandas)
+    polars_patterns = ['String', 'Int64', 'Float64', 'Boolean', 'Datetime', 'Categorical', 'Duration', 'Enum', 'Array<', 'List<', 'Struct<', 'Field<']
     if any(pattern in dtype_str for dtype_str in dtype_strs for pattern in polars_patterns):
         return 'polars'
+    
+    # Check for pandas patterns (most generic, check last)
+    pandas_patterns = ['object', 'int64', 'float64', 'bool', 'datetime64', 'category']
+    if any(pattern in dtype_str for dtype_str in dtype_strs for pattern in pandas_patterns):
+        return 'pandas'
     
     return None
 
