@@ -364,14 +364,95 @@ pub fn format_strings(
 ) -> Vec<String> {
     let ellipsis = '\u{2026}';
 
+    // Precompute a pillar-like decision: if the decimal-aligned width for the column
+    // would exceed max_decimal_width, switch the entire numeric column to scientific.
+    // This decision is based on decimal representations only, ignoring per-value
+    // preserve_scientific and per-value max width rules.
+    let mut has_numeric: bool = false;
+    let mut decimal_candidates: Vec<Option<String>> = Vec::with_capacity(vec_col.len());
+    let mut max_whole_dec: usize = 0;
+    let mut max_fract_dec: usize = 0;
+
+    for &cell in vec_col.iter() {
+        // Treat NA specially but do not count as numeric
+        if is_na(cell) {
+            decimal_candidates.push(None);
+            continue;
+        }
+        // Determine if numeric
+        if let Ok(val) = cell.trim().parse::<f64>() {
+            has_numeric = true;
+            let dec_str = sigfig::DecimalSplits { val, sigfig }.final_string();
+            // Measure whole/fract lengths based on '.' splitting like our alignment does
+            let mut split = dec_str.split('.');
+            let lhs_len = split.next().map(|lhs| lhs.len()).unwrap_or(0);
+            let rhs_len = split.next().map(|rhs| rhs.len()).unwrap_or(0);
+            if lhs_len > max_whole_dec {
+                max_whole_dec = lhs_len;
+            }
+            if rhs_len > max_fract_dec {
+                max_fract_dec = rhs_len;
+            }
+            decimal_candidates.push(Some(dec_str));
+        } else {
+            decimal_candidates.push(None);
+        }
+    }
+
+    // Width needed for decimal-aligned rendering (include decimal point iff any fraction)
+    let decimal_required_width: usize = if has_numeric {
+        max_whole_dec + if max_fract_dec > 0 { 1 } else { 0 } + max_fract_dec
+    } else {
+        0
+    };
+
+    // Decide if the column should be scientific as a whole
+    let scientific_for_column: bool = has_numeric && decimal_required_width > max_decimal_width;
+
+    // Now build the strings according to the decision above
     let strings_and_fracts: Vec<(String, usize, usize)> = vec_col
         .iter()
-        .map(|&string| format_if_na(string))
-        .map(|string| format_if_num(&string, sigfig, preserve_scientific, max_decimal_width))
-        .map(|string| {
+        .enumerate()
+        .map(|(idx, &raw)| {
+            // First, normalize NA
+            let normalized = format_if_na(raw);
+
+            // If scientific_for_column, convert all numeric to scientific with sigfig-1 precision
+            // Zero stays as "0" to mirror pillar-like output
+            let rendered = if scientific_for_column {
+                if let Ok(val) = raw.trim().parse::<f64>() {
+                    if val == 0.0 {
+                        "0".to_string()
+                    } else {
+                        format!(
+                            "{:.precision$e}",
+                            val,
+                            precision = (sigfig - 1).max(0) as usize
+                        )
+                    }
+                } else {
+                    normalized
+                }
+            } else {
+                // Decimal mode: use precomputed decimal candidate for numerics, but
+                // honor preserve_scientific to keep scientific inputs as-is (pillar has no
+                // such flag; this is tv-specific behavior).
+                if let Ok(_val) = raw.trim().parse::<f64>() {
+                    if preserve_scientific && is_scientific_notation(raw) {
+                        raw.to_string()
+                    } else if let Some(dec) = decimal_candidates.get(idx).and_then(|x| x.clone()) {
+                        dec
+                    } else {
+                        normalized
+                    }
+                } else {
+                    normalized
+                }
+            };
+
             // the string, and the length of its fractional digits if any
-            let (lhs, rhs) = if is_double(&string) {
-                let mut split = string.split('.');
+            let (lhs, rhs) = if is_double(&rendered) {
+                let mut split = rendered.split('.');
                 (
                     split.next().map(|lhs| lhs.len()).unwrap_or_default(),
                     split.next().map(|rhs| rhs.len()).unwrap_or_default(),
@@ -379,7 +460,7 @@ pub fn format_strings(
             } else {
                 (0, 0)
             };
-            (string, lhs, rhs)
+            (rendered, lhs, rhs)
         })
         .collect();
 
@@ -554,7 +635,7 @@ pub fn calculate_column_width(column: &[String], min_width: usize, max_width: us
 
 #[cfg(test)]
 mod tests {
-    use crate::datatype::{format_if_num, is_scientific_notation, parse_delimiter};
+    use super::*;
 
     #[test]
     fn one_byte_delimiter() {
@@ -646,5 +727,31 @@ mod tests {
 
         // Long decimal should be auto-converted even with preserve_scientific
         assert_eq!(format_if_num("0.000000123", 3, true, 8), "1.23e-7");
+    }
+
+    #[test]
+    fn test_column_scientific_switch_small_values() {
+        // Column includes small values requiring width > max_decimal_width; expect scientific
+        let col = vec![
+            "12345", "1234.5", "123.45", "12.345", "1.2345", "0.12345", "0.012345",
+            "0.0012345", "0.00012345", "0.000012345", "0",
+        ];
+        let formatted = format_strings(&col.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), 2, 30, 3, false, 13);
+        // Values near 1e-5 should be in scientific form when column switches
+        let any_scientific = formatted.iter().any(|s| s.contains('e'));
+        assert!(any_scientific);
+        // Zero remains 0
+        assert!(formatted.iter().any(|s| s.trim() == "0"));
+    }
+
+    #[test]
+    fn test_column_no_switch_short_range() {
+        // Shorter dataset should remain decimal for all reasonable values
+        let col = vec![
+            "12345", "1234.5", "123.45", "12.345", "1.2345", "0.12345", "0.012345", "0",
+        ];
+        let formatted = format_strings(&col.iter().map(|s| s.as_str()).collect::<Vec<&str>>(), 2, 30, 3, false, 13);
+        let any_scientific = formatted.iter().any(|s| s.contains('e'));
+        assert!(!any_scientific);
     }
 }
