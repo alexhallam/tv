@@ -4,6 +4,7 @@ use owo_colors::OwoColorize;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
+use crossterm::terminal::size as term_size;
 
 use crate::types::{ColorScheme, FormatOptions};
 use tidy_viewer_core::{format_strings, is_na_string_padded, is_negative_number};
